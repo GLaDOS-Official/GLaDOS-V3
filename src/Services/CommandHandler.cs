@@ -34,21 +34,21 @@ namespace GladosV3.Services
             if (msg.Author.IsBot) return; // Ignore other bots
             var context = new SocketCommandContext(_discord, msg);     // Create the command context
             int argPos = 0;     // Check if the message has a valid command prefix
-            if (msg.HasStringPrefix(_config["prefix"], ref argPos) || msg.HasMentionPrefix(_discord.CurrentUser, ref argPos))
+            if (msg.HasStringPrefix(_config["prefix"], ref argPos) || msg.HasMentionPrefix(_discord.CurrentUser, ref argPos)) // Ignore messagess that aren't meant for the bot
             {
                 if (Boolean.Parse(_config["maintenance"]) && msg.Author.Id != Convert.ToUInt64(_config["ownerID"])) { await context.Channel.SendMessageAsync("This bot is in maintenance mode! Please refrain from using it."); return; } // Don't execute commands in maintenance mode 
                 var result = await _commands.ExecuteAsync(context, argPos, _provider);     // Execute the command
                 if (!result.IsSuccess && result.ErrorReason != "Unknown command.")     // If not successful, reply with the error.
-                    switch (result.ErrorReason)
+                    switch (result.ErrorReason) // "Custom" error
                     {
                         case "Invalid context for command; accepted contexts: Guild":
                             await context.Channel.SendMessageAsync("**Error:** This command must be used in a guild!");
                             break;
                         case "The input text has too few parameters.":
-                            await context.Channel.SendMessageAsync("**Error:** None or few arguments are being used");
+                            await context.Channel.SendMessageAsync("**Error:** None or few arguments are being used.");
                             break;
                         case "User not found.":
-                            await context.Channel.SendMessageAsync("**Error:** No user is mentioned.");
+                            await context.Channel.SendMessageAsync("**Error:** No user mention detected.");
                             break;
                         default:
                             await context.Channel.SendMessageAsync($@"**Error:** {result.ErrorReason}");

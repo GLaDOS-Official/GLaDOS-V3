@@ -14,9 +14,11 @@ namespace GladosV3.Modules
         [Command("purge")]
         [Summary("purge <no. of messages>")]
         [Remarks("Removes specified amount of messages")]
+        [Helpers.RequireUserPermission(GuildPermission.ManageMessages)]
+        [RequireBotPermission(GuildPermission.ManageMessages)]
         public async Task Prune(int count = 100)
         {
-            if (count < 1)
+            if (count < 2)
             {
                 await ReplyAsync("**ERROR: **Please Specify the amount of messages you want to clear");
             }
@@ -37,17 +39,19 @@ namespace GladosV3.Modules
         [Command("prune")]
         [Summary("prune <user>")]
         [Remarks("Removes most recent messages from a user")]
-        public async Task Prune(IUser user)
+        [Helpers.RequireUserPermission(GuildPermission.ManageMessages)]
+        [RequireBotPermission(GuildPermission.ManageMessages)]
+        public async Task Prune(IUser UserMention)
         {
             await Context.Message.DeleteAsync().ConfigureAwait(false);
             var enumerable = await Context.Channel.GetMessagesAsync().Flatten().ConfigureAwait(false);
-            var newlist = enumerable.Where(x => x.Author == user).ToList();
+            var newlist = enumerable.Where(x => x.Author == UserMention).ToList();
             await Context.Channel.DeleteMessagesAsync(newlist).ConfigureAwait(false);
-            await ReplyAsync($"Cleared **{user.Username}'s** Messages (Count = {newlist.Count})");
+            await ReplyAsync($"Cleared **{UserMention.Username}'s** Messages (Count = {newlist.Count})");
         }
         [Command("kick")]
         [Summary("kick <user> [reason]")]
-        [Remarks("Kick the specified user.")]
+        [Remarks("Kicks the specified user.")]
         [Helpers.RequireUserPermission(GuildPermission.KickMembers)]
         [RequireBotPermission(GuildPermission.KickMembers)]
         public async Task Kick(SocketGuildUser UserMention, [Remainder] string reason = "Unspecified.")
