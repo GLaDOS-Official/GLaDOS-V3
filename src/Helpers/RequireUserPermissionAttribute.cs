@@ -63,7 +63,7 @@ namespace GladosV3.Helpers
                 else
                     perms = ChannelPermissions.All(context.Channel);
 
-                if (!perms.Has(ChannelPermission.Value) && guildUser.Id != application.Result.Owner.Id)
+                if (!perms.Has(ChannelPermission.Value) && guildUser?.Id != application.Result.Owner.Id)
                     return Task.FromResult(PreconditionResult.FromError($"User requires channel permission {ChannelPermission.Value}"));
             }
 

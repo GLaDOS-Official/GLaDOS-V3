@@ -39,6 +39,7 @@ namespace GladosV3
                 .AddSingleton<StartupService>()
                 .AddSingleton<Random>()             // You get better random with a single instance than by creating a new one every time you need it
                 .AddSingleton<SystemMessage>()
+                .AddSingleton<IsOwner>()
                 .AddSingleton(_config);
 
             var provider = services.BuildServiceProvider();     // Create the service provider

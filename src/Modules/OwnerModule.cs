@@ -45,10 +45,10 @@ namespace GladosV3.Modules
         [Command("eval")]
         [Summary("eval <c# code>")]
         [Remarks("Execute c# code")]
-        [Discord.Commands.RequireOwner]
+        [Helpers.RequireOwner]
         public async Task eval([Remainder]string CsharpCode)
         {
-            await ReplyAsync(Eval.evalTask(CsharpCode, false).GetAwaiter().GetResult());
+            await ReplyAsync(Eval.EvalTask(CsharpCode).GetAwaiter().GetResult());
         }
         public static T Clone<T>(T obj)
         {
