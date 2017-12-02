@@ -1,9 +1,14 @@
 ﻿using System;
+using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.CSharp;
+using System.CodeDom.Compiler;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.Extensions.Configuration;
 
 namespace GladosV3.Services
@@ -32,13 +37,30 @@ namespace GladosV3.Services
             string gameTitle = _config["discord:game"]; // Get bot's game status
             if (string.IsNullOrWhiteSpace(discordToken) || string.IsNullOrEmpty(discordToken))
                 throw new Exception("Please enter your bot's token into the `_configuration.json` file found in the applications root directory.");
-
             else if (!string.IsNullOrWhiteSpace(discordToken) || !string.IsNullOrEmpty(discordToken))
                 await _discord.SetGameAsync(gameTitle);
             await _discord.LoginAsync(TokenType.Bot, discordToken);     // Login to discord
             await _discord.StartAsync();                                // Connect to the websocket
-
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly());     // Load commands and modules into the command service
+            Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules");
+            if(Directory.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules")))
+                foreach (var file in Directory.GetFiles(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+                    "Modules")))
+                {
+                    if (Path.GetExtension(file) != ".dll") continue;
+                    try
+                    {
+                        var asm = Assembly.LoadFile(file);
+                        if (asm.GetName().Name != "GladosV3.Modules") continue;
+                        await _commands.AddModulesAsync(asm);
+                        await new LoggingService(_discord,_commands,false).Log(LogSeverity.Verbose, "Module",
+                            $"Loaded modules: {asm.GetModules().Aggregate(string.Empty, (current, module) => current + (module + ","))} from {Path.GetFileNameWithoutExtension(file)}");
+                    }
+                    catch
+                    {
+                        // ignored
+                    }
+                }
         }
     }
 }

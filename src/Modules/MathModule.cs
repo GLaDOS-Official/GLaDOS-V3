@@ -35,7 +35,7 @@ namespace GladosV3.Modules
                        throw new FormatException("NaN returned");
                     //  t64 v = Int64.Parse(dt.Rows[0][""].ToString());
                     await ReplyAsync(
-                        $"Math is solved! The output is: {Double.Parse(done.ToString(String.Empty), NumberStyles.Float).ToString("N2", System.Globalization.CultureInfo.CreateSpecificCulture("en-US"))}");
+                        $"Math is solved! The output is: {Double.Parse(done.ToString(String.Empty), NumberStyles.Float).ToString("N2", CultureInfo.CreateSpecificCulture("en-US"))}");
                 }
                 catch (FormatException e)
                 {

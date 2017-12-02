@@ -50,11 +50,11 @@ namespace GladosV3.Modules
                     if (cmd.Parameters.Count != 0)
                         text += $"Arguments: {string.Join(", ", cmd.Parameters.Select(p => p.Name))}\n";
                     else
-                        text += "None";
+                        text += "Arguments: None\n";
                     if (!string.IsNullOrWhiteSpace(cmd.Summary) || !string.IsNullOrEmpty(cmd.Summary))
-                        text += $"Info: {cmd.Summary}";
+                        text += $"Info: {cmd.Summary}\n";
                     if (!string.IsNullOrWhiteSpace(cmd.Remarks))
-                        text += $"Example: {cmd.Remarks}";
+                        text += $"Example: {cmd.Remarks}\n";
                     builder.AddField(x =>
                     {
                         x.Name = string.Join(", ", cmd.Aliases);

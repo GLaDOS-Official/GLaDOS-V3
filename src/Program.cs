@@ -27,24 +27,29 @@ namespace GladosV3
                 .AddSingleton(new DiscordSocketClient(new DiscordSocketConfig     // Add the discord client to the service provider
                 {
                     LogLevel = LogSeverity.Verbose,
-                    MessageCacheSize = 1000     // Tell Discord.Net to cache 1000 messages per channel
+                    MessageCacheSize = 1000,    // Tell Discord.Net to cache 1000 messages per channel
+                    DefaultRetryMode = RetryMode.AlwaysRetry // Always believe
                 }))
                 .AddSingleton(new CommandService(new CommandServiceConfig     // Add the command service to the service provider
                 {
                     DefaultRunMode = RunMode.Async,     // Force all commands to run async
-                    LogLevel = LogSeverity.Verbose
+                    LogLevel = LogSeverity.Verbose,
+                    SeparatorChar = ' ',
+                    ThrowOnError = true
                 }))
                 .AddSingleton<CommandHandler>()     // Add remaining services to the provider
-                .AddSingleton<LoggingService>()     
-                .AddSingleton<StartupService>()
+                .AddSingleton<LoggingService>()     // Bad idea not logging commands 
+                .AddSingleton<StartupService>()     // Do commands on startup
                 .AddSingleton<Random>()             // You get better random with a single instance than by creating a new one every time you need it
-                .AddSingleton<SystemMessage>()
-                .AddSingleton<IsOwner>()
+                .AddSingleton<SystemMessage>()      // System message, simple
+                .AddSingleton<IsOwner>()            // I don't like the way Discord.NET handles owner attribute
+                .AddSingleton<OnLogonService>()     // Execute commands after websocket connects
                 .AddSingleton(_config);
 
             var provider = services.BuildServiceProvider();     // Create the service provider
 
-            provider.GetRequiredService<LoggingService>();      // Initialize the logging service, startup service, and command handler
+            provider.GetRequiredService<LoggingService>();      // Initialize the logging service, startup service, command handler and system message
+            provider.GetRequiredService<OnLogonService>();
             await provider.GetRequiredService<StartupService>().StartAsync();
             provider.GetRequiredService<CommandHandler>();
             provider.GetRequiredService<SystemMessage>().KeyPress();

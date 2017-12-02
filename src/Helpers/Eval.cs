@@ -27,7 +27,7 @@ namespace GladosV3.Helpers
                     .GetAwaiter()
                     .GetResult());
                 if (!string.IsNullOrEmpty(script?.ToString()))
-                    return await Task.FromResult("Executed! Output: "+Environment.NewLine+Convert.ToString(script));
+                    return await Task.FromResult($"Executed!{Environment.NewLine}Output: {Convert.ToString(script)}");
                 else
                     return await Task.FromResult("Executed! No output.");
             }

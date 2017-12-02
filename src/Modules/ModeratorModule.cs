@@ -104,6 +104,7 @@ namespace GladosV3.Modules
                 await ReplyAsync($"How? I seem that I unable to ban {UserMention.Mention}!");
             }
         }
+
         [Command("leave")]
         [Summary("leave")]
         [Remarks("Sad to see you go!")]

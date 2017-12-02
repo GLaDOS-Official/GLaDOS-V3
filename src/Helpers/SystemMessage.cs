@@ -44,10 +44,12 @@ namespace GladosV3.Helpers
                                 Console.ResetColor();
                                 break;
                             case ConsoleKey.Enter:
+                                if (!string.IsNullOrWhiteSpace(input)) break;
                                 foreach (var t in _discord.Guilds)
                                 {
                                     t.DefaultChannel.SendMessageAsync($"System message: {input}");
                                 }
+
                                 input = string.Empty;
                                 Console.WriteLine($"{Environment.NewLine}Sended!");
                                 break;
