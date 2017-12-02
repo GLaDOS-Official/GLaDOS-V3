@@ -1,0 +1,12 @@
+﻿{
+  "prefix": "-",
+  "name": "GLaDOS V3",
+  "maintenance": true,
+  "ownerID": "your id",
+  "discord": {
+    "game": "Heeyyyyyyyyy!"
+  },
+  "tokens": {
+    "discord": "Discord token" 
+  }
+}
