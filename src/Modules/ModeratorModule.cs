@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -31,7 +32,15 @@ namespace GladosV3.Modules
                 await Context.Message.DeleteAsync().ConfigureAwait(false);
                 var limit = count < 100 ? count : 100;
                 var enumerable = await Context.Channel.GetMessagesAsync(limit).Flatten().ConfigureAwait(false);
-                await Context.Channel.DeleteMessagesAsync(enumerable).ConfigureAwait(false);
+                try
+                {
+                    await Context.Channel.DeleteMessagesAsync(enumerable).ConfigureAwait(false);
+                }
+                catch (ArgumentOutOfRangeException ex)
+                {
+                    await ReplyAsync("Some messages failed to delete! This is not a error and can not be fixed!");
+                    return;
+                }
                 await ReplyAsync($"Cleared **{count}** Messages");
             }
         }
@@ -46,7 +55,15 @@ namespace GladosV3.Modules
             await Context.Message.DeleteAsync().ConfigureAwait(false);
             var enumerable = await Context.Channel.GetMessagesAsync().Flatten().ConfigureAwait(false);
             var newlist = enumerable.Where(x => x.Author == UserMention).ToList();
-            await Context.Channel.DeleteMessagesAsync(newlist).ConfigureAwait(false);
+            try
+            {
+                await Context.Channel.DeleteMessagesAsync(newlist).ConfigureAwait(false);
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                await ReplyAsync("Some messages failed to delete! This is not a error and can not be fixed!");
+                return;
+            }
             await ReplyAsync($"Cleared **{UserMention.Username}'s** Messages (Count = {newlist.Count})");
         }
         [Command("kick")]
