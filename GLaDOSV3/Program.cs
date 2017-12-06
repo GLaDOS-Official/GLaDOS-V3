@@ -18,10 +18,7 @@ namespace GladosV3
 
         public async Task StartAsync()
         {
-            var builder = new ConfigurationBuilder()    // Begin building the configuration file
-                .SetBasePath(AppContext.BaseDirectory)  // Specify the location of the config
-                .AddJsonFile("_configuration.json");    // Add the configuration file
-            _config = builder.Build();                  // Build the configuration file
+            _config = await Tools.GetConfig();              // Build the configuration file
 
             var services = new ServiceCollection()      // Begin building the service provider
                 .AddSingleton(new DiscordSocketClient(new DiscordSocketConfig     // Add the discord client to the service provider

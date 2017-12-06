@@ -15,7 +15,8 @@ using System.IO;
 
 namespace GladosV3.Modules
 {
-    public class PublicModule : ModuleBase<SocketCommandContext>
+    [Name("Info")]
+    public class InfoModule : ModuleBase<SocketCommandContext>
     {
         [Command("info"), Remarks("Displays bot info.")]
         [Summary("info")]
@@ -115,8 +116,8 @@ namespace GladosV3.Modules
                     "For selfroles and Mod usage higher perms are needed!\n" +
                     $"[Click to Invite](https://discordapp.com/oauth2/authorize?client_id="+Context.Client.CurrentUser.Id+"&scope=bot&permissions=2146958591)"
             };
-            IDMChannel DM = await Context.Message.Author.GetOrCreateDMChannelAsync();
-            await DM.SendMessageAsync("", false, eb);
+            IDMChannel dm = await Context.Message.Author.GetOrCreateDMChannelAsync();
+            await dm.SendMessageAsync("", false, eb);
         }
         [Command("user"), Remarks("Returns info about the current user, or the user paramter, if one passed.")]
         [Summary("user (mention)")]
@@ -126,12 +127,12 @@ namespace GladosV3.Modules
             try
             {
                 var userInfo = user ?? Context.User; // ?? if not null return left. if null return right
-                var avatarURL = userInfo.GetAvatarUrl() ??
+                var avatarUrl = userInfo.GetAvatarUrl() ??
                                 "http://ravegames.net/ow_userfiles/themes/theme_image_22.jpg";
                 var eb = new EmbedBuilder()
                 {
                     Color = new Color(4, 97, 247),
-                    ThumbnailUrl = (avatarURL),
+                    ThumbnailUrl = (avatarUrl),
                     Title = $"{userInfo.Username}#{userInfo.Discriminator}",
                     Description = $"Created on {userInfo.CreatedAt.ToString().Remove(userInfo.CreatedAt.ToString().Length - 6)}. That is {(int)(DateTime.Now.Subtract(userInfo.CreatedAt.DateTime).TotalDays)} days ago!", //{(int)(DateTime.Now.Subtract(Context.Guild.CreatedAt.DateTime).TotalDays)}
                     Footer = new EmbedFooterBuilder()
@@ -188,7 +189,7 @@ namespace GladosV3.Modules
                 {
                     x.Name = "Avatar";
                     x.IsInline = true;
-                    x.Value = $"[Click to View]({avatarURL})";
+                    x.Value = $"[Click to View]({avatarUrl})";
                 });
                 if (Context.Guild != null)
                 {
@@ -221,7 +222,7 @@ namespace GladosV3.Modules
                     {
                         //string roles = socketUser.Roles.Where(role => role.Name != "@everyone").Aggregate("", (current, role) => current + $"{role.Name}, ");
                         string roles = "";
-                        if(socketUser.Roles.Count > 1) {
+                        if(socketUser != null && socketUser.Roles.Count > 1) {
                             foreach (var role in socketUser.Roles)
                             {
                                 if (role.Name != "@everyone" && socketUser.Roles.ToList().Last() != role)
