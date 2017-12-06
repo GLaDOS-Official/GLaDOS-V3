@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 namespace GladosV3.Modules
 {
-    [Name("Help")]
     public class HelpModule : ModuleBase<SocketCommandContext>
     {
         private readonly CommandService _service;
@@ -97,8 +96,8 @@ namespace GladosV3.Modules
                     }
                 }
             }
-            IDMChannel dm = await Context.Message.Author.GetOrCreateDMChannelAsync();
-            await dm.SendMessageAsync("", false, builder.Build());
+            IDMChannel DM = await Context.Message.Author.GetOrCreateDMChannelAsync();
+            await DM.SendMessageAsync("", false, builder.Build());
         }
     }
 }

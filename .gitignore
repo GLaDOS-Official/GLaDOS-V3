@@ -7,7 +7,7 @@
 *.userosscache
 *.sln.docstates
 # Glados config file
-/GLaDOSV3/_configuration.json
+src/_configuration.json
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

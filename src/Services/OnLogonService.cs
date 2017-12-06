@@ -30,7 +30,6 @@ namespace GladosV3.Services
         private async Task Connected()
         {
             await IsMfaEnabled();
-            await GetUserFromConfig();
         }
         private Task<bool> IsMfaEnabled()
         {
@@ -40,13 +39,6 @@ namespace GladosV3.Services
             loggingService.Log(LogSeverity.Warning, "Bot",
                 "MFA is disabled! This means that your bot will be unable to gather Administator, Manage server & roles & channels & messages & webhooks, kick and ban members!",
                 null).GetAwaiter();
-            return Task.FromResult(false);
-        }
-        private Task<bool> GetUserFromConfig()
-        {
-            if (_discord.CurrentUser == null) return Task.FromResult(false);
-            else if (_discord.CurrentUser.Username != _config["name"])
-                _discord.CurrentUser.ModifyAsync(u => u.Username = _config["name"]);
             return Task.FromResult(false);
         }
     }

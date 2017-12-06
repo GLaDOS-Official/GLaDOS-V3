@@ -36,7 +36,7 @@ namespace GladosV3.Modules
                 {
                     await Context.Channel.DeleteMessagesAsync(enumerable).ConfigureAwait(false);
                 }
-                catch (ArgumentOutOfRangeException)
+                catch (ArgumentOutOfRangeException ex)
                 {
                     await ReplyAsync("Some messages failed to delete! This is not a error and can not be fixed!");
                     return;
@@ -59,7 +59,7 @@ namespace GladosV3.Modules
             {
                 await Context.Channel.DeleteMessagesAsync(newlist).ConfigureAwait(false);
             }
-            catch (ArgumentOutOfRangeException)
+            catch (ArgumentOutOfRangeException ex)
             {
                 await ReplyAsync("Some messages failed to delete! This is not a error and can not be fixed!");
                 return;

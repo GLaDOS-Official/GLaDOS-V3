@@ -15,7 +15,7 @@ namespace GladosV3.Helpers
     {
         public static async Task<string> EvalTask(string cScode)
         {
-            string[] imports = new[]
+            string[] Imports = new[]
             {
                 "System", "System.Collections.Generic", "System.Reflection", "System.Text", "System.Threading.Tasks",
                 "System.IO"
@@ -23,7 +23,7 @@ namespace GladosV3.Helpers
             try
             {
                 object script = (
-                    CSharpScript.EvaluateAsync(cScode, ScriptOptions.Default.WithImports(imports))
+                    CSharpScript.EvaluateAsync(cScode, ScriptOptions.Default.WithImports(Imports))
                     .GetAwaiter()
                     .GetResult());
                 if (!string.IsNullOrEmpty(script?.ToString()))
@@ -33,7 +33,7 @@ namespace GladosV3.Helpers
             }
             catch (CompilationErrorException e)
             {
-                return await Task.FromResult<string>($"Compiler error{Environment.NewLine}Output: {string.Join(Environment.NewLine, e.Diagnostics)}");
+                return await Task.FromResult<string>(string.Join(Environment.NewLine, e.Diagnostics));
             }
             catch (Exception e)
             {
