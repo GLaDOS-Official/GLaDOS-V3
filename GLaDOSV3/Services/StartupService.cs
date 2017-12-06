@@ -8,6 +8,8 @@ using Discord.WebSocket;
 using Microsoft.CSharp;
 using System.CodeDom.Compiler;
 using System.Linq;
+using System.Net;
+using Discord.Net;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.Extensions.Configuration;
 
@@ -39,8 +41,24 @@ namespace GladosV3.Services
                 throw new Exception("Please enter your bot's token into the `_configuration.json` file found in the applications root directory.");
             else if (!string.IsNullOrWhiteSpace(discordToken) || !string.IsNullOrEmpty(discordToken))
                 await _discord.SetGameAsync(gameTitle);
-            await _discord.LoginAsync(TokenType.Bot, discordToken);     // Login to discord
-            await _discord.StartAsync();                                // Connect to the websocket
+            try
+            {
+                await _discord.LoginAsync(TokenType.Bot, discordToken,true); // Login to discord
+                await _discord.StartAsync(); // Connect to the websocket
+            }
+            catch (HttpException ex)
+            {
+                if(ex.DiscordCode == 401 || ex.HttpCode == HttpStatusCode.Unauthorized)
+                    Helpers.Tools.WriteColorMessage(ConsoleColor.Red,"Wrong or invalid token.");
+                else if(ex.DiscordCode == 502 || ex.HttpCode == HttpStatusCode.BadGateway)
+                    Helpers.Tools.WriteColorMessage(ConsoleColor.Yellow,"Gateway unavailable.");
+                else if (ex.DiscordCode == 400 || ex.HttpCode == HttpStatusCode.BadRequest)
+                    Helpers.Tools.WriteColorMessage(ConsoleColor.Red,"Bad request. Please wait for an update.");
+               Helpers.Tools.WriteColorMessage(ConsoleColor.Red,$"Discord has returned an error code: {ex.DiscordCode}{Environment.NewLine}Here's exception message: {ex.Message}");
+                Task.Delay(10000).Wait();
+                Environment.Exit(0);
+            }
+
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly());     // Load commands and modules into the command service
             Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules");
             if(Directory.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules")))
@@ -51,10 +69,11 @@ namespace GladosV3.Services
                     try
                     {
                         var asm = Assembly.LoadFile(file);
-                        if (asm.GetName().Name != "GladosV3.Modules") continue;
+                        if (!asm.GetTypes().Select(t => t.Namespace).Distinct().Contains("GladosV3.Modules")) continue;
                         await _commands.AddModulesAsync(asm);
+                        string modules = asm.GetTypes().Where(type => type.IsClass && !type.IsSpecialName && type.IsPublic).Aggregate(string.Empty, (current, type) => current + (type.Name + ','));
                         await new LoggingService(_discord,_commands,false).Log(LogSeverity.Verbose, "Module",
-                            $"Loaded modules: {asm.GetModules().Aggregate(string.Empty, (current, module) => current + (module + ","))} from {Path.GetFileNameWithoutExtension(file)}");
+                            $"Loaded modules: {modules} from {Path.GetFileNameWithoutExtension(file)}");
                     }
                     catch
                     {

@@ -15,25 +15,33 @@ namespace GladosV3.Helpers
     class SystemMessage
     {
         private readonly DiscordSocketClient _discord;
+        private readonly CommandService _commands;
+        private readonly IConfigurationRoot _config;
+        private readonly IServiceProvider _provider;
 
         // DiscordSocketClient, CommandService, IConfigurationRoot, and IServiceProvider are injected automatically from the IServiceProvider
         public SystemMessage(
-            DiscordSocketClient discord)
+            DiscordSocketClient discord,
+            CommandService commands,
+            IConfigurationRoot config,
+            IServiceProvider provider)
         {
             _discord = discord;
+            _commands = commands;
+            _config = config;
+            _provider = provider;
         }
         public void KeyPress()
         {
+            if (Boolean.Parse(_config["maintenance"])) return;
             Thread thread = new Thread(() =>
             {
-                var stdout = Console.OpenStandardOutput();
                 while (true)
                 {
-                    ConsoleKeyInfo kb;
                     string input = string.Empty;
                     do
                     {
-                        kb = Console.ReadKey();
+                        var kb = Console.ReadKey();
                         switch (kb.Key)
                         {
                             case ConsoleKey.Backspace:
@@ -49,7 +57,6 @@ namespace GladosV3.Helpers
                                 {
                                     t.DefaultChannel.SendMessageAsync($"System message: {input}");
                                 }
-
                                 input = string.Empty;
                                 Console.WriteLine($"{Environment.NewLine}Sended!");
                                 break;
@@ -58,7 +65,6 @@ namespace GladosV3.Helpers
                                 if (char.IsLetterOrDigit(kb.KeyChar) && r.IsMatch(kb.ToString()))
                                 {
                                     input += kb.KeyChar;
-                                    //Console.Write(kb.KeyChar);
                                 }
                                 break;
                         }
