@@ -8,7 +8,7 @@
 *.sln.docstates
 # Glados config file
 /GLaDOSV3/_configuration.json
-
+/GladosV3.Modules/PrereleaseModule.cs
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
