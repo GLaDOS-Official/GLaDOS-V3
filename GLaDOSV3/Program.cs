@@ -31,8 +31,8 @@ namespace GladosV3
                 {
                     DefaultRunMode = RunMode.Async,     // Force all commands to run async
                     LogLevel = LogSeverity.Verbose,
-                    SeparatorChar = ' ',
-                    ThrowOnError = true
+                    SeparatorChar = ' ',  // Arguments
+                    ThrowOnError = true // This could be changed to false
                 }))
                 .AddSingleton<CommandHandler>()     // Add remaining services to the provider
                 .AddSingleton<LoggingService>()     // Bad idea not logging commands 
@@ -45,7 +45,7 @@ namespace GladosV3
 
             var provider = services.BuildServiceProvider();     // Create the service provider
 
-            provider.GetRequiredService<LoggingService>();      // Initialize the logging service, startup service, command handler and system message
+            provider.GetRequiredService<LoggingService>();      // Initialize the logging service, startup service, on discord log on service, command handler and system message
             provider.GetRequiredService<OnLogonService>();
             await provider.GetRequiredService<StartupService>().StartAsync();
             provider.GetRequiredService<CommandHandler>();

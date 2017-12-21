@@ -42,8 +42,7 @@ namespace GladosV3.Modules
 
             public async Task Maintenance()
             {
-                JObject clasO =
-                    JObject.Parse(File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json")).GetAwaiter().GetResult());
+                JObject clasO = Tools.GetConfig(1).GetAwaiter().GetResult();
                 if (clasO["maintenance"].Value<bool>() == false)
                     clasO["maintenance"] = true;
                 else
@@ -66,7 +65,7 @@ namespace GladosV3.Modules
             public async Task Username([Remainder]string username)
             {
                 JObject clasO =
-                    JObject.Parse(File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json")).GetAwaiter().GetResult());
+                    Tools.GetConfig(1).GetAwaiter().GetResult();
                 clasO["name"] = username;
                 await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json"), clasO.ToString());
                 await ReplyAsync($"Set bot's username to {clasO["name"].Value<string>()}\nRestarting the bot!");
@@ -78,7 +77,8 @@ namespace GladosV3.Modules
             [Helpers.RequireOwner]
             public async Task Eval([Remainder]string code)
             {
-                await ReplyAsync(Helpers.Eval.EvalTask(code).GetAwaiter().GetResult());
+                var message = await ReplyAsync("Please wait...");
+                await message.ModifyAsync(properties => properties.Content = Helpers.Eval.EvalTask(Context, code).GetAwaiter().GetResult());
             }
         }
     }

@@ -17,7 +17,7 @@ namespace GladosV3.Modules
         [Remarks("Removes specified amount of messages")]
         [Helpers.RequireUserPermission(GuildPermission.ManageMessages)]
         [RequireBotPermission(GuildPermission.ManageMessages)]
-        public async Task Prune(int count = 100)
+        public async Task Purge(int count = 100)
         {
             if (count < 2)
             {

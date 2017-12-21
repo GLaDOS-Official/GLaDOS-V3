@@ -1,41 +1,64 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Text;
 using System.Threading.Tasks;
+using Discord;
+using Discord.Commands;
+using Discord.WebSocket;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json.Linq;
+
 namespace GladosV3.Helpers
 {
-    class Eval
+   public class Eval
     {
-        public static async Task<string> EvalTask(string cScode)
+        public class Globals
+        {
+            public Discord.WebSocket.SocketUserMessage Message => this.Context.Message;
+            public Discord.WebSocket.ISocketMessageChannel Channel => this.Context.Message.Channel;
+            public Discord.WebSocket.SocketGuild Guild => this.Context.Guild;
+            public Discord.WebSocket.SocketUser User => this.Context.Message.Author;
+            public Newtonsoft.Json.Linq.JObject Config => Tools.GetConfig(1).GetAwaiter().GetResult();
+            public Discord.WebSocket.DiscordSocketClient Client => this.Context.Client;
+            public Discord.Commands.SocketCommandContext Context { get; private set; }
+
+            public Globals(SocketCommandContext ctx)
+            {
+                this.Context = ctx;
+            }
+        }
+        public static async Task<string> EvalTask(SocketCommandContext ctx, string cScode)
         {
             string[] imports = new[]
             {
-                "System", "System.Collections.Generic", "System.Reflection", "System.Text", "System.Threading.Tasks",
-                "System.IO"
+                "System", "System.Collections.Generic", "System.Reflection", "System.Text", "System.Threading.Tasks","System.Linq","System.Math",
+                "System.IO","Microsoft.Extensions.Configuration","System.Diagnostics","GladosV3.Helpers","Discord","Discord.Commands","Discord.WebSocket"
             };
             try
             {
-                object script = (
-                    CSharpScript.EvaluateAsync(cScode, ScriptOptions.Default.WithImports(imports))
+                ScriptOptions options = ScriptOptions.Default.WithReferences(AppDomain.CurrentDomain.GetAssemblies().Where(asm => !asm.IsDynamic && !string.IsNullOrWhiteSpace(asm.Location))).WithImports(imports).WithEmitDebugInformation(true);
+               /* object script = (
+                    CSharpScript.EvaluateAsync(cScode, ScriptOptions.Default.WithImports(imports),ctx)  
                     .GetAwaiter()
-                    .GetResult());
-                if (!string.IsNullOrEmpty(script?.ToString()))
-                    return await Task.FromResult($"Executed!{Environment.NewLine}Output: {Convert.ToString(script)}");
-                else
-                    return await Task.FromResult("Executed! No output.");
+                    .GetResult());*/
+                Script result = CSharpScript.Create(cScode, options, typeof(Globals));
+                var returnVal  = result.RunAsync(new Globals(ctx)).GetAwaiter().GetResult().ReturnValue;
+                return !string.IsNullOrWhiteSpace(returnVal?.ToString()) ? await Task.FromResult( $"**Executed!**{Environment.NewLine}Output: ```{string.Join(Environment.NewLine, returnVal.ToString())}```") : await Task.FromResult("**Executed!** *No output.*");
             }
             catch (CompilationErrorException e)
             {
-                return await Task.FromResult<string>($"Compiler error{Environment.NewLine}Output: {string.Join(Environment.NewLine, e.Diagnostics)}");
+                return await Task.FromResult<string>($"**Compiler error**{Environment.NewLine}Output: ```{string.Join(Environment.NewLine, e.Diagnostics)}```");
             }
             catch (Exception e)
+
             {
                 return await Task.FromResult<string>(e.Message + Environment.NewLine + e.StackTrace);
             }

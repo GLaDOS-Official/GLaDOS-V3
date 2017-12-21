@@ -41,33 +41,14 @@ namespace GladosV3.Helpers
                     string input = string.Empty;
                     do
                     {
-                        var kb = Console.ReadKey();
-                        switch (kb.Key)
+                        var kb = Console.ReadLine();
+                        if (kb == string.Empty) continue;
+                        foreach (var t in _discord.Guilds)
                         {
-                            case ConsoleKey.Backspace:
-                                if(input.Length != 0)
-                                  input = input.Remove((input.Length - 1), 1);
-                                Console.Write(" \b");
-                                Console.SetCursorPosition(Console.CursorLeft,Console.CursorTop);
-                                Console.ResetColor();
-                                break;
-                            case ConsoleKey.Enter:
-                                if (!string.IsNullOrWhiteSpace(input)) break;
-                                foreach (var t in _discord.Guilds)
-                                {
-                                    t.DefaultChannel.SendMessageAsync($"System message: {input}");
-                                }
-                                input = string.Empty;
-                                Console.WriteLine($"{Environment.NewLine}Sended!");
-                                break;
-                            default:
-                                Regex r = new Regex(@"^[a-zA-Z0-9_.-]+$", RegexOptions.IgnoreCase);
-                                if (char.IsLetterOrDigit(kb.KeyChar) && r.IsMatch(kb.ToString()))
-                                {
-                                    input += kb.KeyChar;
-                                }
-                                break;
+                            t.DefaultChannel.SendMessageAsync($"System message: {kb}");
                         }
+
+                        Console.WriteLine($"[Service]System message: Sended!");
                     } while (true);
 
                 }

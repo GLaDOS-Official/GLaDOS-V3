@@ -35,6 +35,8 @@ namespace GladosV3.Services
         public async Task StartAsync()
         {
             Console.Title = _config["name"];
+            Console.Clear();
+            Console.SetWindowSize(150, 35);
             string discordToken = _config["tokens:discord"];     // Get the discord token from the config file
             string gameTitle = _config["discord:game"]; // Get bot's game status
             if (string.IsNullOrWhiteSpace(discordToken) || string.IsNullOrEmpty(discordToken))
@@ -71,15 +73,16 @@ namespace GladosV3.Services
                         var asm = Assembly.LoadFile(file);
                         if (!asm.GetTypes().Select(t => t.Namespace).Distinct().Contains("GladosV3.Modules")) continue;
                         await _commands.AddModulesAsync(asm);
-                        string modules = asm.GetTypes().Where(type => type.IsClass && !type.IsSpecialName && type.IsPublic).Aggregate(string.Empty, (current, type) => current + (type.Name + ','));
+                        string modules = asm.GetTypes().Where(type => type.IsClass && !type.IsSpecialName && type.IsPublic).Aggregate(string.Empty, (current, type) => current + (type.Name + ", "));
                         await new LoggingService(_discord,_commands,false).Log(LogSeverity.Verbose, "Module",
-                            $"Loaded modules: {modules} from {Path.GetFileNameWithoutExtension(file)}");
+                            $"Loaded modules: {modules}\b\b from {Path.GetFileNameWithoutExtension(file)}");
                     }
                     catch
                     {
                         // ignored
                     }
                 }
+
         }
     }
 }

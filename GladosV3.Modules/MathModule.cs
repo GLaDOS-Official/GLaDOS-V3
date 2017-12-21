@@ -32,14 +32,14 @@ namespace GladosV3.Modules
                     Expression ex = new Expression(number);
                     var done = ex.calculate();
                     if(double.IsNaN(done))
-                       throw new FormatException("NaN returned");
+                       throw new FormatException("idk");
                     //  t64 v = Int64.Parse(dt.Rows[0][""].ToString());
                     await ReplyAsync(
                         $"Math is solved! The output is: {Double.Parse(done.ToString(String.Empty), NumberStyles.Float).ToString("N2", CultureInfo.CreateSpecificCulture("en-US"))}");
                 }
-                catch (FormatException e)
+                catch (FormatException)
                 {
-                    await ReplyAsync($@"**Error:** Impossible to solve ({e.Message})");
+                    await ReplyAsync($@"**Error:** Impossible to solve!");
                 }
         }
     }

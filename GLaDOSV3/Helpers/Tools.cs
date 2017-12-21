@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -14,7 +16,7 @@ namespace GladosV3.Helpers
 {
     public class Tools
     {
-        private static readonly IConfigurationBuilder builder = new ConfigurationBuilder()    // Begin building the configuration file
+        private static readonly IConfigurationBuilder Builder = new ConfigurationBuilder()    // Begin building the configuration file
             .SetBasePath(AppContext.BaseDirectory)  // Specify the location of the config
             .AddJsonFile("_configuration.json");
         // DiscordSocketClient, CommandService, IConfigurationRoot, and IServiceProvider are injected automatically from the IServiceProvider
@@ -46,9 +48,15 @@ namespace GladosV3.Helpers
             var Object = JObject.Parse(json);
             return await Task.FromResult(new WebProxy { Address = new Uri($"http://{Object["ipPort"].ToString()}") });
         }
-        public static async Task<IConfigurationRoot> GetConfig() // 
+        public static async Task<dynamic> GetConfig(int type = 0) // 
         {
-            return await Task.FromResult(builder.Build());
+            if(type == 0)
+            return await Task.FromResult(Builder.Build()); // default reading
+            else if (type == 1)
+                return await Task.FromResult(JObject.Parse(File
+                    .ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json")).GetAwaiter()
+                    .GetResult())); // alternative reading
+            return await Task.FromResult(new object[]{}); // this will nevet get called
         }
     }
 }

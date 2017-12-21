@@ -126,7 +126,7 @@ namespace GladosV3.Modules
         {
             try
             {
-                var userInfo = user ?? Context.User; // ?? if not null return left. if null return right
+                var userInfo = user ?? Context.User;
                 var avatarUrl = userInfo.GetAvatarUrl() ??
                                 "http://ravegames.net/ow_userfiles/themes/theme_image_22.jpg";
                 var eb = new EmbedBuilder()
