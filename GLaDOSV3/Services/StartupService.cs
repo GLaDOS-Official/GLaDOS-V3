@@ -10,6 +10,7 @@ using System.CodeDom.Compiler;
 using System.Linq;
 using System.Net;
 using Discord.Net;
+using GladosV3.Helpers;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.Extensions.Configuration;
 
@@ -82,7 +83,7 @@ namespace GladosV3.Services
                         // ignored
                     }
                 }
-
+            SqLite.Start();
         }
     }
 }

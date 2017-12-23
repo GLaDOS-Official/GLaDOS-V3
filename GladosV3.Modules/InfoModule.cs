@@ -260,10 +260,10 @@ namespace GladosV3.Modules
 
         }
 
-        [Command("guild")]
+        [Command("serverinfo")]
         [Remarks("Returns info about the current Guild")]
-        [Summary("guild")]
-        [Alias("server", "serverinfo")]
+        [Summary("serverinfo")]
+        [Alias("server", "guild")]
         [RequireContext(ContextType.Guild)]
         public async Task ServerInfo()
         {

@@ -41,11 +41,13 @@ namespace GladosV3
                 .AddSingleton<SystemMessage>()      // System message, simple
                 .AddSingleton<IsOwner>()            // I don't like the way Discord.NET handles owner attribute
                 .AddSingleton<OnLogonService>()     // Execute commands after websocket connects
+                .AddSingleton<ClientEvents>()       // Discord client events
                 .AddSingleton(_config);
 
             var provider = services.BuildServiceProvider();     // Create the service provider
 
-            provider.GetRequiredService<LoggingService>();      // Initialize the logging service, startup service, on discord log on service, command handler and system message
+            provider.GetRequiredService<LoggingService>();      // Initialize the logging service, client events, startup service, on discord log on service, command handler and system message
+            provider.GetRequiredService<ClientEvents>();
             provider.GetRequiredService<OnLogonService>();
             await provider.GetRequiredService<StartupService>().StartAsync();
             provider.GetRequiredService<CommandHandler>();

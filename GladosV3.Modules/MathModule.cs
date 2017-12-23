@@ -14,33 +14,21 @@ namespace GladosV3.Modules
         [Command("solve")]
         [Summary("solve <math>")]
         [Remarks("Solve's the math problem!")]
-        public async Task Solve([Remainder]string number)
+        public async Task Solve([Remainder] string number)
         {
-            Regex r = new Regex(@"^[0-9-+*\/\., ()]+$", RegexOptions.IgnoreCase);
-           /* if (!r.IsMatch(number))
-                await ReplyAsync($"Due to safety to the bot, only number operations are allowed, no letters.");
-            else*/
-                try
-                {
-                    /* System.Data.DataTable dt = new System.Data.DataTable
-                     {
-                         Locale = System.Globalization.CultureInfo.CreateSpecificCulture("en-US")
-                     };
-                     dt.Columns.Add("",typeof(System.Int64), $"Convert(({number}),'System.Int64')");
-                     dt.Rows.Add(dt.NewRow());*/
-                    //Double result = Convert.ToDouble(new DataTable().Compute("2147483647 * 2147483647", null));
-                    Expression ex = new Expression(number);
-                    var done = ex.calculate();
-                    if(double.IsNaN(done))
-                       throw new FormatException("idk");
-                    //  t64 v = Int64.Parse(dt.Rows[0][""].ToString());
-                    await ReplyAsync(
-                        $"Math is solved! The output is: {Double.Parse(done.ToString(String.Empty), NumberStyles.Float).ToString("N2", CultureInfo.CreateSpecificCulture("en-US"))}");
-                }
-                catch (FormatException)
-                {
-                    await ReplyAsync($@"**Error:** Impossible to solve!");
-                }
+            try
+            {
+                Expression ex = new Expression(number);
+                var done = ex.calculate();
+                if (double.IsNaN(done))
+                    throw new FormatException("idk");
+                await ReplyAsync(
+                    $"Math is solved! The output is: {Double.Parse(done.ToString(String.Empty), NumberStyles.Float).ToString("N2", CultureInfo.CreateSpecificCulture("en-US"))}");
+            }
+            catch (FormatException)
+            {
+                await ReplyAsync($@"**Error:** Impossible to solve!");
+            }
         }
     }
 }

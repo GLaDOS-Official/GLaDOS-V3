@@ -23,7 +23,7 @@ namespace GladosV3.Modules
         [Command("help")]
         [Summary("help [command]")]
         [Remarks("How 2 use ...?")]
-        public async Task HelpAsync(string command = null)
+        public async Task HelpAsync([Remainder]string command = null)
         {
             EmbedBuilder builder;
             string prefix = _config["prefix"];;
