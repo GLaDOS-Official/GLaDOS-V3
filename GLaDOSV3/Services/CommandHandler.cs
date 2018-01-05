@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Discord.Commands;
 using Discord.WebSocket;
+using GladosV3.Attributes;
 using Microsoft.Extensions.Configuration;
 
 namespace GladosV3.Services
@@ -36,7 +37,7 @@ namespace GladosV3.Services
             int argPos = 0;     // Check if the message has a valid command prefix
             if (msg.HasStringPrefix(_config["prefix"], ref argPos) || msg.HasMentionPrefix(_discord.CurrentUser, ref argPos)) // Ignore messagess that aren't meant for the bot
             {
-                if (Boolean.Parse(_config["maintenance"]) && !(Helpers.IsOwner.CheckPermission(context).GetAwaiter().GetResult())) { await context.Channel.SendMessageAsync("This bot is in maintenance mode! Please refrain from using it."); return; } // Don't execute commands in maintenance mode 
+                if (Boolean.Parse(_config["maintenance"]) && !(IsOwner.CheckPermission(context).GetAwaiter().GetResult())) { await context.Channel.SendMessageAsync("This bot is in maintenance mode! Please refrain from using it."); return; } // Don't execute commands in maintenance mode 
                 var result = await _commands.ExecuteAsync(context, argPos, _provider);     // Execute the command
                 if (!result.IsSuccess && result.ErrorReason != "Unknown command.")     // If not successful, reply with the error.
                     switch (result.ErrorReason) // "Custom" error

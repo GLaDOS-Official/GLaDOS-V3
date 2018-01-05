@@ -34,6 +34,28 @@ namespace GladosV3.Helpers
             SQLiteCommand command = new SQLiteCommand(sql, connection);
             command.ExecuteNonQuery();
         }
+        public static void SetValue(this SQLiteConnection connection, string tableName, string parameter,object value, string guildid = "")
+        {
+            string sql = $"UPDATE {tableName} SET {parameter}='{value}'";
+            if (guildid != "")
+                sql += $" WHERE guildid={guildid}";
+            SQLiteCommand command = new SQLiteCommand(sql, connection);
+            command.ExecuteNonQuery();
+            command?.Dispose();
+        }
+        public static DataTable GetValues(this SQLiteConnection connection, string tableName,string guildid="")
+        {
+            string sql = $"SELECT * FROM {tableName}";
+            DataTable dt = new DataTable();
+            if (guildid != "")
+                sql += $" WHERE guildid='{guildid}'";
+            using (SQLiteDataAdapter reader = new SQLiteDataAdapter(sql, connection))
+            {
+                reader.Fill(dt);
+            }
+            dt.TableName = tableName;
+            return dt;
+        }
         public static void Start()
         {
             if (!File.Exists(DirPath))

@@ -4,7 +4,8 @@
   "maintenance": true,
   "ownerID": "your id",
   "discord": {
-    "game": "Heeyyyyyyyyy!"
+    "game": "Heeyyyyyyyyy!",
+	  "status": "online"
   },
   "tokens": {
     "discord": "Discord token" 

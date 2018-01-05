@@ -12,23 +12,14 @@ namespace GladosV3.Services
 {
     public class ClientEvents
     {
-        private readonly DiscordSocketClient _discord;
-        private readonly CommandService _commands;
-        private readonly IConfigurationRoot _config;
 
-        // DiscordSocketClient, CommandService, and IConfigurationRoot are injected automatically from the IServiceProvider
+        // DiscordSocketClient is injected automatically from the IServiceProvider
         public ClientEvents(
-            DiscordSocketClient discord,
-            CommandService commands,
-            IConfigurationRoot config)
+            DiscordSocketClient discord)
         {
-            _config = config;
-            _discord = discord;
-            _commands = commands;
-            _discord.JoinedGuild += JoinedGuild;
-            _discord.LeftGuild += LeftGuild;
+            discord.JoinedGuild += JoinedGuild;
+            discord.LeftGuild += LeftGuild;
         }
-
         private async Task JoinedGuild(SocketGuild arg)
         {
             string sql = $"INSERT INTO servers (guildid,nsfw) VALUES (@val1, @va2);";
@@ -36,15 +27,17 @@ namespace GladosV3.Services
             SQLiteCommand command = new SQLiteCommand(sql, SqLite.Connection);
             command.Parameters.AddWithValue("@val1", arg.Id);
             command.Parameters.AddWithValue("@val2", false);
-            command.ExecuteNonQuery();
+            await command.ExecuteNonQueryAsync();
         }
+
         private async Task LeftGuild(SocketGuild arg)
+
         {
             string sql = $"DELETE FROM servers WHERE guildid=@val1;";
 
             SQLiteCommand command = new SQLiteCommand(sql, SqLite.Connection);
             command.Parameters.AddWithValue("@val1", arg.Id);
-            command.ExecuteNonQuery();
+            await command.ExecuteNonQueryAsync();
         }
     }
 }

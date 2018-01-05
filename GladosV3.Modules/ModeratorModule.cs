@@ -5,7 +5,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using System.Threading.Tasks;
 using GladosV3.Helpers;
-
+using GladosV3.Attributes;
 namespace GladosV3.Modules
 {
     [Name("Moderator")]
@@ -15,7 +15,7 @@ namespace GladosV3.Modules
         [Command("purge")]
         [Summary("purge <no. of messages>")]
         [Remarks("Removes specified amount of messages")]
-        [Helpers.RequireUserPermission(GuildPermission.ManageMessages)]
+        [Attributes.RequireUserPermission(GuildPermission.ManageMessages)]
         [RequireBotPermission(GuildPermission.ManageMessages)]
         public async Task Purge(int count = 100)
         {
@@ -41,14 +41,13 @@ namespace GladosV3.Modules
                     await ReplyAsync("Some messages failed to delete! This is not a error and can not be fixed!");
                     return;
                 }
-                await ReplyAsync($"Cleared **{count}** Messages");
             }
         }
 
         [Command("prune")]
         [Summary("prune <user>")]
         [Remarks("Removes most recent messages from a user")]
-        [Helpers.RequireUserPermission(GuildPermission.ManageMessages)]
+        [Attributes.RequireUserPermission(GuildPermission.ManageMessages)]
         [RequireBotPermission(GuildPermission.ManageMessages)]
         public async Task Prune(IUser UserMention)
         {
@@ -69,7 +68,7 @@ namespace GladosV3.Modules
         [Command("kick")]
         [Summary("kick <user> [reason]")]
         [Remarks("Kicks the specified user.")]
-        [Helpers.RequireUserPermission(GuildPermission.KickMembers)]
+        [Attributes.RequireUserPermission(GuildPermission.KickMembers)]
         [RequireBotPermission(GuildPermission.KickMembers)]
         public async Task Kick(SocketGuildUser UserMention, [Remainder] string reason = "Unspecified.")
         {
@@ -96,7 +95,7 @@ namespace GladosV3.Modules
         [Command("ban")]
         [Summary("ban <user> [reason]")]
         [Remarks("Bans the specified user.")]
-        [Helpers.RequireUserPermission(GuildPermission.BanMembers)]
+        [Attributes.RequireUserPermission(GuildPermission.BanMembers)]
         [RequireBotPermission(GuildPermission.BanMembers)]
         public async Task Ban(SocketGuildUser UserMention, [Remainder] params string[] reasonArray)
         {
@@ -125,7 +124,7 @@ namespace GladosV3.Modules
         [Command("leave")]
         [Summary("leave")]
         [Remarks("Sad to see you go!")]
-        [Helpers.RequireUserPermission(GuildPermission.ManageGuild)]
+        [Attributes.RequireUserPermission(GuildPermission.ManageGuild)]
         public async Task Leave()
         {
             if (Context.Guild == null) { await ReplyAsync("This command can only be ran in a server."); return; }
@@ -135,7 +134,7 @@ namespace GladosV3.Modules
         [Command("say"), Alias("s")]
         [Summary("say <text>")]
         [Remarks("Make the bot say something")]
-        [Helpers.RequireUserPermission(GuildPermission.ManageGuild)]
+        [Attributes.RequireUserPermission(GuildPermission.ManageGuild)]
         public Task Say([Remainder]string text)
             => ReplyAsync(text);
     }

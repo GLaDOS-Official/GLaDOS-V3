@@ -50,8 +50,11 @@ namespace GladosV3.Helpers
                     .GetAwaiter()
                     .GetResult());*/
                 Script result = CSharpScript.Create(cScode, options, typeof(Globals));
-                var returnVal  = result.RunAsync(new Globals(ctx)).GetAwaiter().GetResult().ReturnValue;
-                return !string.IsNullOrWhiteSpace(returnVal?.ToString()) ? await Task.FromResult( $"**Executed!**{Environment.NewLine}Output: ```{string.Join(Environment.NewLine, returnVal.ToString())}```") : await Task.FromResult("**Executed!** *No output.*");
+                var returnVal  = result.RunAsync(new Globals(ctx)).GetAwaiter().GetResult().ReturnValue?.ToString();
+                if (returnVal?.Contains(Tools.GetConfig(0).GetAwaiter().GetResult()["tokens:discord"]))
+                   returnVal = returnVal?.Replace(Tools.GetConfig(0).GetAwaiter().GetResult()["tokens:discord"].ToString(),
+                        "Nah, no token leak 4 u.");
+                return !string.IsNullOrWhiteSpace(returnVal) ? await Task.FromResult( $"**Executed!**{Environment.NewLine}Output: ```{string.Join(Environment.NewLine, returnVal)}```") : await Task.FromResult("**Executed!** *No output.*");
             }
             catch (CompilationErrorException e)
             {
@@ -60,7 +63,7 @@ namespace GladosV3.Helpers
             catch (Exception e)
 
             {
-                return await Task.FromResult<string>(e.Message + Environment.NewLine + e.StackTrace);
+                return await Task.FromResult<string>($"**Exception!**{e.Message}\n{e.StackTrace}");
             }
         }
 

@@ -33,7 +33,7 @@ namespace GladosV3.Modules
 
         
         [Group("Bot")]
-        [Helpers.RequireOwner]
+        [Attributes.RequireOwner]
         public class Bot : ModuleBase<SocketCommandContext>
         {
             [Command("maintenance")]
@@ -47,9 +47,10 @@ namespace GladosV3.Modules
                     clasO["maintenance"] = true;
                 else
                     clasO["maintenance"] = false;
+                string status = clasO["maintenance"].Value<bool>() ? "enabled" : "disabled";
                 await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json"),clasO.ToString());
-                await ReplyAsync($"Set maintenance mode to {clasO["maintenance"].Value<string>().ToLower()}\nRestarting the bot!");
-                RestartApp.Restart();
+                await ReplyAsync($"Set maintenance mode to: {status}.\nRestarting the bot!");
+                Tools.RestartApp();
             }
             [Command("restart")]
             [Summary("bot restart")]
@@ -57,10 +58,18 @@ namespace GladosV3.Modules
             public async Task Restart()
             {
                 await ReplyAsync($"Restarting the bot!");
-                RestartApp.Restart();
+                Tools.RestartApp();
+            }
+            [Command("shutdown")]
+            [Summary("bot shutdown")]
+            [Remarks("Shutsdown the bot")]
+            public async Task Shutdown()
+            {
+                await ReplyAsync($"Shutting down the bot! :wave:");
+                Environment.Exit(0);
             }
             [Command("username")]
-            [Summary("bot username")]
+            [Summary("bot username <username>")]
             [Remarks("Sets bot's username")]
             public async Task Username([Remainder]string username)
             {
@@ -68,17 +77,52 @@ namespace GladosV3.Modules
                     Tools.GetConfig(1).GetAwaiter().GetResult();
                 clasO["name"] = username;
                 await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json"), clasO.ToString());
-                await ReplyAsync($"Set bot's username to {clasO["name"].Value<string>()}\nRestarting the bot!");
-                RestartApp.Restart();
+                await ReplyAsync($"Set bot's username to {clasO["name"].Value<string>()}.\nRestarting the bot!");
+                Tools.RestartApp();
             }
             [Command("eval")]
             [Summary("bot eval <code>")]
             [Remarks("Execute c# code")]
-            [Helpers.RequireOwner]
+            [Attributes.RequireOwner]
             public async Task Eval([Remainder]string code)
             {
                 var message = await ReplyAsync("Please wait...");
                 await message.ModifyAsync(properties => properties.Content = Helpers.Eval.EvalTask(Context, code).GetAwaiter().GetResult());
+            }
+            [Command("game")]
+            [Summary("bot game [game]")]
+            [Remarks("Set's bot game state")]
+            [Attributes.RequireOwner]
+            public async Task Game([Remainder]string status = "")
+            {
+                JObject clasO =
+                    Tools.GetConfig(1).GetAwaiter().GetResult();
+                if(status == null)
+                    await Context.Client.SetGameAsync(null);
+                clasO["discord"]["game"] = status;
+                await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json"), clasO.ToString());
+                if(status == "")
+                    await ReplyAsync($"Reseted bot's game state\nRestarting the bot!");
+                else
+                    await ReplyAsync($"Set bot's game state to {clasO["discord"]["game"].Value<string>()}.\nRestarting the bot!");
+                Tools.RestartApp();
+            }
+            [Command("status")]
+            [Summary("bot status <status>")]
+            [Remarks("Set's bot status")]
+            [Attributes.RequireOwner]
+            public async Task Status([Remainder]string status = "")
+            {
+                JObject clasO =
+                    Tools.GetConfig(1).GetAwaiter().GetResult();
+                if (status != "online" && status != "invisible" && status != "afk" && status != "donotdisturb")
+                { await ReplyAsync("Valid statuses are: online, invisible, afk, donotdisturb"); return;}
+                clasO["discord"]["status"] = status;
+                await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json"),
+                    clasO.ToString());
+                await ReplyAsync(
+                        $"Set bot's game state to {clasO["discord"]["status"].Value<string>()}.\nRestarting the bot!");
+                Tools.RestartApp();
             }
         }
     }

@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 
-namespace GladosV3.Helpers
+namespace GladosV3.Attributes
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
     public class RequireUserPermissionAttribute : PreconditionAttribute

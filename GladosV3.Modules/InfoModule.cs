@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using GladosV3.Services;
 using Microsoft.Extensions.PlatformAbstractions;
 using System.IO;
+using GladosV3.Attributes;
 
 namespace GladosV3.Modules
 {
@@ -72,7 +73,7 @@ namespace GladosV3.Modules
                 $"- RAM usage: {ToFileSize2(Process.GetCurrentProcess().PagedMemorySize64)}\n" +
                 $"- CPU usage: {GetCpuUsage():N1}%\n" +
                 $"- Heap Size: {heapsize}\n" +
-                $"- Owner of the bot: <@{Helpers.IsOwner.GetOwner(Context).GetAwaiter().GetResult()}>\n" +
+                $"- Owner of the bot: <@{IsOwner.GetOwner(Context).GetAwaiter().GetResult()}>\n" +
                 $"- Author of the bot: <@195225230908588032> \n\n" +
                  
                 $"{Format.Bold("Stats")}\n" +

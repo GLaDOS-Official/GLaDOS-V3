@@ -14,11 +14,11 @@ namespace GladosV3.Modules
         [Command("solve")]
         [Summary("solve <math>")]
         [Remarks("Solve's the math problem!")]
-        public async Task Solve([Remainder] string number)
+        public async Task Solve([Remainder] string math)
         {
             try
             {
-                Expression ex = new Expression(number);
+                Expression ex = new Expression(math);
                 var done = ex.calculate();
                 if (double.IsNaN(done))
                     throw new FormatException("idk");

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -9,6 +10,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
 using Discord.Commands;
+using GladosV3.Attributes;
 using GladosV3.Helpers;
 using Newtonsoft.Json.Linq;
 
@@ -17,12 +19,51 @@ namespace GladosV3.Modules
     [Name("NSFW")]
     public class NsfwModule : ModuleBase<SocketCommandContext>
     {
-        [NsfwAttribute] // https://i.gyazo.com/b0d574457b7b785abe0eae1f8a954729.png
-        [Command("e621")]
+        [Group("NSFW")]
+        [Attributes.RequireOwner]
+        [RequireContext(ContextType.Guild)]
+        public class Bot : ModuleBase<SocketCommandContext>
+        {
+            [Command("enable")]
+            [Summary("nsfw enable")]
+            [Remarks("Enables nsfw module (disabled by default)")]
+            public async Task Enable()
+            {
+                SqLite.Connection.SetValue("servers", "nsfw", 1, Context.Guild.Id.ToString());
+                await ReplyAsync("The nsfw has been enabled!");
+            }
+            [Command("disable")]
+            [Summary("nsfw disable")]
+            [Remarks("Disables nsfw module (disabled by default)")]
+            public async Task Disable()
+            {
+                SqLite.Connection.SetValue("servers","nsfw",0, Context.Guild.Id.ToString());
+                await ReplyAsync("The nsfw has been disabled!");
+            }
+            [Command("status")]
+            [Summary("nsfw status")]
+            [Remarks("Get's status of the nsfw module (disabled by default)")]
+            public async Task Status()
+            {
+                string result = (Convert.ToInt32(SqLite.Connection.GetValues("servers", Context.Guild.Id.ToString()).Rows[0]["nsfw"]) == 1) ? "disabled" : "enabled";
+                var message =
+                    $"The current status of nsfw module is: {result}";
+                await ReplyAsync(message);
+            }
+
+        }
+
+        [Command("e621")] // https://i.gyazo.com/b0d574457b7b785abe0eae1f8a954729.png
         [Summary("e621 [tags]")]
         [Remarks("Find images on e621 by the given tags.")]
+        [RequireNsfw]
         public async Task E621([Remainder]string tags = "")
         {
+            if (Convert.ToInt32(SqLite.Connection.GetValues("servers", Context.Guild.Id.ToString()).Rows[0]["nsfw"]) == 0)
+            {
+                await ReplyAsync("The nsfw module is disabled on this server!");
+                return;
+            }
             string url = "https://e621.net/post/index.json?limit=20";
             if (tags != "")
                 url += String.Format("&tags={0}", string.Join(" ", tags));
@@ -46,7 +87,7 @@ namespace GladosV3.Modules
 
                 string ext = String.Empty;
                 JObject image = null;
-                int retries = 5;
+                int retries = 6;
                 while (ext != "png" && ext != "jpg" && ext != "jpeg" && ext != "gif" && ext != "webm" && ext != "mp4" && retries >= 0)
                 {
                     image = (JObject)images[new Random().Next(0, images.Count)];
@@ -61,12 +102,17 @@ namespace GladosV3.Modules
                 await ReplyAsync($"Score: {image.GetValue("score").ToObject<string>()}{image.GetValue("file_url").ToObject<string>()}");
             }
         }
-        [NsfwAttribute]
         [Command("r34")]
         [Summary("r34 [tags]")]
         [Remarks("Find images on rule34 by the given tags.")]
+        [RequireNsfw]
         public async Task Rule34([Remainder]string tags = "")
         {
+            if (Convert.ToInt32(SqLite.Connection.GetValues("servers", Context.Guild.Id.ToString()).Rows[0]["nsfw"]) == 0)
+            {
+                await ReplyAsync("The nsfw module is disabled on this server!");
+                return;
+            }
             string url = "https://rule34.xxx/index.php?page=dapi&s=post&q=index&limit=20";
             if (tags != "")
                 url += String.Format("&tags={0}", string.Join(" ", tags));
@@ -84,12 +130,10 @@ namespace GladosV3.Modules
                 if (xml.Root != null)
                 {
                     var xNodes = xml.Root.Elements().ToList();
-                    Random rnd = new Random();
-                    var rndNode = xNodes[rnd.Next(xNodes.Count - 1)];
+                    var rndNode = xNodes[new Random().Next(xNodes.Count - 1)];
                     await ReplyAsync($"Score: {rndNode?.Attribute("score")?.Value}\nhttps:{rndNode?.Attribute("file_url")?.Value}");
                 }
             }
-            //
         }
     }
 }

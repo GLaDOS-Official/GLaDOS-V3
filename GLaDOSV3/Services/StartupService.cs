@@ -9,6 +9,7 @@ using Microsoft.CSharp;
 using System.CodeDom.Compiler;
 using System.Linq;
 using System.Net;
+using System.Runtime.Serialization;
 using Discord.Net;
 using GladosV3.Helpers;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
@@ -46,20 +47,31 @@ namespace GladosV3.Services
                 await _discord.SetGameAsync(gameTitle);
             try
             {
-                await _discord.LoginAsync(TokenType.Bot, discordToken,true); // Login to discord
+                await _discord.LoginAsync(TokenType.Bot, discordToken, true); // Login to discord
                 await _discord.StartAsync(); // Connect to the websocket
             }
             catch (HttpException ex)
             {
-                if(ex.DiscordCode == 401 || ex.HttpCode == HttpStatusCode.Unauthorized)
-                    Helpers.Tools.WriteColorMessage(ConsoleColor.Red,"Wrong or invalid token.");
-                else if(ex.DiscordCode == 502 || ex.HttpCode == HttpStatusCode.BadGateway)
-                    Helpers.Tools.WriteColorMessage(ConsoleColor.Yellow,"Gateway unavailable.");
+                if (ex.DiscordCode == 401 || ex.HttpCode == HttpStatusCode.Unauthorized)
+                    Helpers.Tools.WriteColorMessage(ConsoleColor.Red, "Wrong or invalid token.");
+                else if (ex.DiscordCode == 502 || ex.HttpCode == HttpStatusCode.BadGateway)
+                    Helpers.Tools.WriteColorMessage(ConsoleColor.Yellow, "Gateway unavailable.");
                 else if (ex.DiscordCode == 400 || ex.HttpCode == HttpStatusCode.BadRequest)
-                    Helpers.Tools.WriteColorMessage(ConsoleColor.Red,"Bad request. Please wait for an update.");
-               Helpers.Tools.WriteColorMessage(ConsoleColor.Red,$"Discord has returned an error code: {ex.DiscordCode}{Environment.NewLine}Here's exception message: {ex.Message}");
+                    Helpers.Tools.WriteColorMessage(ConsoleColor.Red, "Bad request. Please wait for an update.");
+                Helpers.Tools.WriteColorMessage(ConsoleColor.Red,
+                    $"Discord has returned an error code: {ex.DiscordCode}{Environment.NewLine}Here's exception message: {ex.Message}");
                 Task.Delay(10000).Wait();
                 Environment.Exit(0);
+            }
+
+            if (_config["discord:status"] != "online")
+            {
+                object status;
+                if (Enum.TryParse(typeof(UserStatus),_config["discord:status"], true, out status))
+                    await _discord.SetStatusAsync((UserStatus) status);
+                else
+                    await new LoggingService(_discord, _commands, false).Log(LogSeverity.Warning, "Client status",
+                        "Could not parse status string from config.json!");
             }
 
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly());     // Load commands and modules into the command service
