@@ -38,7 +38,7 @@ namespace GladosV3.Services
             else if (_discord.CurrentUser.IsMfaEnabled) return Task.FromResult(true);
             var loggingService = new LoggingService(_discord, this._commands,false);
             loggingService.Log(LogSeverity.Warning, "Bot",
-                "MFA is disabled! This means that your bot will be unable to gather Administator, Manage server & roles & channels & messages & webhooks, kick and ban members!",
+                "MFA is disabled! This means that your bot will be unable to gather Administrator, Manage server & roles & channels & messages & web-hooks, kick and ban members!",
                 null).GetAwaiter();
             return Task.FromResult(false);
         }

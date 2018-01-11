@@ -12,8 +12,8 @@ namespace GladosV3.Modules
     public class MathModule : ModuleBase<SocketCommandContext>
     {
         [Command("solve")]
-        [Summary("solve <math>")]
-        [Remarks("Solve's the math problem!")]
+        [Remarks("solve <math>")]
+        [Summary("Solves the math problem!")]
         public async Task Solve([Remainder] string math)
         {
             try

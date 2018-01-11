@@ -28,6 +28,7 @@ namespace GladosV3.Helpers
             public Discord.WebSocket.SocketUser User => this.Context.Message.Author;
             public Newtonsoft.Json.Linq.JObject Config => Tools.GetConfig(1).GetAwaiter().GetResult();
             public Discord.WebSocket.DiscordSocketClient Client => this.Context.Client;
+            public Helpers.Tools Tools => new Tools();
             public Discord.Commands.SocketCommandContext Context { get; private set; }
 
             public Globals(SocketCommandContext ctx)
@@ -50,11 +51,11 @@ namespace GladosV3.Helpers
                     .GetAwaiter()
                     .GetResult());*/
                 Script result = CSharpScript.Create(cScode, options, typeof(Globals));
-                var returnVal  = result.RunAsync(new Globals(ctx)).GetAwaiter().GetResult().ReturnValue?.ToString();
-                if (returnVal?.Contains(Tools.GetConfig(0).GetAwaiter().GetResult()["tokens:discord"]))
+                var returnVal = result.RunAsync(new Globals(ctx)).GetAwaiter().GetResult().ReturnValue?.ToString();
+                if (!string.IsNullOrWhiteSpace(returnVal) && returnVal?.ToString().Contains(Tools.GetConfig(0).GetAwaiter().GetResult()["tokens:discord"]))
                    returnVal = returnVal?.Replace(Tools.GetConfig(0).GetAwaiter().GetResult()["tokens:discord"].ToString(),
                         "Nah, no token leak 4 u.");
-                return !string.IsNullOrWhiteSpace(returnVal) ? await Task.FromResult( $"**Executed!**{Environment.NewLine}Output: ```{string.Join(Environment.NewLine, returnVal)}```") : await Task.FromResult("**Executed!** *No output.*");
+                return !string.IsNullOrWhiteSpace(returnVal) ? await Task.FromResult( $"**Executed!**{Environment.NewLine}Output: ```{string.Join(Environment.NewLine, returnVal)}```").ConfigureAwait(true) : await Task.FromResult("**Executed!** *No output.*");
             }
             catch (CompilationErrorException e)
             {

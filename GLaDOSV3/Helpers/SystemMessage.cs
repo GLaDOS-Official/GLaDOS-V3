@@ -34,26 +34,20 @@ namespace GladosV3.Helpers
         public void KeyPress()
         {
             if (Boolean.Parse(_config["maintenance"])) return;
-            Thread thread = new Thread(() =>
-            {
-                while (true)
-                {
-                    string input = string.Empty;
-                    do
-                    {
-                        var kb = Console.ReadLine();
-                        if (kb == string.Empty) continue;
-                        foreach (var t in _discord.Guilds)
-                        {
-                            t.DefaultChannel.SendMessageAsync($"System message: {kb}");
-                        }
-
-                        Console.WriteLine($"[Service]System message: Sended!");
-                    } while (true);
-
-                }
-            });
+            Thread thread = new Thread(SystemMessageThread);
             thread.Start();
+        }
+
+        private void SystemMessageThread()
+        {
+            while (true)
+            {
+                var input = Console.ReadLine();
+                if (input == string.Empty) continue;
+                foreach (var t in _discord.Guilds) t.DefaultChannel.SendMessageAsync($"System message: {input}");
+
+                Console.WriteLine($"[Service]System message: Sent!");
+            }
         }
     }
 }

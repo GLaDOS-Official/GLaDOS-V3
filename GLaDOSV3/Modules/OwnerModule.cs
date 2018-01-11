@@ -37,8 +37,8 @@ namespace GladosV3.Modules
         public class Bot : ModuleBase<SocketCommandContext>
         {
             [Command("maintenance")]
-            [Summary("bot maintenance")]
-            [Remarks("Toggles maintenance mode on or off")]
+            [Remarks("bot maintenance")]
+            [Summary("Toggles maintenance mode on or off")]
 
             public async Task Maintenance()
             {
@@ -53,24 +53,24 @@ namespace GladosV3.Modules
                 Tools.RestartApp();
             }
             [Command("restart")]
-            [Summary("bot restart")]
-            [Remarks("Restarts the bot")]
+            [Remarks("bot restart")]
+            [Summary("Restarts the bot")]
             public async Task Restart()
             {
                 await ReplyAsync($"Restarting the bot!");
                 Tools.RestartApp();
             }
             [Command("shutdown")]
-            [Summary("bot shutdown")]
-            [Remarks("Shutsdown the bot")]
+            [Remarks("bot shutdown")]
+            [Summary("Shutdowns the bot")]
             public async Task Shutdown()
             {
                 await ReplyAsync($"Shutting down the bot! :wave:");
                 Environment.Exit(0);
             }
             [Command("username")]
-            [Summary("bot username <username>")]
-            [Remarks("Sets bot's username")]
+            [Remarks("bot username <username>")]
+            [Summary("Sets bot's username")]
             public async Task Username([Remainder]string username)
             {
                 JObject clasO =
@@ -81,17 +81,29 @@ namespace GladosV3.Modules
                 Tools.RestartApp();
             }
             [Command("eval")]
-            [Summary("bot eval <code>")]
-            [Remarks("Execute c# code")]
+            [Remarks("bot eval <code>")]
+            [Summary("Execute c# code")]
             [Attributes.RequireOwner]
             public async Task Eval([Remainder]string code)
             {
                 var message = await ReplyAsync("Please wait...");
                 await message.ModifyAsync(properties => properties.Content = Helpers.Eval.EvalTask(Context, code).GetAwaiter().GetResult());
             }
+            [Command("message")]
+            [Remarks("bot message <system message>")]
+            [Summary("Sends message to all servers!")]
+            [Attributes.RequireOwner]
+            public async Task Message([Remainder]string message)
+            {
+                var progress = await ReplyAsync("Sending...");
+                var guilds = Context.Client.Guilds;
+                foreach (var t in guilds) await t.DefaultChannel.SendMessageAsync($"System message: {message}");
+                var correctSpellingEnglishIHateIt = guilds.Count <= 1 ? "guild" : "guilds";
+                await progress.ModifyAsync(properties => properties.Content = $"Done! Sent to {guilds.Count} {correctSpellingEnglishIHateIt}.");
+            }
             [Command("game")]
-            [Summary("bot game [game]")]
-            [Remarks("Set's bot game state")]
+            [Remarks("bot game [game]")]
+            [Summary("Set's bot game state")]
             [Attributes.RequireOwner]
             public async Task Game([Remainder]string status = "")
             {
@@ -102,14 +114,14 @@ namespace GladosV3.Modules
                 clasO["discord"]["game"] = status;
                 await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json"), clasO.ToString());
                 if(status == "")
-                    await ReplyAsync($"Reseted bot's game state\nRestarting the bot!");
+                    await ReplyAsync($"Reset bot's game state\nRestarting the bot!");
                 else
                     await ReplyAsync($"Set bot's game state to {clasO["discord"]["game"].Value<string>()}.\nRestarting the bot!");
                 Tools.RestartApp();
             }
             [Command("status")]
-            [Summary("bot status <status>")]
-            [Remarks("Set's bot status")]
+            [Remarks("bot status <status>")]
+            [Summary("Set's bot status")]
             [Attributes.RequireOwner]
             public async Task Status([Remainder]string status = "")
             {

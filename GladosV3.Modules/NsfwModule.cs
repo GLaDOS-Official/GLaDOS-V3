@@ -25,24 +25,24 @@ namespace GladosV3.Modules
         public class Bot : ModuleBase<SocketCommandContext>
         {
             [Command("enable")]
-            [Summary("nsfw enable")]
-            [Remarks("Enables nsfw module (disabled by default)")]
+            [Remarks("nsfw enable")]
+            [Summary("Enables nsfw module (disabled by default)")]
             public async Task Enable()
             {
                 SqLite.Connection.SetValue("servers", "nsfw", 1, Context.Guild.Id.ToString());
                 await ReplyAsync("The nsfw has been enabled!");
             }
             [Command("disable")]
-            [Summary("nsfw disable")]
-            [Remarks("Disables nsfw module (disabled by default)")]
+            [Remarks("nsfw disable")]
+            [Summary("Disables nsfw module (disabled by default)")]
             public async Task Disable()
             {
                 SqLite.Connection.SetValue("servers","nsfw",0, Context.Guild.Id.ToString());
                 await ReplyAsync("The nsfw has been disabled!");
             }
             [Command("status")]
-            [Summary("nsfw status")]
-            [Remarks("Get's status of the nsfw module (disabled by default)")]
+            [Remarks("nsfw status")]
+            [Summary("Get's status of the nsfw module (disabled by default)")]
             public async Task Status()
             {
                 string result = (Convert.ToInt32(SqLite.Connection.GetValues("servers", Context.Guild.Id.ToString()).Rows[0]["nsfw"]) == 1) ? "disabled" : "enabled";
@@ -53,9 +53,9 @@ namespace GladosV3.Modules
 
         }
 
-        [Command("e621")] // https://i.gyazo.com/b0d574457b7b785abe0eae1f8a954729.png
-        [Summary("e621 [tags]")]
-        [Remarks("Find images on e621 by the given tags.")]
+        [Command("e621")]
+        [Remarks("e621 [tags]")]
+        [Summary("Find images on e621 by the given tags.")]
         [RequireNsfw]
         public async Task E621([Remainder]string tags = "")
         {
@@ -103,8 +103,8 @@ namespace GladosV3.Modules
             }
         }
         [Command("r34")]
-        [Summary("r34 [tags]")]
-        [Remarks("Find images on rule34 by the given tags.")]
+        [Remarks("r34 [tags]")]
+        [Summary("Find images on rule34 by the given tags.")]
         [RequireNsfw]
         public async Task Rule34([Remainder]string tags = "")
         {

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using GladosV3.Helpers;
 
 namespace GladosV3.Services
 {
@@ -34,11 +35,30 @@ namespace GladosV3.Services
         {
             if (!File.Exists(_logFile))               // Create today's log file if it doesn't exist
                 File.Create(_logFile).Dispose();
-
             string logText = $"{DateTime.UtcNow:hh:mm:ss} [{msg.Severity}] {msg.Source}: {msg.Exception?.ToString() ?? msg.Message}";
             File.AppendAllText(_logFile, logText + "\n");     // Write the log text to a file
-
-            return Console.Out.WriteLineAsync(logText);       // Write the log text to the console
+            switch (msg.Severity) // Write the log text to the console
+            {
+                case LogSeverity.Critical:
+                    Tools.WriteColorLine(ConsoleColor.DarkRed, logText);
+                    break;
+                case LogSeverity.Error:
+                    Tools.WriteColorLine(ConsoleColor.Red, logText);
+                    break;
+                case LogSeverity.Warning:
+                    Tools.WriteColorLine(ConsoleColor.DarkYellow, logText);
+                    break;
+                case LogSeverity.Debug:
+                    Tools.WriteColorLine(ConsoleColor.Yellow, logText);
+                    break;
+                case LogSeverity.Info:
+                    Console.Out.WriteLine(logText);
+                    break;
+                case LogSeverity.Verbose:
+                    Console.Out.WriteLine(logText);
+                    break;
+            }
+            return Task.CompletedTask;
         }
     }
 }

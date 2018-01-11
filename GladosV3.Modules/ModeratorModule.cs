@@ -13,20 +13,16 @@ namespace GladosV3.Modules
     public class ModeratorModule : ModuleBase<SocketCommandContext>
     {
         [Command("purge")]
-        [Summary("purge <no. of messages>")]
-        [Remarks("Removes specified amount of messages")]
+        [Remarks("purge [no. of messages]")]
+        [Summary("Removes specified amount of messages")]
         [Attributes.RequireUserPermission(GuildPermission.ManageMessages)]
         [RequireBotPermission(GuildPermission.ManageMessages)]
         public async Task Purge(int count = 100)
         {
             if (count < 2)
-            {
                 await ReplyAsync("**ERROR: **Please Specify the amount of messages you want to clear");
-            }
             else if (count > 100)
-            {
                 await ReplyAsync("**Error: **I can only clear 100 Messages at a time!");
-            }
             else
             {
                 await Context.Message.DeleteAsync().ConfigureAwait(false);
@@ -45,15 +41,18 @@ namespace GladosV3.Modules
         }
 
         [Command("prune")]
-        [Summary("prune <user>")]
-        [Remarks("Removes most recent messages from a user")]
+        [Remarks("prune <no. of messages> <user>")]
+        [Summary("Removes most recent messages from a user")]
         [Attributes.RequireUserPermission(GuildPermission.ManageMessages)]
         [RequireBotPermission(GuildPermission.ManageMessages)]
-        public async Task Prune(IUser UserMention)
+        public async Task Prune(IUser UserMention, int count = 100)
         {
+            if (count < 2)
+                await ReplyAsync("**ERROR: **Please Specify the amount of messages you want to clear");
+            else if (count > 100)
+                await ReplyAsync("**Error: **I can only clear 100 Messages at a time!");
             await Context.Message.DeleteAsync().ConfigureAwait(false);
-            var enumerable = await Context.Channel.GetMessagesAsync().Flatten().ConfigureAwait(false);
-            var newlist = enumerable.Where(x => x.Author == UserMention).ToList();
+            var newlist = (await Context.Channel.GetMessagesAsync().Flatten().ConfigureAwait(false)).Where(x => x.Author == UserMention).Take(count).ToArray();
             try
             {
                 await Context.Channel.DeleteMessagesAsync(newlist).ConfigureAwait(false);
@@ -63,11 +62,11 @@ namespace GladosV3.Modules
                 await ReplyAsync("Some messages failed to delete! This is not a error and can not be fixed!");
                 return;
             }
-            await ReplyAsync($"Cleared **{UserMention.Username}'s** Messages (Count = {newlist.Count})");
+            await ReplyAsync($"Cleared **{UserMention.Username}'s** Messages (Count = {newlist.Length})");
         }
         [Command("kick")]
-        [Summary("kick <user> [reason]")]
-        [Remarks("Kicks the specified user.")]
+        [Remarks("kick <user> [reason]")]
+        [Summary("Kicks the specified user.")]
         [Attributes.RequireUserPermission(GuildPermission.KickMembers)]
         [RequireBotPermission(GuildPermission.KickMembers)]
         public async Task Kick(SocketGuildUser UserMention, [Remainder] string reason = "Unspecified.")
@@ -93,8 +92,8 @@ namespace GladosV3.Modules
             }
         }
         [Command("ban")]
-        [Summary("ban <user> [reason]")]
-        [Remarks("Bans the specified user.")]
+        [Remarks("ban <user> [reason]")]
+        [Summary("Bans the specified user.")]
         [Attributes.RequireUserPermission(GuildPermission.BanMembers)]
         [RequireBotPermission(GuildPermission.BanMembers)]
         public async Task Ban(SocketGuildUser UserMention, [Remainder] params string[] reasonArray)
@@ -122,8 +121,8 @@ namespace GladosV3.Modules
         }
 
         [Command("leave")]
-        [Summary("leave")]
-        [Remarks("Sad to see you go!")]
+        [Remarks("leave")]
+        [Summary("Sad to see you go!")]
         [Attributes.RequireUserPermission(GuildPermission.ManageGuild)]
         public async Task Leave()
         {
@@ -132,8 +131,8 @@ namespace GladosV3.Modules
             await Context.Guild.LeaveAsync();
         }
         [Command("say"), Alias("s")]
-        [Summary("say <text>")]
-        [Remarks("Make the bot say something")]
+        [Remarks("say <text>")]
+        [Summary("Make the bot say something")]
         [Attributes.RequireUserPermission(GuildPermission.ManageGuild)]
         public Task Say([Remainder]string text)
             => ReplyAsync(text);

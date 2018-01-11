@@ -4,6 +4,7 @@ using Discord;
 using Discord.Commands;
 using Microsoft.Extensions.Configuration;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace GladosV3.Modules
@@ -20,11 +21,34 @@ namespace GladosV3.Modules
             _config = config;
         }
 
-        [Command("help")]
-        [Summary("help [command]")]
-        [Remarks("How 2 use ...?")]
-        public async Task HelpAsync([Remainder]string command = null)
+        [Command("modules")]
+        [Remarks("modules")]
+        [Summary("Shows information on a module such as any remarks and a count of how many commands")]
+        public async Task Modules(string remarks = null)
         {
+            var builder = new EmbedBuilder
+            {
+                Color = new Color(0, 255, 100),
+                Title = ($"Here's the information about all modules\n")
+            };
+            foreach (var module in _service.Modules)
+            {
+                builder.AddField(e =>
+                {
+                    e.Name = ($"**{module.Name}**");
+                    e.Value = $"{(remarks == "remarks" ? (string.IsNullOrWhiteSpace(module.Remarks) ? $"*No remarks found*\n" : $"Remarks:\n***{module.Remarks}***") : null)}Number of commands in this module: {module.Commands.Count}"; ;
+                    e.IsInline = (false);
+                });
+            }
+            await ReplyAsync("", false, builder.Build());
+        }
+
+        [Command("help")]
+        [Remarks("help [command]")]
+        [Summary("How 2 use ...?")]
+        public async Task Help([Remainder]string command = null)
+        {
+            IDMChannel dm = await Context.Message.Author.GetOrCreateDMChannelAsync();
             EmbedBuilder builder;
             string prefix = _config["prefix"];;
             Random rnd = new Random();
@@ -66,39 +90,39 @@ namespace GladosV3.Modules
             }
             else
             {
-                var unwantedModules = new string[] {"HelpModule", "ExampleModule" };
                 builder = new EmbedBuilder
                 {
                     Color = new Color(rnd.Next(256), rnd.Next(256), rnd.Next(256)),
-                    Description = "These are the commands you can use"
+                    Description = "These are the commands you can use."
                 };
-
                 foreach (var module in _service.Modules)
                 {
-                   // if (unwantedModules.Contains(module.Name) || unwantedModules.Contains(module.Name.Replace("Module", String.Empty)) || unwantedModules.Contains(module.Name + "Module")) continue;
                     List<string> array = new List<string>();
                     foreach (var cmd in module.Commands)
                     {
-                        
                         var result = await cmd.CheckPreconditionsAsync(Context);
-                        if (result.IsSuccess)
-                            if(!array.Contains($"{prefix}{cmd.Summary}\n"))
-                               array.Add($"{prefix}{cmd.Summary}\n");
+                        if (!result.IsSuccess) continue;
+                        if(!array.Contains($"{prefix}{cmd.Remarks}\n"))
+                            array.Add($"{prefix}{cmd.Remarks}\n"); // tried adding command info, bad dev -_-
                     }
                     string description = array.Aggregate<string, string>(null, (current, s) => current + s);
-                    if (!string.IsNullOrWhiteSpace(description))
+                    if (string.IsNullOrWhiteSpace(description)) continue;
+                    builder.AddField(x =>
                     {
-                        builder.AddField(x =>
-                        {
-                            x.Name = module.Name;
-                            x.Value = description;
-                            x.IsInline = false;
-                        });
-                    }
+                        x.Name = module.Name;
+                        x.Value = description;
+                        x.IsInline = false;
+                    });
                 }
             }
-            IDMChannel dm = await Context.Message.Author.GetOrCreateDMChannelAsync();
             await dm.SendMessageAsync("", false, builder.Build());
+        }
+        public T Reduce<T, U>(Func<U, T, T> func, IEnumerable<U> list, T acc)
+        {
+            foreach (var i in list)
+                acc = func(i, acc);
+
+            return acc;
         }
     }
 }

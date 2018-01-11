@@ -35,7 +35,7 @@ namespace GladosV3.Services
             if (msg.Author.IsBot) return; // Ignore other bots
             var context = new SocketCommandContext(_discord, msg);     // Create the command context
             int argPos = 0;     // Check if the message has a valid command prefix
-            if (msg.HasStringPrefix(_config["prefix"], ref argPos) || msg.HasMentionPrefix(_discord.CurrentUser, ref argPos)) // Ignore messagess that aren't meant for the bot
+            if (msg.HasStringPrefix(_config["prefix"], ref argPos) || msg.HasMentionPrefix(_discord.CurrentUser, ref argPos)) // Ignore messages that aren't meant for the bot
             {
                 if (Boolean.Parse(_config["maintenance"]) && !(IsOwner.CheckPermission(context).GetAwaiter().GetResult())) { await context.Channel.SendMessageAsync("This bot is in maintenance mode! Please refrain from using it."); return; } // Don't execute commands in maintenance mode 
                 var result = await _commands.ExecuteAsync(context, argPos, _provider);     // Execute the command

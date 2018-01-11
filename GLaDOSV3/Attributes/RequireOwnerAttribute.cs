@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using GladosV3.Helpers;
 using Microsoft.Extensions.Configuration;
 
 namespace GladosV3.Attributes
@@ -11,8 +12,7 @@ namespace GladosV3.Attributes
     {
         public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
-            var config = new ConfigurationBuilder().SetBasePath(AppContext.BaseDirectory)
-                .AddJsonFile("_configuration.json").Build();
+            var config = await Tools.GetConfig();
             switch (context.Client.TokenType)
             {
                 case TokenType.Bot:
@@ -34,8 +34,7 @@ namespace GladosV3.Attributes
     {
         public static async Task<bool> CheckPermission(ICommandContext context)
         {
-            var config = new ConfigurationBuilder().SetBasePath(AppContext.BaseDirectory)
-                .AddJsonFile("_configuration.json").Build();
+            var config = await Tools.GetConfig();
             switch (context.Client.TokenType)
             {
                 case TokenType.Bot:
@@ -53,8 +52,7 @@ namespace GladosV3.Attributes
         }
         public static async Task<ulong> GetOwner(ICommandContext context)
         {
-            var config = new ConfigurationBuilder().SetBasePath(AppContext.BaseDirectory)
-                .AddJsonFile("_configuration.json").Build();
+            var config = await Tools.GetConfig();
             switch (context.Client.TokenType)
             {
                 case TokenType.Bot:

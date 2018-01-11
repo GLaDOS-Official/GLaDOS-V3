@@ -16,8 +16,8 @@ namespace GladosV3.Modules
     public class FunModule : ModuleBase<SocketCommandContext>
     {
         [Command("catfact")]
-        [Summary("catfact")]
-        [Remarks("This is self-explanatory.")]
+        [Remarks("catfact")]
+        [Summary("This is self-explanatory.")]
         public async Task Catfact()
         {
             using (var http = new HttpClient())
@@ -33,19 +33,15 @@ namespace GladosV3.Modules
             }
         }
         [Command("illegal")]
-        [Summary("illegal <thing>")]
-        [Remarks("Did the president banned something again? Powered by IsNowIllegal.com")]
+        [Remarks("illegal <thing>")]
+        [Summary("Did the president banned something again? Powered by IsNowIllegal.com")]
         public async Task Illegal([Remainder]string word)
         {
-            if (word.Length < 1 || word.Length > 10)
-            {
-                await ReplyAsync("Cannot be longer than 10 characters or shorter than 1 character.");
-                return;
+            if (word.Length < 1 || word.Length > 10) {
+                await ReplyAsync("Cannot be longer than 10 characters or shorter than 1 character."); return;
             }
-            else if (new Regex("^[a-zA-Z\\s]$").IsMatch(word))
-            {
-                await ReplyAsync("You cannot use non-standard unicode characters.");
-                return;
+            else if (new Regex("^[a-zA-Z\\s]$").IsMatch(word)) {
+                await ReplyAsync("You cannot use non-standard unicode characters."); return;
             }
 
             var msg = await ReplyAsync("Please wait...");
@@ -65,8 +61,8 @@ namespace GladosV3.Modules
             }
         }
         [Command("bunny")]
-        [Summary("bunny")]
-        [Remarks("Random bunny!")]
+        [Remarks("bunny")]
+        [Summary("Random bunny!")]
         public async Task Bunny()
         {
             using (var http = new HttpClient())
@@ -82,8 +78,8 @@ namespace GladosV3.Modules
             }
         }
         [Command("cat")]
-        [Summary("cat")]
-        [Remarks("Random cat!")]
+        [Remarks("cat")]
+        [Summary("Random cat!")]
         public async Task Cat()
         {
             using (var http = new HttpClient())
@@ -99,8 +95,8 @@ namespace GladosV3.Modules
             }
         }
         [Command("dog")]
-        [Summary("dog")]
-        [Remarks("Random dog!")]
+        [Remarks("dog")]
+        [Summary("Random dog!")]
         public async Task Dog()
         {
             using (var http = new HttpClient())

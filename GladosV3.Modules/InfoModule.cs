@@ -19,8 +19,9 @@ namespace GladosV3.Modules
     [Name("Info")]
     public class InfoModule : ModuleBase<SocketCommandContext>
     {
-        [Command("info"), Remarks("Displays bot info.")]
-        [Summary("info")]
+        [Command("info")]
+        [Summary("Displays bot info.")]
+        [Remarks("info")]
         public async Task Info()
         {
             IDMChannel DM = await Context.Message.Author.GetOrCreateDMChannelAsync();
@@ -67,7 +68,7 @@ namespace GladosV3.Modules
                 $"- Library: Discord.Net ({DiscordConfig.APIVersion})\n" +
                 $"- Runtime: {PlatformServices.Default.Application.RuntimeFramework.Identifier.Replace("App", String.Empty)} {PlatformServices.Default.Application.RuntimeFramework.Version} {IntPtr.Size * 8}-bit\n" +
                 $"- System: {System.Runtime.InteropServices.RuntimeInformation.OSDescription} {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString().ToLower()}\n" +
-                $"- Uptime: {uptime}\n" +
+                $"- Up-time: {uptime}\n" +
                 $"- Ping: {Context.Client.Latency} ms\n"+
                 $"- Thread running: {((IEnumerable)Process.GetCurrentProcess().Threads).OfType<ProcessThread>().Count(t => t.ThreadState == ThreadState.Running)} out of {Process.GetCurrentProcess().Threads.Count}\n" +
                 $"- RAM usage: {ToFileSize2(Process.GetCurrentProcess().PagedMemorySize64)}\n" +
@@ -91,15 +92,15 @@ namespace GladosV3.Modules
             await waitMessage.ModifyAsync(u => u.Content = message);
         }
         [Command("ping")]
-        [Remarks("Shows bot's latency.")]
-        [Summary("ping")]
+        [Summary("Shows bot's latency.")]
+        [Remarks("ping")]
         public async Task Ping()
         {
             await ReplyAsync($"Pong! {(Context.Client as DiscordSocketClient).Latency} ms :ping_pong:");
         }
         [Command("invite")]
-        [Summary("invite")]
-        [Remarks("Gives an invite link to invite me to your own guild!")]
+        [Remarks("invite")]
+        [Summary("Gives an invite link to invite me to your own guild!")]
         public async Task InviteAsync()
         {
             var eb = new EmbedBuilder()
@@ -114,14 +115,15 @@ namespace GladosV3.Modules
                 Description =
                     $"Just uncheck some of the permissions you don't like, this might break {Context.Client.CurrentUser.Username} though. At least give me these permissions:\n" +
                     "Read/Send Messages, Embed Links, Attach Files, Send Embeds, Add Reactions, Read Message History\n" +
-                    "For selfroles and Mod usage higher perms are needed!\n" +
+                    "For Mod usage higher perms are needed!\n" +
                     $"[Click to Invite](https://discordapp.com/oauth2/authorize?client_id="+Context.Client.CurrentUser.Id+"&scope=bot&permissions=2146958591)"
             };
             IDMChannel dm = await Context.Message.Author.GetOrCreateDMChannelAsync();
             await dm.SendMessageAsync("", false, eb);
         }
-        [Command("user"), Remarks("Returns info about the current user, or the user paramter, if one passed.")]
-        [Summary("user (mention)")]
+        [Command("user")]
+        [Summary("Returns info about the current user, or the user parameter, if one passed.")]
+        [Remarks("user (mention)")]
         [Alias("userinfo", "whois")]
         public async Task UserInfo([Summary("The (optional) user to get info for")] SocketUser user = null)
         {
@@ -262,8 +264,8 @@ namespace GladosV3.Modules
         }
 
         [Command("serverinfo")]
-        [Remarks("Returns info about the current Guild")]
-        [Summary("serverinfo")]
+        [Summary("Returns info about the current Guild")]
+        [Remarks("serverinfo")]
         [Alias("server", "guild")]
         [RequireContext(ContextType.Guild)]
         public async Task ServerInfo()
