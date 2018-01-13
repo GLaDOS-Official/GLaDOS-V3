@@ -6,6 +6,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Discord.Commands;
+using GladosV3.Helpers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -14,6 +15,48 @@ namespace GladosV3.Modules
     [Name("General")]
     public class GeneralModule : ModuleBase<SocketCommandContext>
     {
+        [Group("guild")]
+        public class Guild : ModuleBase<SocketCommandContext>
+        {
+            [Command("farewell")]
+            [Summary("Saying goodbye!")]
+            [Remarks("guild farewell <action> <value>")]
+            public async Task Farewell(string action, string value)
+            {
+                if (action == "message")
+                    SqLite.Connection.SetValue("servers", "leave_msg", value, Context.Guild.Id.ToString());
+                else if (action == "channel")
+                    if (Context.Guild.GetChannel(Convert.ToUInt64(value)) != null)
+                        SqLite.Connection.SetValue("servers", "joinleave_cid", value, Context.Guild.Id.ToString());
+                    else
+                        throw new Exception("Channel ID is invalid!");
+                else if (action == "status")
+                    if (value == "1" || value == "0")
+                        SqLite.Connection.SetValue("servers", "leave_toggle", value, Context.Guild.Id.ToString());
+                    else
+                        throw new Exception("Only 0 or 1 is accepted!");
+                await ReplyAsync("Done!");
+            }
+            [Command("join")]
+            [Summary("Saying hi!")]
+            [Remarks("guild join <action> <value>")]
+            public async Task Join(string action, string value)
+            {
+                if (action == "message")
+                    SqLite.Connection.SetValue("servers", "join_msg", value, Context.Guild.Id.ToString());
+                else if (action == "channel")
+                    if (Context.Guild.GetChannel(Convert.ToUInt64(value)) != null)
+                        SqLite.Connection.SetValue("servers", "joinleave_cid", value, Context.Guild.Id.ToString());
+                    else
+                        throw new Exception("Channel ID is invalid!");
+                else if (action == "status")
+                    if (value == "1" || value == "0")
+                        SqLite.Connection.SetValue("servers", "join_toggle", value, Context.Guild.Id.ToString());
+                    else
+                        throw new Exception("Only 0 or 1 is accepted!");
+                await ReplyAsync("Done!");
+            }
+        }
         [Command("choose")]
         [Summary("Returns a random item that you supplied (splitting by comma character)")]
         [Remarks("choose <items>")]
