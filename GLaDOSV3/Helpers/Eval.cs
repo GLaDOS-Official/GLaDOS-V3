@@ -41,15 +41,11 @@ namespace GladosV3.Helpers
             string[] imports = new[]
             {
                 "System", "System.Collections.Generic", "System.Reflection", "System.Text", "System.Threading.Tasks","System.Linq","System.Math",
-                "System.IO","Microsoft.Extensions.Configuration","System.Diagnostics","GladosV3.Helpers","Discord","Discord.Commands","Discord.WebSocket"
+                "System.IO","Microsoft.Extensions.Configuration","System.Diagnostics","GladosV3.Helpers","Discord","Discord.Commands","Discord.WebSocket","Newtonsoft.Json"
             };
             try
             {
                 ScriptOptions options = ScriptOptions.Default.WithReferences(AppDomain.CurrentDomain.GetAssemblies().Where(asm => !asm.IsDynamic && !string.IsNullOrWhiteSpace(asm.Location))).WithImports(imports).WithEmitDebugInformation(true);
-               /* object script = (
-                    CSharpScript.EvaluateAsync(cScode, ScriptOptions.Default.WithImports(imports),ctx)  
-                    .GetAwaiter()
-                    .GetResult());*/
                 Script result = CSharpScript.Create(cScode, options, typeof(Globals));
                 var returnVal = result.RunAsync(new Globals(ctx)).GetAwaiter().GetResult().ReturnValue?.ToString();
                 if (!string.IsNullOrWhiteSpace(returnVal) && returnVal?.ToString().Contains(Tools.GetConfig(0).GetAwaiter().GetResult()["tokens:discord"]))
@@ -62,7 +58,6 @@ namespace GladosV3.Helpers
                 return await Task.FromResult<string>($"**Compiler error**{Environment.NewLine}Output: ```{string.Join(Environment.NewLine, e.Diagnostics)}```");
             }
             catch (Exception e)
-
             {
                 return await Task.FromResult<string>($"**Exception!**{e.Message}\n{e.StackTrace}");
             }

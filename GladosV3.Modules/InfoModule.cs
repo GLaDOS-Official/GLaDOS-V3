@@ -278,6 +278,7 @@ namespace GladosV3.Modules
                     Color = new Color(4, 97, 247),
                     ThumbnailUrl = (avatarURL),
                     Title = $"{Context.Guild.Name} info",
+
                     Description = $"Created on {Context.Guild.CreatedAt.ToString().Remove(Context.Guild.CreatedAt.ToString().Length - 6)}. That's {(int)(DateTime.Now.ToUniversalTime().Subtract(Context.Guild.CreatedAt.DateTime).TotalDays)} days ago!",
                     Footer = new EmbedFooterBuilder()
                     {
@@ -286,10 +287,6 @@ namespace GladosV3.Modules
                     }
                 };
                 var guild = ((SocketGuild)Context.Guild);
-                //await guild.DownloadUsersAsync();
-
-                //var onlineCount = users.Count(u => u.Status != UserStatus.Unknown && u.Status != UserStatus.Invisible && u.Status != UserStatus.Offline);
-
                 var GuildOwner = Context.Guild.GetUser(Context.Guild.OwnerId);
                 int online = 0;
                 foreach (var u in guild.Users)
@@ -366,7 +363,6 @@ namespace GladosV3.Modules
                                 val += $"<:{e.Name}:{e.Id}> ";
                         }
 
-                        //x.Value = $"{String.Format(":{0}:",String.Join(": , :", Context.Guild.Emojis))}";//await Context.Channel.SendMessageAsync(String.Format("Videos: \n{0}\n", String.Join("\n", videos)));
                         x.Value = (string.IsNullOrWhiteSpace(val) ? "*none*" : val);
                     });
                 }

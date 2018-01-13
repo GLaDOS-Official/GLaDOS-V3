@@ -24,7 +24,7 @@ namespace GladosV3.Modules
         [Command("modules")]
         [Remarks("modules")]
         [Summary("Shows information on a module such as any remarks and a count of how many commands")]
-        public async Task Modules(string remarks = null)
+        public Task Modules(string remarks = null)
         {
             var builder = new EmbedBuilder
             {
@@ -40,7 +40,8 @@ namespace GladosV3.Modules
                     e.IsInline = (false);
                 });
             }
-            await ReplyAsync("", false, builder.Build());
+            ReplyAsync("", false, builder.Build()).GetAwaiter().GetResult();
+            return Task.CompletedTask;
         }
 
         [Command("help")]
@@ -103,7 +104,7 @@ namespace GladosV3.Modules
                         var result = await cmd.CheckPreconditionsAsync(Context);
                         if (!result.IsSuccess) continue;
                         if(!array.Contains($"{prefix}{cmd.Remarks}\n"))
-                            array.Add($"{prefix}{cmd.Remarks}\n"); // tried adding command info, bad dev -_-
+                            array.Add($"{prefix}{cmd.Remarks}\n");
                     }
                     string description = array.Aggregate<string, string>(null, (current, s) => current + s);
                     if (string.IsNullOrWhiteSpace(description)) continue;
@@ -116,13 +117,6 @@ namespace GladosV3.Modules
                 }
             }
             await dm.SendMessageAsync("", false, builder.Build());
-        }
-        public T Reduce<T, U>(Func<U, T, T> func, IEnumerable<U> list, T acc)
-        {
-            foreach (var i in list)
-                acc = func(i, acc);
-
-            return acc;
         }
     }
 }
