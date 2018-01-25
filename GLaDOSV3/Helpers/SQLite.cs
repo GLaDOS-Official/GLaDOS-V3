@@ -15,33 +15,35 @@ namespace GladosV3.Helpers
         public static SQLiteConnection Connection = new SQLiteConnection($"Data Source={DirPath}");
         public static bool TableExists(this IDbConnection connection, string tableName)
         {
-            var cmd = connection.CreateCommand();
-            cmd.CommandText = @"SELECT COUNT(*) FROM sqlite_master WHERE name=@TableName";
-            var p1 = cmd.CreateParameter();
-            p1.DbType = DbType.String;
-            p1.ParameterName = "TableName";
-            p1.Value = tableName;
-            cmd.Parameters.Add(p1);
+            object result;
+            using (SQLiteCommand cmd = new SQLiteCommand(Connection))
+            {
+                cmd.CommandText = @"SELECT COUNT(*) FROM sqlite_master WHERE name=@TableName";
+                var p1 = cmd.CreateParameter();
+                p1.DbType = DbType.String;
+                p1.ParameterName = "TableName";
+                p1.Value = tableName;
+                cmd.Parameters.Add(p1);
 
-            var result = cmd.ExecuteScalar();
+                result = cmd.ExecuteScalar();
+            }
+
             return ((long)result) == 1;
         }
 
         public static void CreateTable(this SQLiteConnection connection, string tableName,string parameters)
         {
             string sql = $"CREATE TABLE `{tableName}` ({parameters});";
-
-            SQLiteCommand command = new SQLiteCommand(sql, connection);
-            command.ExecuteNonQuery();
+            using (SQLiteCommand command = new SQLiteCommand(sql, connection))
+                command.ExecuteNonQuery();
         }
-        public static void SetValue(this SQLiteConnection connection, string tableName, string parameter,object value, string guildid = "")
+        public static void SetValue<T>(this SQLiteConnection connection, string tableName, string parameter,T value, string guildid = "")
         {
-            string sql = $"UPDATE {tableName} SET {parameter}='{value}'";
+            string sql = $"UPDATE {tableName} SET {parameter}='{value.ToString()}'";
             if (guildid != "")
                 sql += $" WHERE guildid={guildid}";
-            SQLiteCommand command = new SQLiteCommand(sql, connection);
-            command.ExecuteNonQuery();
-            command?.Dispose();
+            using (SQLiteCommand command = new SQLiteCommand(sql, connection))
+                command.ExecuteNonQuery();
         }
         public static DataTable GetValues(this SQLiteConnection connection, string tableName,string guildid="")
         {
@@ -50,9 +52,7 @@ namespace GladosV3.Helpers
             if (guildid != "")
                 sql += $" WHERE guildid='{guildid}'";
             using (SQLiteDataAdapter reader = new SQLiteDataAdapter(sql, connection))
-            {
                 reader.Fill(dt);
-            }
             dt.TableName = tableName;
             return dt;
         }
@@ -62,7 +62,7 @@ namespace GladosV3.Helpers
                 SQLiteConnection.CreateFile(DirPath);
             Connection.Open();
             if(!Connection.TableExists("servers"))
-                Connection.CreateTable("servers", "`guildid` INTEGER, `nsfw` INTEGER");
+                Connection.CreateTable("servers", "`guildid` INTEGER, `nsfw` INTEGER, `joinleave_cid` INTEGER, `join_msg` TEXT,  `join_toggle` INTEGER, `leave_msg` TEXT, `leave_toggle` INTEGER");
         }
     }
 }

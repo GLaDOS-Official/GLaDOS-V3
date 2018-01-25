@@ -45,7 +45,7 @@ namespace GladosV3.Modules
             [Summary("Get's status of the nsfw module (disabled by default)")]
             public async Task Status()
             {
-                string result = (Convert.ToInt32(SqLite.Connection.GetValues("servers", Context.Guild.Id.ToString()).Rows[0]["nsfw"]) == 1) ? "disabled" : "enabled";
+                string result = (Convert.ToInt32(SqLite.Connection.GetValues("servers", Context.Guild.Id.ToString()).Rows[0]["nsfw"]) == 1) ? "enabled" : "disabled";
                 var message =
                     $"The current status of nsfw module is: {result}";
                 await ReplyAsync(message);

@@ -4,6 +4,8 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using GladosV3.Attributes;
 using GladosV3.Services;
@@ -12,13 +14,14 @@ namespace GladosV3
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static void Main()
             => new Program().StartAsync().GetAwaiter().GetResult();
 
         private IConfigurationRoot _config;
 
         public async Task StartAsync()
         {
+            ReleaseMemory();
             _config = await Tools.GetConfig();              // Build the configuration file
 
             var services = new ServiceCollection()      // Begin building the service provider
@@ -45,7 +48,6 @@ namespace GladosV3
                 .AddSingleton<ClientEvents>()       // Discord client events
                 .AddSingleton<Tools>()
                 .AddSingleton(_config);
-
             var provider = services.BuildServiceProvider();     // Create the service provider
 
             provider.GetRequiredService<LoggingService>();      // Initialize the logging service, client events, startup service, on discord log on service, command handler and system message
@@ -56,6 +58,13 @@ namespace GladosV3
             provider.GetRequiredService<CommandHandler>();
             provider.GetRequiredService<SystemMessage>().KeyPress();
             await Task.Delay(-1);     // Prevent the application from closing
+        }
+        private void ReleaseMemory()
+        {
+            GC.Collect(GC.MaxGeneration);
+            GC.WaitForPendingFinalizers();
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
+            PInvokes.EmptyWorkingSet(Process.GetCurrentProcess().Handle);
         }
     }
 }

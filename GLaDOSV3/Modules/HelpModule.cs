@@ -4,6 +4,7 @@ using Discord;
 using Discord.Commands;
 using Microsoft.Extensions.Configuration;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -50,9 +51,12 @@ namespace GladosV3.Modules
         public async Task Help([Remainder]string command = null)
         {
             IDMChannel dm = await Context.Message.Author.GetOrCreateDMChannelAsync();
-            EmbedBuilder builder;
-            string prefix = _config["prefix"];;
             Random rnd = new Random();
+            EmbedBuilder builder = new EmbedBuilder()
+            {
+                Color = new Color(rnd.Next(256), rnd.Next(256), rnd.Next(256)),
+            };
+            string prefix = _config["prefix"];;
             if (command != null)
             {
                 var result = _service.Search(Context, command);
@@ -63,27 +67,16 @@ namespace GladosV3.Modules
                     return;
                 }
 
-                builder = new EmbedBuilder()
-                {
-                    Color = new Color(rnd.Next(256), rnd.Next(256), rnd.Next(256)),
-                    Description = $"Here are some commands like **{command}**"
-                };
+                builder.Description = $"Here are some commands like **{command}**";
                 
                 foreach (var match in result.Commands)
                 {
-                    var cmd = match.Command;
-                    var text = string.Empty;
-                    if (cmd.Parameters.Count != 0)
-                        text += $"Arguments: {string.Join(", ", cmd.Parameters.Select(p => p.Name))}\n";
-                    else
-                        text += "Arguments: None\n";
-                    if (!string.IsNullOrWhiteSpace(cmd.Summary) || !string.IsNullOrEmpty(cmd.Summary))
-                        text += $"Info: {cmd.Summary}\n";
-                    if (!string.IsNullOrWhiteSpace(cmd.Remarks))
-                        text += $"Example: {cmd.Remarks}\n";
+                    string text = (match.Command.Parameters.Count != 0) ? "Arguments: None\n" : $"Arguments: {string.Join(", ", match.Command.Parameters.Select(p => p.Name))}\n";
+                    text = string.Concat(text, !string.IsNullOrWhiteSpace(match.Command.Summary) ? "" :  $"Info: {match.Command.Summary}\n");
+                    text += string.Concat(text, !string.IsNullOrWhiteSpace(match.Command.Remarks) ? "" :  $"Example: {match.Command.Remarks}\n");
                     builder.AddField(x =>
                     {
-                        x.Name = string.Join(", ", cmd.Aliases);
+                        x.Name = string.Join(", ", match.Command.Aliases);
                         x.Value = text;
                         x.IsInline = false;
                     });
@@ -91,11 +84,7 @@ namespace GladosV3.Modules
             }
             else
             {
-                builder = new EmbedBuilder
-                {
-                    Color = new Color(rnd.Next(256), rnd.Next(256), rnd.Next(256)),
-                    Description = "These are the commands you can use."
-                };
+                builder.Description = "These are the commands you can use.";
                 foreach (var module in _service.Modules)
                 {
                     List<string> array = new List<string>();
@@ -106,7 +95,8 @@ namespace GladosV3.Modules
                         if(!array.Contains($"{prefix}{cmd.Remarks}\n"))
                             array.Add($"{prefix}{cmd.Remarks}\n");
                     }
-                    string description = array.Aggregate<string, string>(null, (current, s) => current + s);
+
+                    var description = array.Aggregate<string, string>(null, (current, s) => string.Concat(current, s));
                     if (string.IsNullOrWhiteSpace(description)) continue;
                     builder.AddField(x =>
                     {

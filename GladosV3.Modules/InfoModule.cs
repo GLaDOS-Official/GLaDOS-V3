@@ -65,30 +65,30 @@ namespace GladosV3.Modules
             }
             var message = (
                 $"{Format.Bold("Info")}\n" +
-                $"- Library: Discord.Net ({DiscordConfig.APIVersion})\n" +
-                $"- Runtime: {PlatformServices.Default.Application.RuntimeFramework.Identifier.Replace("App", String.Empty)} {PlatformServices.Default.Application.RuntimeFramework.Version} {IntPtr.Size * 8}-bit\n" +
+                $"- Library: Discord.Net ({DiscordConfig.APIVersion.ToString()})\n" +
+                $"- Runtime: {PlatformServices.Default.Application.RuntimeFramework.Identifier.Replace("App", String.Empty)} {PlatformServices.Default.Application.RuntimeFramework.Version} {(IntPtr.Size * 8).ToString()}-bit\n" +
                 $"- System: {System.Runtime.InteropServices.RuntimeInformation.OSDescription} {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString().ToLower()}\n" +
                 $"- Up-time: {uptime}\n" +
-                $"- Ping: {Context.Client.Latency} ms\n"+
-                $"- Thread running: {((IEnumerable)Process.GetCurrentProcess().Threads).OfType<ProcessThread>().Count(t => t.ThreadState == ThreadState.Running)} out of {Process.GetCurrentProcess().Threads.Count}\n" +
+                $"- Ping: {Context.Client.Latency.ToString()} ms\n"+
+                $"- Thread running: {Process.GetCurrentProcess().Threads.OfType<ProcessThread>().Count(t => t.ThreadState == ThreadState.Running).ToString()} out of {Process.GetCurrentProcess().Threads.Count.ToString()}\n" +
                 $"- RAM usage: {ToFileSize2(Process.GetCurrentProcess().PagedMemorySize64)}\n" +
                 $"- CPU usage: {GetCpuUsage():N1}%\n" +
                 $"- Heap Size: {heapsize}\n" +
-                $"- Owner of the bot: <@{IsOwner.GetOwner(Context).GetAwaiter().GetResult()}>\n" +
+                $"- Owner of the bot: <@{IsOwner.GetOwner(Context).GetAwaiter().GetResult().ToString()}>\n" +
                 $"- Author of the bot: <@195225230908588032> \n\n" +
                  
                 $"{Format.Bold("Stats")}\n" +
-                $"- Servers: {guildcount}\n"
+                $"- Servers: {guildcount.ToString()}\n"
             );
             if (Context.Guild != null)
             {
                 var channelscount = Context.Guild.Channels.Count;
-                var userscount = Context.Guild.Users.Count();
-                message += $"- Channels: {channelscount} (in this guild) \n" +
-                           $"- Users: {userscount} (in this guild) \n";
+                var userscount = Context.Guild.Users.Count;
+                message += $"- Channels: {channelscount.ToString()} (in this guild) \n" +
+                           $"- Users: {userscount.ToString()} (in this guild) \n";
             }
-            message += $"- Channels: {channelCount} (total) \n" +
-                       $"- Users: {userCount} (total) \n";
+            message += $"- Channels: {channelCount.ToString()} (total) \n" +
+                       $"- Users: {userCount.ToString()} (total) \n";
             await waitMessage.ModifyAsync(u => u.Content = message);
         }
         [Command("ping")]
@@ -96,7 +96,14 @@ namespace GladosV3.Modules
         [Remarks("ping")]
         public async Task Ping()
         {
-            await ReplyAsync($"Pong! {(Context.Client as DiscordSocketClient).Latency} ms :ping_pong:");
+            var sw = Stopwatch.StartNew();
+            var message = await ReplyAsync("Ping!").ConfigureAwait(false);
+            sw.Stop();
+            var usual = (sw.ElapsedMilliseconds > 10000) ? "there could be something wrong." : "there's nothing wrong";
+            await message.ModifyAsync(delegate(MessageProperties properties)
+            {
+                properties.Content = $":ping_pong: Pong! {sw.ElapsedMilliseconds.ToString()}ms. It means that {usual}.";
+            });
         }
         [Command("invite")]
         [Remarks("invite")]
@@ -116,14 +123,14 @@ namespace GladosV3.Modules
                     $"Just uncheck some of the permissions you don't like, this might break {Context.Client.CurrentUser.Username} though. At least give me these permissions:\n" +
                     "Read/Send Messages, Embed Links, Attach Files, Send Embeds, Add Reactions, Read Message History\n" +
                     "For Mod usage higher perms are needed!\n" +
-                    $"[Click to Invite](https://discordapp.com/oauth2/authorize?client_id="+Context.Client.CurrentUser.Id+"&scope=bot&permissions=2146958591)"
+                    $"[Click to Invite](https://discordapp.com/oauth2/authorize?client_id={Context.Client.CurrentUser.Id}&scope=bot&permissions=2146958591)"
             };
             IDMChannel dm = await Context.Message.Author.GetOrCreateDMChannelAsync();
             await dm.SendMessageAsync("", false, eb);
         }
         [Command("user")]
         [Summary("Returns info about the current user, or the user parameter, if one passed.")]
-        [Remarks("user (mention)")]
+        [Remarks("user [mention]")]
         [Alias("userinfo", "whois")]
         public async Task UserInfo([Summary("The (optional) user to get info for")] SocketUser user = null)
         {
@@ -223,7 +230,6 @@ namespace GladosV3.Modules
                     });
                     eb.AddField((x) =>
                     {
-                        //string roles = socketUser.Roles.Where(role => role.Name != "@everyone").Aggregate("", (current, role) => current + $"{role.Name}, ");
                         string roles = "";
                         if(socketUser != null && socketUser.Roles.Count > 1) {
                             foreach (var role in socketUser.Roles)
@@ -240,19 +246,6 @@ namespace GladosV3.Modules
                     });
 
                 }
-
-
-                /*
-                eb.AddField((efb) =>
-                {
-                    efb.Name = "User Info";
-                    efb.IsInline = true;
-                    efb.Value = $"**Name + Discriminator:** \t{userInfo.Username}#{userInfo.Discriminator} \n" +
-                                $"**ID** \t{userInfo.Id}\n" +
-                                $"**Created at:** \t{userInfo.CreatedAt.ToString().Remove(userInfo.CreatedAt.ToString().Length -6)} \n" +
-                                $"**Status:** \t{userInfo.Status}\n" +
-                                $"**Avatar:** \t[Link]({userInfo.AvatarUrl})";
-                });*/
 
                 await Context.Channel.SendMessageAsync("", false, eb);
             }
@@ -277,9 +270,9 @@ namespace GladosV3.Modules
                 {
                     Color = new Color(4, 97, 247),
                     ThumbnailUrl = (avatarURL),
-                    Title = $"{Context.Guild.Name} info",
+                    Title = $"{Context.Guild.Name} ({Context.Guild.Id})",
 
-                    Description = $"Created on {Context.Guild.CreatedAt.ToString().Remove(Context.Guild.CreatedAt.ToString().Length - 6)}. That's {(int)(DateTime.Now.ToUniversalTime().Subtract(Context.Guild.CreatedAt.DateTime).TotalDays)} days ago!",
+                    Description = $"Created on {Context.Guild.CreatedAt.ToString().Remove(Context.Guild.CreatedAt.ToString().Length - 6)}. That's {(DateTime.Now.ToUniversalTime().Subtract(Context.Guild.CreatedAt.DateTime).TotalDays).ToString()} days ago!",
                     Footer = new EmbedFooterBuilder()
                     {
                         Text = $"Requested by {Context.User.Username}#{Context.User.Discriminator} | Guild ID: {Context.Guild.Id}",
@@ -321,13 +314,11 @@ namespace GladosV3.Modules
                     x.Value = "" + Context.Guild.Roles.Count;
                 });
 
-                int voice = Context.Guild.VoiceChannels.Count;
-                int text = Context.Guild.TextChannels.Count;
                 eb.AddField((x) =>
                 {
                     x.Name = "Channels";
                     x.IsInline = true;
-                    x.Value = $"{text} text, {voice} voice";
+                    x.Value = $"{Context.Guild.TextChannels.Count} text, {Context.Guild.VoiceChannels.Count} voice";
                 });
 
                 eb.AddField((x) =>
@@ -366,7 +357,6 @@ namespace GladosV3.Modules
                         x.Value = (string.IsNullOrWhiteSpace(val) ? "*none*" : val);
                     });
                 }
-
                 await Context.Channel.SendMessageAsync("", false, eb);
             }
             catch (Exception e)
@@ -374,7 +364,5 @@ namespace GladosV3.Modules
                 Console.WriteLine(e);
             }
         }
-
-
     }
 }

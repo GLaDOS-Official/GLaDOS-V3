@@ -13,15 +13,14 @@ namespace GladosV3.Services
         private readonly DiscordSocketClient _discord;
         private readonly CommandService _commands;
 
-        public Task Log(LogSeverity severity, string source, string message, Exception exception = null) =>
+        public static Task Log(LogSeverity severity, string source, string message, Exception exception = null) =>
             OnLogAsync(new LogMessage(severity, source, message, exception));
-        private string _logDirectory { get; }
-        private string _logFile => Path.Combine(_logDirectory, $"{DateTime.UtcNow:yyyy-MM-dd}.txt");
+        private static string _logDirectory => Path.Combine(AppContext.BaseDirectory, "logs");
+        private static string _logFile => Path.Combine(_logDirectory, $"{DateTime.UtcNow:yyyy-MM-dd}.txt");
 
         // DiscordSocketClient and CommandService are injected automatically from the IServiceProvider
         public LoggingService(DiscordSocketClient discord, CommandService commands,bool init = true)
         {
-            _logDirectory = Path.Combine(AppContext.BaseDirectory, "logs");
             if (!Directory.Exists(_logDirectory))     // Create the log directory if it doesn't exist
                 Directory.CreateDirectory(_logDirectory);
             _discord = discord;
@@ -31,7 +30,7 @@ namespace GladosV3.Services
             _commands.Log += OnLogAsync;
         }
         
-        private Task OnLogAsync(LogMessage msg)
+        private static Task OnLogAsync(LogMessage msg)
         {
             if (!File.Exists(_logFile))               // Create today's log file if it doesn't exist
                 File.Create(_logFile).Dispose();

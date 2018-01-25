@@ -18,8 +18,7 @@ namespace GladosV3.Modules
         {
             try
             {
-                Expression ex = new Expression(math);
-                var done = ex.calculate();
+                var done = new Expression(math).calculate();
                 if (double.IsNaN(done))
                     throw new FormatException("idk");
                 await ReplyAsync(

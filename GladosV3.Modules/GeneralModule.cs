@@ -23,18 +23,26 @@ namespace GladosV3.Modules
             [Remarks("guild farewell <action> <value>")]
             public async Task Farewell(string action, string value)
             {
-                if (action == "message")
-                    SqLite.Connection.SetValue("servers", "leave_msg", value, Context.Guild.Id.ToString());
-                else if (action == "channel")
-                    if (Context.Guild.GetChannel(Convert.ToUInt64(value)) != null)
-                        SqLite.Connection.SetValue("servers", "joinleave_cid", value, Context.Guild.Id.ToString());
-                    else
-                        throw new Exception("Channel ID is invalid!");
-                else if (action == "status")
-                    if (value == "1" || value == "0")
-                        SqLite.Connection.SetValue("servers", "leave_toggle", value, Context.Guild.Id.ToString());
-                    else
-                        throw new Exception("Only 0 or 1 is accepted!");
+                string id = Context.Guild.Id.ToString();
+                switch (action)
+                {
+                    case "message":
+                        SqLite.Connection.SetValue("servers", "leave_msg", value, id);
+                        break;
+                    case "channel":
+                        if (Context.Guild.GetChannel(Convert.ToUInt64(value)) != null)
+                            SqLite.Connection.SetValue("servers", "joinleave_cid", value, id);
+                        else
+                            throw new Exception("Channel ID is invalid!");
+                        break;
+                    case "status":
+                        if (value == "1" || value == "0")
+                            SqLite.Connection.SetValue("servers", "leave_toggle", value, id);
+                        else
+                            throw new Exception("Only 0 or 1 is accepted!");
+                        break;
+                }
+
                 await ReplyAsync("Done!");
             }
             [Command("join")]
@@ -42,18 +50,25 @@ namespace GladosV3.Modules
             [Remarks("guild join <action> <value>")]
             public async Task Join(string action, string value)
             {
-                if (action == "message")
-                    SqLite.Connection.SetValue("servers", "join_msg", value, Context.Guild.Id.ToString());
-                else if (action == "channel")
-                    if (Context.Guild.GetChannel(Convert.ToUInt64(value)) != null)
-                        SqLite.Connection.SetValue("servers", "joinleave_cid", value, Context.Guild.Id.ToString());
-                    else
-                        throw new Exception("Channel ID is invalid!");
-                else if (action == "status")
-                    if (value == "1" || value == "0")
-                        SqLite.Connection.SetValue("servers", "join_toggle", value, Context.Guild.Id.ToString());
-                    else
-                        throw new Exception("Only 0 or 1 is accepted!");
+                switch (action)
+                {
+                    case "message":
+                        SqLite.Connection.SetValue("servers", "join_msg", value, Context.Guild.Id.ToString());
+                        break;
+                    case "channel":
+                        if (Context.Guild.GetChannel(Convert.ToUInt64(value)) != null)
+                            SqLite.Connection.SetValue("servers", "joinleave_cid", value, Context.Guild.Id.ToString());
+                        else
+                            throw new Exception("Channel ID is invalid!");
+                        break;
+                    case "status":
+                        if (value == "1" || value == "0")
+                            SqLite.Connection.SetValue("servers", "join_toggle", value, Context.Guild.Id.ToString());
+                        else
+                            throw new Exception("Only 0 or 1 is accepted!");
+                        break;
+                }
+
                 await ReplyAsync("Done!");
             }
         }
@@ -61,11 +76,12 @@ namespace GladosV3.Modules
         [Summary("Returns a random item that you supplied (splitting by comma character)")]
         [Remarks("choose <items>")]
         [Alias("random")]
-        public async Task Choose([Remainder]string text)
+        public Task Choose([Remainder]string text)
         {
             string[] array = text.Split(',');
             Random rnd = new Random();
-            await ReplyAsync($"I have chosen: {array[rnd.Next(array.Length - 1)]}");
+            ReplyAsync($"I have chosen: {array[rnd.Next(array.Length - 1)]}");
+            return Task.CompletedTask;
         }
 
         [Command("strawpoll")]

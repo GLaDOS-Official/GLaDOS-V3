@@ -31,14 +31,22 @@ namespace GladosV3.Services
         {
             await IsMfaEnabled();
             await GetUserFromConfig();
+            if (_config["discord:status"] != "online")  {
+                if (Enum.TryParse(typeof(UserStatus), _config["discord:status"], true, out var status))
+                    await _discord.SetStatusAsync((UserStatus)status);
+                else
+                    await LoggingService.Log(LogSeverity.Warning, "Client status",
+                        "Could not parse status string from config.json!");
+            }
+            if (_discord.CurrentUser.Game?.Name != _config["discord:game"])
+                await _discord.SetGameAsync(_config["discord:game"]);
         }
         private Task<bool> IsMfaEnabled()
         {
             if (_discord.CurrentUser == null) return Task.FromResult(false);
             else if (_discord.CurrentUser.IsMfaEnabled) return Task.FromResult(true);
-            var loggingService = new LoggingService(_discord, this._commands,false);
-            loggingService.Log(LogSeverity.Warning, "Bot",
-                "MFA is disabled! This means that your bot will be unable to gather Administrator, Manage server & roles & channels & messages & web-hooks, kick and ban members!",
+            LoggingService.Log(LogSeverity.Warning, "Bot",
+                "MFA is disabled! Mod usage will not work!",
                 null).GetAwaiter();
             return Task.FromResult(false);
         }

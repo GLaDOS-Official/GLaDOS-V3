@@ -17,6 +17,7 @@ namespace GladosV3.Modules
         [Summary("Removes specified amount of messages")]
         [Attributes.RequireUserPermission(GuildPermission.ManageMessages)]
         [RequireBotPermission(GuildPermission.ManageMessages)]
+        [Attributes.RequireMFA]
         public async Task Purge(int count = 100)
         {
             if (count < 2)
@@ -45,6 +46,7 @@ namespace GladosV3.Modules
         [Summary("Removes most recent messages from a user")]
         [Attributes.RequireUserPermission(GuildPermission.ManageMessages)]
         [RequireBotPermission(GuildPermission.ManageMessages)]
+        [Attributes.RequireMFA]
         public async Task Prune(IUser UserMention, int count = 100)
         {
             if (count < 2)
@@ -62,13 +64,14 @@ namespace GladosV3.Modules
                 await ReplyAsync("Some messages failed to delete! This is not a error and can not be fixed!");
                 return;
             }
-            await ReplyAsync($"Cleared **{UserMention.Username}'s** Messages (Count = {newlist.Length})");
+            await ReplyAsync($"Cleared **{UserMention.Username}'s** Messages (Count = {newlist.Length.ToString()})");
         }
         [Command("kick")]
         [Remarks("kick <user> [reason]")]
         [Summary("Kicks the specified user.")]
         [Attributes.RequireUserPermission(GuildPermission.KickMembers)]
         [RequireBotPermission(GuildPermission.KickMembers)]
+        [Attributes.RequireMFA]
         public async Task Kick(SocketGuildUser UserMention, [Remainder] string reason = "Unspecified.")
         {
             if (UserMention.Id == Context.User.Id)
@@ -96,6 +99,7 @@ namespace GladosV3.Modules
         [Summary("Bans the specified user.")]
         [Attributes.RequireUserPermission(GuildPermission.BanMembers)]
         [RequireBotPermission(GuildPermission.BanMembers)]
+        [Attributes.RequireMFA]
         public async Task Ban(SocketGuildUser UserMention, [Remainder] params string[] reasonArray)
         {
             if (UserMention.Id == Context.User.Id)
@@ -130,11 +134,19 @@ namespace GladosV3.Modules
             await ReplyAsync("Bye! :wave:");
             await Context.Guild.LeaveAsync();
         }
+
         [Command("say"), Alias("s")]
         [Remarks("say <text>")]
         [Summary("Make the bot say something")]
         [Attributes.RequireUserPermission(GuildPermission.ManageGuild)]
-        public Task Say([Remainder]string text)
-            => ReplyAsync(text);
+        public async Task Say([Remainder] string text)
+        {
+            if (text.Contains("--s"))
+            {
+                await Context.Message.DeleteAsync();
+                text = text.Replace("--s", "");
+            }
+            await ReplyAsync(text);
+        }
     }
 }

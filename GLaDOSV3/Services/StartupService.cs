@@ -7,8 +7,10 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.CSharp;
 using System.CodeDom.Compiler;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using Discord.Net;
 using GladosV3.Helpers;
@@ -33,6 +35,7 @@ namespace GladosV3.Services
             _discord = discord;
             _commands = commands;
         }
+
 
         public async Task StartAsync()
         {
@@ -63,14 +66,7 @@ namespace GladosV3.Services
                 Task.Delay(10000).Wait();
                 Environment.Exit(0);
             }
-            if (_config["discord:status"] != "online")
-            {
-                if (Enum.TryParse(typeof(UserStatus),_config["discord:status"], true, out var status))
-                    await _discord.SetStatusAsync((UserStatus) status);
-                else
-                    await new LoggingService(_discord, _commands, false).Log(LogSeverity.Warning, "Client status",
-                        "Could not parse status string from config.json!");
-            }
+
 
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly());     // Load commands and modules into the command service
             if (Directory.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules")))
@@ -85,8 +81,8 @@ namespace GladosV3.Services
                         await _commands.AddModulesAsync(asm);
                         var modules = asm.GetTypes().Where(type => type.IsClass && !type.IsSpecialName && type.IsPublic)
                             .Aggregate(string.Empty, (current, type) => current + type.Name + ", ");
-                        await new LoggingService(_discord, _commands, false).Log(LogSeverity.Verbose, "Module",
-                            $"Loaded modules: {modules}\b\b from {Path.GetFileNameWithoutExtension(file)}");
+                       await LoggingService.Log(LogSeverity.Verbose, "Module",
+                           $"Loaded modules: {modules}\b\b from {Path.GetFileNameWithoutExtension(file)}");
                     }
                     catch { }
                 }

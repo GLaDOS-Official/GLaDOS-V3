@@ -34,8 +34,7 @@ namespace GladosV3.Helpers
         public void KeyPress()
         {
             if (Boolean.Parse(_config["maintenance"])) return;
-            Thread thread = new Thread(SystemMessageThread);
-            thread.Start();
+            new Thread(SystemMessageThread).Start();
         }
 
         private void SystemMessageThread()
