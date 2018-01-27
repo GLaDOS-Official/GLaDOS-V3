@@ -118,9 +118,29 @@ namespace GladosV3.Modules
                     await ReplyAsync($"Set bot's game state to {clasO["discord"]["game"].Value<string>()}.\nRestarting the bot!");
                 Tools.RestartApp();
             }
+
+            [Command("blacklist")]
+            [Remarks("bot blacklist <add/remove> <userid> [Reason]")]
+            [Summary("Blacklists a user from using the bot")]
+            [Attributes.RequireOwner]
+            public async Task Blacklist(string method, ulong userid, [Remainder] string reason = "Unspecified")
+            {
+                if (method == "add")
+                {
+                    SqLite.Connection.AddRecord("BlacklistedUsers","UserId,Reason,Date",new []{userid.ToString(),reason,DateTime.Now.ToString()});
+                }
+                else if (method == "remove")
+                {
+                    SqLite.Connection.RemoveRecord("BlacklistedUsers",$"UserID={userid.ToString()}");
+                }
+                else
+                {
+                    await ReplyAsync("Invalid method.");
+                }
+            }
             [Command("status")]
             [Remarks("bot status <status>")]
-            [Summary("Set's bot status")]
+            [Summary("Sets bot status")]
             [Attributes.RequireOwner]
             public async Task Status([Remainder]string status = "")
             {

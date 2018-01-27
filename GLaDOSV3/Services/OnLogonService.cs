@@ -46,7 +46,7 @@ namespace GladosV3.Services
             if (_discord.CurrentUser == null) return Task.FromResult(false);
             else if (_discord.CurrentUser.IsMfaEnabled) return Task.FromResult(true);
             LoggingService.Log(LogSeverity.Warning, "Bot",
-                "MFA is disabled! Mod usage will not work!",
+                "MFA is disabled! Mod usage might not work!",
                 null).GetAwaiter();
             return Task.FromResult(false);
         }

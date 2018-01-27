@@ -22,23 +22,11 @@ namespace GladosV3.Services
         }
         private async Task JoinedGuild(SocketGuild arg)
         {
-            string sql = $"INSERT INTO servers (guildid,nsfw) VALUES (@val1, @va2);";
-
-            using (SQLiteCommand command = new SQLiteCommand(sql, SqLite.Connection))
-            {
-                command.Parameters.AddWithValue("@val1", arg.Id);
-                command.Parameters.AddWithValue("@val2", false);
-                await command.ExecuteNonQueryAsync();
-            }
+            SqLite.Connection.AddRecord("servers","guildid",new []{ arg.Id.ToString()});
         }
         private async Task LeftGuild(SocketGuild arg)
         {
-            string sql = $"DELETE FROM servers WHERE guildid=@val1;";
-            using (SQLiteCommand command = new SQLiteCommand(sql, SqLite.Connection))
-            {
-                command.Parameters.AddWithValue("@val1", arg.Id);
-                await command.ExecuteNonQueryAsync();
-            }
+            SqLite.Connection.RemoveRecord("servers",$"guildid={arg.Id.ToString()}");
         }
     }
 }

@@ -16,6 +16,7 @@ namespace GladosV3.Modules
     public class GeneralModule : ModuleBase<SocketCommandContext>
     {
         [Group("guild")]
+        [Name("Guild settings")]
         public class Guild : ModuleBase<SocketCommandContext>
         {
             [Command("farewell")]

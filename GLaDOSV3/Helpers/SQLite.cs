@@ -62,7 +62,38 @@ namespace GladosV3.Helpers
                 SQLiteConnection.CreateFile(DirPath);
             Connection.Open();
             if(!Connection.TableExists("servers"))
-                Connection.CreateTable("servers", "`guildid` INTEGER, `nsfw` INTEGER, `joinleave_cid` INTEGER, `join_msg` TEXT,  `join_toggle` INTEGER, `leave_msg` TEXT, `leave_toggle` INTEGER");
+                Connection.CreateTable("servers", "`guildid` INTEGER,`nsfw` INTEGER DEFAULT \'false\',`joinleave_cid` INTEGER,`join_msg` TEXT DEFAULT \'Hey {mention}! Welcome to {sname}!\',`join_toggle` INTEGER DEFAULT 0,`leave_msg` TEXT DEFAULT \'Bye {uname}!\',`leave_toggle` INTEGER DEFAULT 0");
+            if (!Connection.TableExists("BlacklistedUsers"))
+                Connection.CreateTable("BlacklistedUsers", "`UserId` INTEGER,`Reason` TEXT DEFAULT \'Unspecified.\', `Date` INTEGER");
+        }
+
+        public static void AddRecord<T>(this SQLiteConnection connection, string tablename, string values, T[] items,string filter="")
+        {
+            string result = "";
+            for (int i = 1; i <= items.Length; i++)
+            {
+                result += $"@val{i},";
+            }
+            string sql = $"INSERT INTO {tablename} ({values}) VALUES ({result.Remove(result.Length - 1)}) ";
+            if (filter != "")
+                sql += $"WHERE {filter}";
+            using (SQLiteCommand command = new SQLiteCommand(sql, SqLite.Connection))
+            {
+                   List<SQLiteParameter> list = new List<SQLiteParameter>();
+                for (int i = 1; i <= items.Length; i++)
+                {
+                    command.Parameters.AddWithValue($"@val{i}", items[i - 1]);
+                }
+                command.ExecuteNonQuery();
+            }
+        }
+        public static void RemoveRecord(this SQLiteConnection connection, string tablename,string filter)
+        {
+            if (string.IsNullOrWhiteSpace(filter))
+                return;
+            string sql = $"DELETE FROM servers WHERE {filter}";
+            using (SQLiteCommand command = new SQLiteCommand(sql, SqLite.Connection))
+                command.ExecuteNonQuery();
         }
     }
 }

@@ -47,13 +47,13 @@ namespace GladosV3.Services
             if (string.IsNullOrWhiteSpace(discordToken) || string.IsNullOrEmpty(discordToken))
                 throw new Exception("Please enter your bot's token into the `_configuration.json` file found in the applications root directory.");
             else if (!string.IsNullOrWhiteSpace(discordToken) || !string.IsNullOrEmpty(discordToken))
-                await _discord.SetGameAsync(gameTitle);
+                await _discord.SetGameAsync(gameTitle); // set bot's game status
             try
             {
                 await _discord.LoginAsync(TokenType.Bot, discordToken, true); // Login to discord
                 await _discord.StartAsync(); // Connect to the websocket
             }
-            catch (HttpException ex)
+            catch (HttpException ex) // Some error checking
             {
                 if (ex.DiscordCode == 401 || ex.HttpCode == HttpStatusCode.Unauthorized)
                     Helpers.Tools.WriteColorLine(ConsoleColor.Red, "Wrong or invalid token.");
@@ -63,15 +63,14 @@ namespace GladosV3.Services
                     Helpers.Tools.WriteColorLine(ConsoleColor.Red, "Bad request. Please wait for an update.");
                 Helpers.Tools.WriteColorLine(ConsoleColor.Red,
                     $"Discord has returned an error code: {ex.DiscordCode}{Environment.NewLine}Here's exception message: {ex.Message}");
-                Task.Delay(10000).Wait();
+                Task.Delay(10000).Wait(); 
                 Environment.Exit(0);
             }
 
 
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly());     // Load commands and modules into the command service
             if (Directory.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules")))
-                foreach (var file in Directory.GetFiles(
-                    Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules")))
+                foreach (var file in Directory.GetFiles(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules"))) // Bad extension loading
                 {
                     if (Path.GetExtension(file) != ".dll") continue;
                     try
