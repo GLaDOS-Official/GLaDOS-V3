@@ -125,18 +125,29 @@ namespace GladosV3.Modules
             [Attributes.RequireOwner]
             public async Task Blacklist(string method, ulong userid, [Remainder] string reason = "Unspecified")
             {
-                if (method == "add")
+                switch (method)
                 {
-                    SqLite.Connection.AddRecord("BlacklistedUsers","UserId,Reason,Date",new []{userid.ToString(),reason,DateTime.Now.ToString()});
+                    case "add":
+                        SqLite.Connection.AddRecord("BlacklistedUsers","UserId,Reason,Date",new []{userid.ToString(),reason,DateTime.Now.ToString()});
+                        break;
+                    case "remove":
+                        SqLite.Connection.RemoveRecord("BlacklistedUsers",$"UserID={userid.ToString()}");
+                        break;
+                    default:
+                        await ReplyAsync("Invalid method.");
+                        break;
                 }
-                else if (method == "remove")
-                {
-                    SqLite.Connection.RemoveRecord("BlacklistedUsers",$"UserID={userid.ToString()}");
-                }
-                else
-                {
-                    await ReplyAsync("Invalid method.");
-                }
+            }
+
+            [Command("release")]
+            [Remarks("bot release")]
+            [Summary("Releases stuff from memory that are not needed")]
+            [Attributes.RequireOwner]
+            public Task Release()
+            {
+                Tools.ReleaseMemory();
+                ReplyAsync("Ok!").GetAwaiter().GetResult();
+                return Task.CompletedTask;
             }
             [Command("status")]
             [Remarks("bot status <status>")]

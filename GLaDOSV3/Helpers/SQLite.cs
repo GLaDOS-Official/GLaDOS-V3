@@ -79,7 +79,6 @@ namespace GladosV3.Helpers
                 sql += $"WHERE {filter}";
             using (SQLiteCommand command = new SQLiteCommand(sql, SqLite.Connection))
             {
-                   List<SQLiteParameter> list = new List<SQLiteParameter>();
                 for (int i = 1; i <= items.Length; i++)
                 {
                     command.Parameters.AddWithValue($"@val{i}", items[i - 1]);
@@ -91,7 +90,7 @@ namespace GladosV3.Helpers
         {
             if (string.IsNullOrWhiteSpace(filter))
                 return;
-            string sql = $"DELETE FROM servers WHERE {filter}";
+            string sql = $"DELETE FROM {tablename} WHERE {filter}";
             using (SQLiteCommand command = new SQLiteCommand(sql, SqLite.Connection))
                 command.ExecuteNonQuery();
         }

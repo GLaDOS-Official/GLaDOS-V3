@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -80,6 +81,13 @@ namespace GladosV3.Helpers
                     .ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json")).GetAwaiter()
                     .GetResult())); // alternative reading
             return Task.CompletedTask; // this will never get called
+        }
+        internal static void ReleaseMemory()
+        {
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
+            GC.WaitForPendingFinalizers();
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
+            PInvokes.EmptyWorkingSet(Process.GetCurrentProcess().Handle);
         }
     }
 }

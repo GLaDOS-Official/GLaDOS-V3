@@ -21,7 +21,7 @@ namespace GladosV3
 
         public async Task StartAsync()
         {
-            ReleaseMemory();
+            Tools.ReleaseMemory();
             _config = await Tools.GetConfig();              // Build the configuration file
 
             var services = new ServiceCollection()      // Begin building the service provider
@@ -59,12 +59,6 @@ namespace GladosV3
             provider.GetRequiredService<SystemMessage>().KeyPress();
             await Task.Delay(-1);     // Prevent the application from closing
         }
-        private void ReleaseMemory()
-        {
-            GC.Collect(GC.MaxGeneration);
-            GC.WaitForPendingFinalizers();
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
-            PInvokes.EmptyWorkingSet(Process.GetCurrentProcess().Handle);
-        }
+
     }
 }
