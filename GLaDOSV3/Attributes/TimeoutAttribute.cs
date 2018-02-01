@@ -67,6 +67,8 @@ namespace GladosV3.Attributes
         public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command,
             IServiceProvider services)
         {
+            if (IsOwner.CheckPermission(context).GetAwaiter().GetResult()) // bypass for owner of the bot
+                return Task.FromResult(PreconditionResult.FromSuccess());
             if (_noLimitInDMs && context.Channel is IPrivateChannel)
                 return Task.FromResult(PreconditionResult.FromSuccess());
 

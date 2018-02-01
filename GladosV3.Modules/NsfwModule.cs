@@ -60,18 +60,12 @@ namespace GladosV3.Modules
         public async Task E621([Remainder]string tags = "")
         {
             if (Convert.ToInt32(SqLite.Connection.GetValues("servers", Context.Guild.Id.ToString()).Rows[0]["nsfw"]) == 0)
-            {
-                await ReplyAsync("The nsfw module is disabled on this server!");
-                return;
-            }
+            { await ReplyAsync("The nsfw module is disabled on this server!"); return; }
             string url = "https://e621.net/post/index.json?limit=20";
             if (tags != "")
                 url += String.Format("&tags={0}", string.Join(" ", tags));
             if (tags.ToUpper().Contains("GORE"))
-            {
-                await ReplyAsync("What is wrong with you? Seriously? Gore?");
-                return;
-            }
+            { await ReplyAsync("What is wrong with you? Seriously? Gore?"); return; }
             using (var http = new HttpClient())
             {
                 http.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G920A) AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)"); // we are GoogleBot
@@ -80,10 +74,7 @@ namespace GladosV3.Modules
 
                 JArray images = JArray.Parse(httpResult);
                 if (images.Count == 0)
-                {
-                    await ReplyAsync("Couldn't find an image with those tags.");
-                    return;
-                }
+                { await ReplyAsync("Couldn't find an image with those tags."); return; }
 
                 string ext = String.Empty;
                 JObject image = null;
@@ -95,10 +86,7 @@ namespace GladosV3.Modules
                     retries--;
                 }
                 if (image == null)
-                {
-                    await ReplyAsync("Couldn't find an image with those tags.");
-                    return;
-                }
+                { await ReplyAsync("Couldn't find an image with those tags."); return; }
                 await ReplyAsync($"Score: {image.GetValue("score").ToObject<string>()}{image.GetValue("file_url").ToObject<string>()}");
             }
         }
@@ -109,18 +97,12 @@ namespace GladosV3.Modules
         public async Task Rule34([Remainder]string tags = "")
         {
             if (Convert.ToInt32(SqLite.Connection.GetValues("servers", Context.Guild.Id.ToString()).Rows[0]["nsfw"]) == 0)
-            {
-                await ReplyAsync("The nsfw module is disabled on this server!");
-                return;
-            }
+            {  await ReplyAsync("The nsfw module is disabled on this server!"); return; }
             string url = "https://rule34.xxx/index.php?page=dapi&s=post&q=index&limit=20";
             if (tags != "")
                 url += String.Format("&tags={0}", string.Join(" ", tags));
             if (tags.ToUpper().Contains("GORE"))
-            {
-                await ReplyAsync("What is wrong with you? Seriously? Gore?");
-                return;
-            }
+            { await ReplyAsync("What is wrong with you? Seriously? Gore?"); return; }
             using (var http = new HttpClient())
             {
                 http.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G920A) AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)"); // we are GoogleBot

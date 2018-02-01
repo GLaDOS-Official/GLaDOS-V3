@@ -22,6 +22,7 @@ namespace GladosV3.Modules
         [Command("info")]
         [Summary("Displays bot info.")]
         [Remarks("info")]
+        [Timeout(1,1,Measure.Minutes)]
         public async Task Info()
         {
             IDMChannel DM = await Context.Message.Author.GetOrCreateDMChannelAsync();
