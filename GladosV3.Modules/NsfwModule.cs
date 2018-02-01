@@ -75,7 +75,7 @@ namespace GladosV3.Modules
             using (var http = new HttpClient())
             {
                 http.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G920A) AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)"); // we are GoogleBot
-                var httpResult = http.GetAsync(url).GetAwaiter().GetResult().Content.ReadAsStringAsync().GetAwaiter()
+                var httpResult = http.GetAsync(url).ConfigureAwait(false).GetAwaiter().GetResult().Content.ReadAsStringAsync().GetAwaiter()
                     .GetResult();
 
                 JArray images = JArray.Parse(httpResult);
@@ -124,7 +124,7 @@ namespace GladosV3.Modules
             using (var http = new HttpClient())
             {
                 http.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G920A) AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)"); // we are GoogleBot
-                var httpResult = http.GetAsync(url).GetAwaiter().GetResult().Content.ReadAsStringAsync().GetAwaiter()
+                var httpResult = http.GetAsync(url).ConfigureAwait(false).GetAwaiter().GetResult().Content.ReadAsStringAsync().GetAwaiter()
                     .GetResult();
                 var xml = XDocument.Parse(httpResult);
                 if (xml.Root != null)

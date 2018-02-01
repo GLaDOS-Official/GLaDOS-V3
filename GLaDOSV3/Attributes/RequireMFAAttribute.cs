@@ -12,12 +12,7 @@ namespace GladosV3.Attributes
     {
         public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
-            if (context.Guild.MfaLevel == MfaLevel.Enabled)
-                return Task.FromResult(context.Client.CurrentUser.IsMfaEnabled != true
-                    ? PreconditionResult.FromError("The owner of this bot has MFA disabled!")
-                    : PreconditionResult.FromSuccess());
-            else
-             return  Task.FromResult(PreconditionResult.FromSuccess());
+            return context.Guild.MfaLevel == MfaLevel.Enabled ? Task.FromResult(context.Client.CurrentUser.IsMfaEnabled != true ? PreconditionResult.FromError("The owner of this bot has MFA disabled!") : PreconditionResult.FromSuccess()) : Task.FromResult(PreconditionResult.FromSuccess());
         }
     }
 }
