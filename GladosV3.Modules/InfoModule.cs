@@ -155,10 +155,9 @@ namespace GladosV3.Modules
                 var socketUser = userInfo as SocketGuildUser;
                 eb.AddField((x) =>
                 {
-                    string[] array = new []{"Offline", "Online", "Idle", "AFK", "Do not disturb", "Invisible"};
                     x.Name = "Status";
                     x.IsInline = true;
-                    x.Value = array[(int)userInfo.Status];
+                    x.Value = new[] { "Offline", "Online", "Idle", "AFK", "Do not disturb", "Invisible" }[(int)userInfo.Status];
                 });
                 if (userInfo.Game.HasValue)
                 {
