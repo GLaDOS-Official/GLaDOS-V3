@@ -28,7 +28,7 @@ namespace GladosV3
                 .AddSingleton(new DiscordSocketClient(new DiscordSocketConfig     // Add the discord client to the service provider
                 {
                     LogLevel = LogSeverity.Verbose,
-                    MessageCacheSize = 1000,    // Tell Discord.Net to cache 1000 messages per channel
+                    MessageCacheSize = 0,    // Tell Discord.Net to NOT CACHE! This will also disable MessageUpdated event
                     DefaultRetryMode = RetryMode.AlwaysRetry // Always believe
                 }))
                 .AddSingleton(new CommandService(new CommandServiceConfig     // Add the command service to the service provider

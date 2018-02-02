@@ -13,10 +13,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="HtmlAgilityPack" Version="1.6.15" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\GLaDOSV3\GladosV3.csproj" />
   </ItemGroup>
 

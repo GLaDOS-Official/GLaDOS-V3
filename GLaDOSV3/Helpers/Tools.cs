@@ -27,18 +27,24 @@ namespace GladosV3.Helpers
 
         public static void WriteColorLine(ConsoleColor color, string message)
         {
+            var fcolor = Console.ForegroundColor;
+            var bcolor = Console.BackgroundColor;
             Console.BackgroundColor = color;
             Console.ForegroundColor = ConsoleColor.Gray;
             Console.Out.WriteLine(message);
-            Console.ResetColor();
+            Console.ForegroundColor = fcolor;
+            Console.BackgroundColor = bcolor;
         }
 
         public static void WriteColor(ConsoleColor color, string message)
         {
+            var fcolor = Console.ForegroundColor;
+            var bcolor = Console.BackgroundColor;
             Console.BackgroundColor = color;
             Console.ForegroundColor = ConsoleColor.Gray;
             Console.Out.Write(message);
-            Console.ResetColor();
+            Console.ForegroundColor = fcolor;
+            Console.BackgroundColor = bcolor;
         }
         public static void RestartApp()
         {

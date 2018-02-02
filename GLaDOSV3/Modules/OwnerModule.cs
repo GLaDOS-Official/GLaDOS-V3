@@ -13,7 +13,9 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using GladosV3.Helpers;
+using GladosV3.Services;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 
 namespace GladosV3.Modules
@@ -21,9 +23,11 @@ namespace GladosV3.Modules
     //[Name("Bot owner")]
     public class OwnerModule : ModuleBase<SocketCommandContext>
     {
-        private readonly CommandService _service;
-        private readonly IConfigurationRoot _config;
-        private readonly IServiceProvider _provider;
+        public readonly CommandService _service;
+        public readonly IConfigurationRoot _config;
+        public readonly IServiceProvider _provider;
+
+        // CommandService, IConfigurationRoot, and IServiceProvider are injected automatically from the IServiceProvider;
         public OwnerModule(CommandService service, IConfigurationRoot config, IServiceProvider provider)
         {
             _service = service;
@@ -31,8 +35,9 @@ namespace GladosV3.Modules
             _provider = provider;
         }
 
-        
+
         [Group("Bot")]
+        [Attributes.CommandHidden]
         [Attributes.RequireOwner]
         public class Bot : ModuleBase<SocketCommandContext>
         {
@@ -135,7 +140,7 @@ namespace GladosV3.Modules
                         break;
                     default:
                         await ReplyAsync("Invalid method.");
-                        break;
+                        break;  
                 }
             }
 

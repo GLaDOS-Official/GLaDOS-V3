@@ -24,10 +24,11 @@
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
+    <PackageReference Include="NReco.ImageGenerator" Version="1.1.1" />
     <PackageReference Include="SQLite.Native" Version="3.12.3" />
-    <PackageReference Include="System.Data.SQLite" Version="1.0.106" />
-    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.106" />
-    <PackageReference Include="System.Data.SQLite.Linq" Version="1.0.106" />
+    <PackageReference Include="System.Data.SQLite" Version="1.0.107" />
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.107" />
+    <PackageReference Include="System.Data.SQLite.Linq" Version="1.0.107" />
     <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="4.5.0-preview1-25914-04" />
   </ItemGroup>
 
