@@ -22,11 +22,11 @@ namespace GladosV3.Services
         }
         private async Task JoinedGuild(SocketGuild arg)
         {
-            SqLite.Connection.AddRecord("servers","guildid",new []{ arg.Id.ToString()});
+           await SqLite.Connection.AddRecord("servers","guildid",new []{ arg.Id.ToString()});
         }
         private async Task LeftGuild(SocketGuild arg)
         {
-            SqLite.Connection.RemoveRecord("servers",$"guildid={arg.Id.ToString()}");
+           await SqLite.Connection.RemoveRecord("servers",$"guildid={arg.Id.ToString()}");
         }
     }
 }

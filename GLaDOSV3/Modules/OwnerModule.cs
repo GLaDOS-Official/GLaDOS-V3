@@ -133,10 +133,10 @@ namespace GladosV3.Modules
                 switch (method)
                 {
                     case "add":
-                        SqLite.Connection.AddRecord("BlacklistedUsers","UserId,Reason,Date",new []{userid.ToString(),reason,DateTime.Now.ToString()});
+                        await SqLite.Connection.AddRecord("BlacklistedUsers","UserId,Reason,Date",new []{userid.ToString(),reason,DateTime.Now.ToString()}).ConfigureAwait(false);
                         break;
                     case "remove":
-                        SqLite.Connection.RemoveRecord("BlacklistedUsers",$"UserID={userid.ToString()}");
+                        await SqLite.Connection.RemoveRecord("BlacklistedUsers",$"UserID={userid.ToString()}").ConfigureAwait(false);
                         break;
                     default:
                         await ReplyAsync("Invalid method.");

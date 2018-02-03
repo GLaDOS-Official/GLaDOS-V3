@@ -61,7 +61,6 @@ namespace GladosV3.Helpers
             proc.Start();
             Environment.Exit(1);
         }
-
         public static async Task<dynamic> GetProxy() // 
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(new Uri("http://gimmeproxy.com/api/getProxy?anonymityLevel=1&user-agent=true&protocol=http"));
@@ -70,10 +69,7 @@ namespace GladosV3.Helpers
             using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())
             using (Stream stream = response.GetResponseStream())
             using (StreamReader reader = new StreamReader(stream ?? throw new InvalidOperationException()))
-            {
                 json = await reader.ReadToEndAsync();
-            }
-
             if (string.IsNullOrWhiteSpace(json)) return await Task.FromResult("");
             var Object = JObject.Parse(json);
             return await Task.FromResult(new WebProxy { Address = new Uri($"http://{Object["ipPort"].ToString()}") });

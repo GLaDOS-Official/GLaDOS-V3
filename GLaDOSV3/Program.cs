@@ -59,6 +59,5 @@ namespace GladosV3
             provider.GetRequiredService<SystemMessage>().KeyPress();
             await Task.Delay(-1);     // Prevent the application from closing
         }
-
     }
 }

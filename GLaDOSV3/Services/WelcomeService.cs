@@ -32,7 +32,7 @@ namespace GladosV3.Services
         private async Task DiscordOnUserJoined(SocketGuildUser socketGuildUser)
         {
             var guild = socketGuildUser.Guild;
-            var db = SqLite.Connection.GetValues("servers", guild.Id.ToString());
+            var db = SqLite.Connection.GetValues("servers", guild.Id.ToString()).GetAwaiter().GetResult();
             if (Convert.ToInt32(db.Rows[0]["join_toggle"]) == 1)
             {
                 var text = await FormatText(socketGuildUser, db.Rows[0]["join_msg"].ToString());
@@ -51,7 +51,7 @@ namespace GladosV3.Services
         private async Task DiscordOnUserLeft(SocketGuildUser socketGuildUser)
         {
             var guild = socketGuildUser.Guild;
-            var db = SqLite.Connection.GetValues("servers", guild.Id.ToString());
+            var db = SqLite.Connection.GetValues("servers", guild.Id.ToString()).GetAwaiter().GetResult();
             if (Convert.ToInt32(db.Rows[0]["leave_toggle"]) == 1)
             {
                 var text = await FormatText(socketGuildUser, db.Rows[0]["leave_msg"].ToString());

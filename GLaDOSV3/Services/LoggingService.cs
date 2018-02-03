@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -17,9 +20,9 @@ namespace GladosV3.Services
             OnLogAsync(new LogMessage(severity, source, message, exception));
         private static string _logDirectory => Path.Combine(AppContext.BaseDirectory, "logs");
         private static string _logFile => Path.Combine(_logDirectory, $"{DateTime.UtcNow:yyyy-MM-dd}.txt");
-
+        private static ObservableCollection<string> logs = new ObservableCollection<string>();
         // DiscordSocketClient and CommandService are injected automatically from the IServiceProvider
-        public LoggingService(DiscordSocketClient discord, CommandService commands,bool init = true)
+        public LoggingService(DiscordSocketClient discord, CommandService commands, bool init = true)
         {
             if (!Directory.Exists(_logDirectory))     // Create the log directory if it doesn't exist
                 Directory.CreateDirectory(_logDirectory);
@@ -29,13 +32,18 @@ namespace GladosV3.Services
             _discord.Log += OnLogAsync;
             _commands.Log += OnLogAsync;
         }
-        
+
         private static Task OnLogAsync(LogMessage msg)
         {
             if (!File.Exists(_logFile))               // Create today's log file if it doesn't exist
                 File.Create(_logFile).Dispose();
             string logText = $"{DateTime.UtcNow:hh:mm:ss} [{msg.Severity}] {msg.Source}: {msg.Exception?.ToString() ?? msg.Message}";
-            File.AppendAllText(_logFile, logText + "\n");     // Write the log text to a file
+            logs.Add(logText);
+            if (logs.Count >= 60)
+            {
+                File.AppendAllText(_logFile, string.Join(Environment.NewLine, logs));  // Write the log text to a file
+                logs.Clear();
+            }
             switch (msg.Severity) // Write the log text to the console
             {
                 case LogSeverity.Critical:
