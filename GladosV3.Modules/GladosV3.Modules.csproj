@@ -6,6 +6,7 @@
     <StartupObject></StartupObject>
     <ApplicationIcon />
     <AssemblyName>GladosV3.Default</AssemblyName>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

@@ -20,13 +20,13 @@ namespace GladosV3.Services
             discord.JoinedGuild += JoinedGuild;
             discord.LeftGuild += LeftGuild;
         }
-        private async Task JoinedGuild(SocketGuild arg)
+        private Task JoinedGuild(SocketGuild arg)
         {
-           await SqLite.Connection.AddRecord("servers","guildid",new []{ arg.Id.ToString()});
+            return SqLite.Connection.AddRecord("servers","guildid",new []{ arg.Id.ToString()});
         }
-        private async Task LeftGuild(SocketGuild arg)
+        private Task LeftGuild(SocketGuild arg)
         {
-           await SqLite.Connection.RemoveRecord("servers",$"guildid={arg.Id.ToString()}");
+            return SqLite.Connection.RemoveRecord("servers",$"guildid={arg.Id.ToString()}");
         }
     }
 }
