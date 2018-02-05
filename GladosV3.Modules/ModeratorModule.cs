@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Discord;
 using Discord.Commands;
@@ -32,6 +33,7 @@ namespace GladosV3.Modules
                 try
                 {
                     await Context.Channel.DeleteMessagesAsync(enumerable).ConfigureAwait(false);
+                    await ReplyAsync($"Purged {enumerable.Count().ToString()} messages!");
                 }
                 catch (ArgumentOutOfRangeException)
                 {
@@ -42,7 +44,7 @@ namespace GladosV3.Modules
         }
 
         [Command("prune")]
-        [Remarks("prune <no. of messages> <user>")]
+        [Remarks("prune <user> [no. of messages]")]
         [Summary("Removes most recent messages from a user")]
         [Attributes.RequireUserPermission(GuildPermission.ManageMessages)]
         [RequireBotPermission(GuildPermission.ManageMessages)]
@@ -58,6 +60,7 @@ namespace GladosV3.Modules
             try
             {
                 await Context.Channel.DeleteMessagesAsync(newlist).ConfigureAwait(false);
+                await ReplyAsync($"Purged {newlist.Count().ToString()} from <@{UserMention.Id}> messages!");
             }
             catch (ArgumentOutOfRangeException)
             {

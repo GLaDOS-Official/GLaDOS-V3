@@ -15,7 +15,9 @@ using System.Runtime.Serialization;
 using Discord.Net;
 using GladosV3.Helpers;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace GladosV3.Services
 {
@@ -24,16 +26,19 @@ namespace GladosV3.Services
         private readonly DiscordSocketClient _discord;
         private readonly CommandService _commands;
         private readonly IConfigurationRoot _config;
+        private readonly IServiceProvider _provider;
 
-        // DiscordSocketClient, CommandService, and IConfigurationRoot are injected automatically from the IServiceProvider
+        // IServiceProvider, DiscordSocketClient, CommandService, and IConfigurationRoot are injected automatically from the IServiceProvider
         public StartupService(
             DiscordSocketClient discord,
             CommandService commands,
-            IConfigurationRoot config)
+            IConfigurationRoot config,
+            IServiceProvider provider)
         {
             _config = config;
             _discord = discord;
             _commands = commands;
+            _provider = provider;
         }
 
 
@@ -73,15 +78,16 @@ namespace GladosV3.Services
                 foreach (var file in Directory.GetFiles(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules"))) // Bad extension loading
                 {
                     if (Path.GetExtension(file) != ".dll") continue;
+                    if (new System.IO.FileInfo(file).Length == 0) continue;
                     try
                     {
                         var asm = Assembly.LoadFile(file);
-                        if (!asm.GetTypes().Select(t => t.Namespace).Distinct().Contains("GladosV3.Modules")) continue;
+                        if (!asm.GetTypes().Select(t => t.Namespace).Distinct().ToArray()[0].Contains("GladosV3.Module")) continue;
                         await _commands.AddModulesAsync(asm);
                         var modules = asm.GetTypes().Where(type => type.IsClass && !type.IsSpecialName && type.IsPublic)
                             .Aggregate(string.Empty, (current, type) => current + type.Name + ", ");
-                       await LoggingService.Log(LogSeverity.Verbose, "Module",
-                           $"Loaded modules: {modules}\b\b from {Path.GetFileNameWithoutExtension(file)}");
+                        await LoggingService.Log(LogSeverity.Verbose, "Module",
+                            $"Loaded modules: {modules}\b\b from {Path.GetFileNameWithoutExtension(file)}");
                     }
                     catch { }
                 }
