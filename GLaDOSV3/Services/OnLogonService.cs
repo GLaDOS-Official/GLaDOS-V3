@@ -30,7 +30,7 @@ namespace GladosV3.Services
         private async Task Connected()
         {
             await IsMfaEnabled();
-            await GetUserFromConfig();
+            await GetUserFromConfigAsync();
             if (_config["discord:status"] != "online")  {
                 if (Enum.TryParse(typeof(UserStatus), _config["discord:status"], true, out var status))
                     await _discord.SetStatusAsync((UserStatus)status);
@@ -50,12 +50,22 @@ namespace GladosV3.Services
                 null).GetAwaiter();
             return Task.FromResult(false);
         }
-        private Task<bool> GetUserFromConfig()
+        private async Task GetUserFromConfigAsync()
         {
-            if (_discord.CurrentUser == null) return Task.FromResult(false);
-            else if (_discord.CurrentUser.Username != _config["name"])
-                _discord.CurrentUser.ModifyAsync(u => u.Username = _config["name"]);
-            return Task.FromResult(false);
+            if (_discord.CurrentUser == null) return;
+            if (_discord.CurrentUser.Username != _config["name"])
+            {
+                await _discord.CurrentUser.ModifyAsync(u => u.Username = _config["name"]);
+                foreach (SocketGuild guild in _discord.Guilds)
+                {
+                    var me = guild.GetUser(_discord.CurrentUser.Id);
+                    if (me.Nickname == _config["name"]) continue;
+                    await me.ModifyAsync(x =>
+                    {
+                        x.Nickname = _config["name"];
+                    });
+                }
+            }
         }
     }
 }

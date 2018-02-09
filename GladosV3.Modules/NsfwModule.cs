@@ -29,7 +29,7 @@ namespace GladosV3.Modules
             [Summary("Enables nsfw module (disabled by default)")]
             public async Task Enable()
             {
-                await SqLite.Connection.SetValue("servers", "nsfw", 1, Context.Guild.Id.ToString()).ConfigureAwait(false);
+                await SqLite.Connection.SetValueAsync("servers", "nsfw", 1, Context.Guild.Id.ToString()).ConfigureAwait(false);
                 await ReplyAsync("The nsfw has been enabled!");
             }
             [Command("disable")]
@@ -37,7 +37,7 @@ namespace GladosV3.Modules
             [Summary("Disables nsfw module (disabled by default)")]
             public async Task Disable()
             {
-                await SqLite.Connection.SetValue("servers","nsfw",0, Context.Guild.Id.ToString()).ConfigureAwait(false);
+                await SqLite.Connection.SetValueAsync("servers","nsfw",0, Context.Guild.Id.ToString()).ConfigureAwait(false);
                 await ReplyAsync("The nsfw has been disabled!");
             }
             [Command("status")]
@@ -45,7 +45,7 @@ namespace GladosV3.Modules
             [Summary("Get's status of the nsfw module (disabled by default)")]
             public async Task Status()
             {
-                string result = (Convert.ToInt32(SqLite.Connection.GetValues("servers", Context.Guild.Id.ToString()).GetAwaiter().GetResult().Rows[0]["nsfw"]) == 1) ? "enabled" : "disabled";
+                string result = (Convert.ToInt32(SqLite.Connection.GetValuesAsync("servers", Context.Guild.Id.ToString()).GetAwaiter().GetResult().Rows[0]["nsfw"]) == 1) ? "enabled" : "disabled";
                 var message =
                     $"The current status of nsfw module is: {result}";
                 await ReplyAsync(message);
@@ -59,7 +59,7 @@ namespace GladosV3.Modules
         [RequireNsfw]
         public async Task E621([Remainder]string tags = "")
         {
-            if (Convert.ToInt32(SqLite.Connection.GetValues("servers", Context.Guild.Id.ToString()).GetAwaiter().GetResult().Rows[0]["nsfw"]) == 0)
+            if (Convert.ToInt32(SqLite.Connection.GetValuesAsync("servers", Context.Guild.Id.ToString()).GetAwaiter().GetResult().Rows[0]["nsfw"]) == 0)
             { await ReplyAsync("The nsfw module is disabled on this server!"); return; }
             string url = "https://e621.net/post/index.json?limit=20";
             if (tags != "")
@@ -96,7 +96,7 @@ namespace GladosV3.Modules
         [RequireNsfw]
         public async Task Rule34([Remainder]string tags = "")
         {
-            if (Convert.ToInt32(SqLite.Connection.GetValues("servers", Context.Guild.Id.ToString()).GetAwaiter().GetResult().Rows[0]["nsfw"]) == 0)
+            if (Convert.ToInt32(SqLite.Connection.GetValuesAsync("servers", Context.Guild.Id.ToString()).GetAwaiter().GetResult().Rows[0]["nsfw"]) == 0)
             {  await ReplyAsync("The nsfw module is disabled on this server!"); return; }
             string url = "https://rule34.xxx/index.php?page=dapi&s=post&q=index&limit=20";
             if (tags != "")

@@ -87,7 +87,7 @@ namespace GladosV3.Services
                         var modules = asm.GetTypes().Where(type => type.IsClass && !type.IsSpecialName && type.IsPublic)
                             .Aggregate(string.Empty, (current, type) => current + type.Name + ", ");
                         await LoggingService.Log(LogSeverity.Verbose, "Module",
-                            $"Loaded modules: {modules}\b\b from {Path.GetFileNameWithoutExtension(file)}");
+                            $"Loaded modules: {modules.Remove(modules.Length - 2)} from {Path.GetFileNameWithoutExtension(file)}");
                     }
                     catch { }
                 }

@@ -81,32 +81,81 @@ namespace GladosV3.Modules
                         x.IsInline = false;
                     });
                 }
+                await dm.SendMessageAsync("", false, builder.Build());
             }
             else
             {
-                builder.Description = "These are the commands you can use.";
-                foreach (var module in _service.Modules)
+                List<CommandInfo> list = new List<CommandInfo>();
+                if (_service != null)
                 {
-                    List<string> array = new List<string>();
-                    foreach (var cmd in module.Commands)
-                    {
-                        var result = await cmd.CheckPreconditionsAsync(Context);
-                        if (!result.IsSuccess) continue;
-                        if(!array.Contains($"{prefix}{cmd.Remarks}\n"))
-                            array.Add($"{prefix}{cmd.Remarks}\n");
-                    }
+                    
+                    var sorted = _service.Commands.OrderByDescending(x => x.Remarks.Length).FirstOrDefault().Remarks.Length;
 
-                    var description = array.Aggregate<string, string>(null, (current, s) => string.Concat(current, s));
-                    if (string.IsNullOrWhiteSpace(description)) continue;
-                    builder.AddField(x =>
+
+                    builder.Description = "These are the commands you can use.";
+                    foreach (var module in _service.Modules)
                     {
-                        x.Name = module.Name;
-                        x.Value = description;
-                        x.IsInline = false;
-                    });
+                        List<string> array = new List<string>();
+                        foreach (var cmd in module.Commands)
+                        {
+                            var result = await cmd.CheckPreconditionsAsync(Context);
+                            if (!result.IsSuccess) continue;
+                            if(!array.Contains($"{prefix}{cmd.Remarks}\n"))
+                                array.Add($"{prefix}{cmd.Remarks} {" ".PadLeft(sorted - cmd.Remarks.Length + 1)} :: {cmd.Summary}\n");
+                        }
+
+                        var description = array.Aggregate<string, string>(null, string.Concat);
+                        if (string.IsNullOrWhiteSpace(description)) continue;
+                        /*builder.AddField(x =>
+                        {
+                            x.Name = module.Name;
+                            x.Value = description;
+                            x.IsInline = false;
+                        });*/
+                        list.Add(new CommandInfo(module.Name,description));
+                        
+                    }
                 }
+                foreach(var msg in splitMessage($"{list.Aggregate(string.Empty, (current, cmi) => string.Concat(current, $"\n= {cmi.GetModName()} =\n{cmi.GetDec()}\n"))}"))
+                    await dm.SendMessageAsync($"```asciidoc\n{msg}```");
             }
-            await dm.SendMessageAsync("", false, builder.Build());
         }
+
+        private static string[] splitMessage(string text) // discord.js :D
+        {
+            if (text.Length <= 2000) return new []{ text };
+            var splitText = text.Split('\n');
+            if (splitText.Length == 1) throw new Exception("SPLIT_MAX_LEN");
+            List<string> messages = new List<string>();
+            var msg = "";
+            foreach (var chunk in splitText)
+            {
+                if (($"{msg}\n{chunk}").Length > 2000)
+                {
+                    messages.Add(msg);
+                    msg = "";
+                }
+
+                msg += $"{(msg != "" ? "\n" : "")}{chunk}";
+            }
+
+            //var returl = string.Concat(messages.Aggregate<string, string>(null, string.Concat), msg);
+            messages.Add(msg);
+            return messages.ToArray();
+        }
+    }
+
+    public class CommandInfo
+    {
+        private string _module;
+        private string _description;
+
+        internal CommandInfo(string module, string description)
+        {
+            _module = module;
+            _description = description;
+        }
+        internal string GetModName() => _module;
+        internal string GetDec() => _description;
     }
 }

@@ -32,7 +32,7 @@ namespace GladosV3.Services
         private async Task DiscordOnUserJoined(SocketGuildUser socketGuildUser)
         {
             var guild = socketGuildUser.Guild;
-            var db = SqLite.Connection.GetValues("servers", guild.Id.ToString()).GetAwaiter().GetResult();
+            var db = SqLite.Connection.GetValuesAsync("servers", guild.Id.ToString()).GetAwaiter().GetResult();
             if (Convert.ToInt32(db.Rows[0]["join_toggle"]) == 1)
             {
                 var text = await FormatText(socketGuildUser, db.Rows[0]["join_msg"].ToString());
@@ -51,7 +51,7 @@ namespace GladosV3.Services
         private async Task DiscordOnUserLeft(SocketGuildUser socketGuildUser)
         {
             var guild = socketGuildUser.Guild;
-            var db = SqLite.Connection.GetValues("servers", guild.Id.ToString()).GetAwaiter().GetResult();
+            var db = SqLite.Connection.GetValuesAsync("servers", guild.Id.ToString()).GetAwaiter().GetResult();
             if (Convert.ToInt32(db.Rows[0]["leave_toggle"]) == 1)
             {
                 var text = await FormatText(socketGuildUser, db.Rows[0]["leave_msg"].ToString());
@@ -69,8 +69,8 @@ namespace GladosV3.Services
 
         private Task Disable(SocketGuild guild)
         {
-            SqLite.Connection.SetValue("servers", "join_toggle", 0, guild.Id.ToString());
-            SqLite.Connection.SetValue("servers", "leave_toggle", 0, guild.Id.ToString());
+            SqLite.Connection.SetValueAsync("servers", "join_toggle", 0, guild.Id.ToString());
+            SqLite.Connection.SetValueAsync("servers", "leave_toggle", 0, guild.Id.ToString());
             return Task.CompletedTask;
         }
 

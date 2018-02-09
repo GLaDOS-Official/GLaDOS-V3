@@ -22,7 +22,7 @@ namespace GladosV3
         public async Task StartAsync()
         {
             Tools.ReleaseMemory();
-            _config = await Tools.GetConfig();              // Build the configuration file
+            _config = await Tools.GetConfigAsync();              // Build the configuration file
 
             var services = new ServiceCollection()      // Begin building the service provider
                 .AddSingleton(new DiscordSocketClient(new DiscordSocketConfig     // Add the discord client to the service provider

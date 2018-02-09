@@ -28,17 +28,17 @@ namespace GladosV3.Modules
                 switch (action)
                 {
                     case "message":
-                        await SqLite.Connection.SetValue("servers", "leave_msg", value, id).ConfigureAwait(false);
+                        await SqLite.Connection.SetValueAsync("servers", "leave_msg", value, id).ConfigureAwait(false);
                         break;
                     case "channel":
                         if (Context.Guild.GetChannel(Convert.ToUInt64(value)) != null)
-                            await SqLite.Connection.SetValue("servers", "joinleave_cid", value, id).ConfigureAwait(false);
+                            await SqLite.Connection.SetValueAsync("servers", "joinleave_cid", value, id).ConfigureAwait(false);
                         else
                             throw new Exception("Channel ID is invalid!");
                         break;
                     case "status":
                         if (value == "1" || value == "0")
-                            await SqLite.Connection.SetValue("servers", "leave_toggle", value, id).ConfigureAwait(false);
+                            await SqLite.Connection.SetValueAsync("servers", "leave_toggle", value, id).ConfigureAwait(false);
                         else
                             throw new Exception("Only 0 or 1 is accepted!");
                         break;
@@ -54,17 +54,17 @@ namespace GladosV3.Modules
                 switch (action)
                 {
                     case "message":
-                        await SqLite.Connection.SetValue("servers", "join_msg", value, Context.Guild.Id.ToString()).ConfigureAwait(false);
+                        await SqLite.Connection.SetValueAsync("servers", "join_msg", value, Context.Guild.Id.ToString()).ConfigureAwait(false);
                         break;
                     case "channel":
                         if (Context.Guild.GetChannel(Convert.ToUInt64(value)) != null)
-                            await SqLite.Connection.SetValue("servers", "joinleave_cid", value, Context.Guild.Id.ToString()).ConfigureAwait(false);
+                            await SqLite.Connection.SetValueAsync("servers", "joinleave_cid", value, Context.Guild.Id.ToString()).ConfigureAwait(false);
                         else
                             throw new Exception("Channel ID is invalid!");
                         break;
                     case "status":
                         if (value == "1" || value == "0")
-                            await SqLite.Connection.SetValue("servers", "join_toggle", value, Context.Guild.Id.ToString()).ConfigureAwait(false);
+                            await SqLite.Connection.SetValueAsync("servers", "join_toggle", value, Context.Guild.Id.ToString()).ConfigureAwait(false);
                         else
                             throw new Exception("Only 0 or 1 is accepted!");
                         break;

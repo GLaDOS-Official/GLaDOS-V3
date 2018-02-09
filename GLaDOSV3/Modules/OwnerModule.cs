@@ -47,7 +47,7 @@ namespace GladosV3.Modules
 
             public async Task Maintenance()
             {
-                JObject clasO = Tools.GetConfig(1).GetAwaiter().GetResult();
+                JObject clasO = Tools.GetConfigAsync(1).GetAwaiter().GetResult();
                 if (clasO["maintenance"].Value<bool>() == false)
                     clasO["maintenance"] = true;
                 else
@@ -79,7 +79,7 @@ namespace GladosV3.Modules
             public async Task Username([Remainder]string username)
             {
                 JObject clasO =
-                    Tools.GetConfig(1).GetAwaiter().GetResult();
+                    Tools.GetConfigAsync(1).GetAwaiter().GetResult();
                 clasO["name"] = username;
                 await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json"), clasO.ToString());
                 await ReplyAsync($"Set bot's username to {clasO["name"].Value<string>()}.\nRestarting the bot!");
@@ -112,7 +112,7 @@ namespace GladosV3.Modules
             public async Task Game([Remainder]string status = "")
             {
                 JObject clasO =
-                    Tools.GetConfig(1).GetAwaiter().GetResult();
+                    Tools.GetConfigAsync(1).GetAwaiter().GetResult();
                 if(status == null)
                     await Context.Client.SetGameAsync(null);
                 clasO["discord"]["game"] = status;
@@ -133,10 +133,10 @@ namespace GladosV3.Modules
                 switch (method)
                 {
                     case "add":
-                        await SqLite.Connection.AddRecord("BlacklistedUsers","UserId,Reason,Date",new []{userid.ToString(),reason,DateTime.Now.ToString()}).ConfigureAwait(false);
+                        await SqLite.Connection.AddRecordAsync("BlacklistedUsers","UserId,Reason,Date",new []{userid.ToString(),reason,DateTime.Now.ToString()}).ConfigureAwait(false);
                         break;
                     case "remove":
-                        await SqLite.Connection.RemoveRecord("BlacklistedUsers",$"UserID={userid.ToString()}").ConfigureAwait(false);
+                        await SqLite.Connection.RemoveRecordAsync("BlacklistedUsers",$"UserID={userid.ToString()}").ConfigureAwait(false);
                         break;
                     default:
                         await ReplyAsync("Invalid method.");
@@ -161,7 +161,7 @@ namespace GladosV3.Modules
             public async Task Status([Remainder]string status = "")
             {
                 JObject clasO =
-                    Tools.GetConfig(1).GetAwaiter().GetResult();
+                    Tools.GetConfigAsync(1).GetAwaiter().GetResult();
                 if (status != "online" && status != "invisible" && status != "afk" && status != "donotdisturb")
                 { await ReplyAsync("Valid statuses are: online, invisible, afk, donotdisturb"); return;}
                 clasO["discord"]["status"] = status;

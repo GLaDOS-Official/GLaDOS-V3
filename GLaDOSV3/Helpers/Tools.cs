@@ -30,7 +30,7 @@ namespace GladosV3.Helpers
             var fcolor = Console.ForegroundColor;
             var bcolor = Console.BackgroundColor;
             Console.BackgroundColor = color;
-            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.ForegroundColor = ConsoleColor.DarkGray;    
             Console.Out.WriteLine(message);
             Console.ForegroundColor = fcolor;
             Console.BackgroundColor = bcolor;
@@ -41,7 +41,7 @@ namespace GladosV3.Helpers
             var fcolor = Console.ForegroundColor;
             var bcolor = Console.BackgroundColor;
             Console.BackgroundColor = color;
-            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.ForegroundColor = ConsoleColor.DarkGray;
             Console.Out.Write(message);
             Console.ForegroundColor = fcolor;
             Console.BackgroundColor = bcolor;
@@ -61,7 +61,7 @@ namespace GladosV3.Helpers
             proc.Start();
             Environment.Exit(1);
         }
-        public static async Task<dynamic> GetProxy() // 
+        public static async Task<dynamic> GetProxyAsync()
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(new Uri("http://gimmeproxy.com/api/getProxy?anonymityLevel=1&user-agent=true&protocol=http"));
             request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
@@ -74,7 +74,7 @@ namespace GladosV3.Helpers
             var Object = JObject.Parse(json);
             return await Task.FromResult(new WebProxy { Address = new Uri($"http://{Object["ipPort"].ToString()}") });
         }
-        public static async Task<dynamic> GetConfig(int type = 0) // 
+        public static async Task<dynamic> GetConfigAsync(int type = 0) // 
         {
             if(type == 0)
             return await Task.FromResult(Builder.Build()); // default reading
@@ -88,8 +88,6 @@ namespace GladosV3.Helpers
         {
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
             GC.WaitForPendingFinalizers();
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
-            PInvokes.EmptyWorkingSet(Process.GetCurrentProcess().Handle);
         }
     }
 }

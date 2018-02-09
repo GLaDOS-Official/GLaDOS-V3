@@ -12,7 +12,7 @@ namespace GladosV3.Attributes
     {
         public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
-            var config = await Tools.GetConfig();
+            var config = await Tools.GetConfigAsync();
             switch (context.Client.TokenType)
             {
                 case TokenType.Bot:
@@ -34,7 +34,7 @@ namespace GladosV3.Attributes
     {
         public static async Task<bool> CheckPermission(ICommandContext context)
         {
-            var config = await Tools.GetConfig();
+            var config = await Tools.GetConfigAsync();
             switch (context.Client.TokenType)
             {
                 case TokenType.Bot:
@@ -52,7 +52,7 @@ namespace GladosV3.Attributes
         }
         public static async Task<ulong> GetOwner(ICommandContext context)
         {
-            var config = await Tools.GetConfig();
+            var config = await Tools.GetConfigAsync();
             switch (context.Client.TokenType)
             {
                 case TokenType.Bot:

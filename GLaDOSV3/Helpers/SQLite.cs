@@ -14,7 +14,10 @@ namespace GladosV3.Helpers
     {
         public static string DirPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Database.db");
         public static SQLiteConnection Connection = new SQLiteConnection($"Data Source={DirPath}");
-        public static Task<bool> TableExists(this IDbConnection connection, string tableName)
+        /// <summary>
+        ///  Returns a bool if a table exists.
+        /// </summary>
+        public static Task<bool> TableExistsAsync(this IDbConnection connection, string tableName)
         {
             object result;
             using (SQLiteCommand cmd = new SQLiteCommand(Connection))
@@ -30,15 +33,20 @@ namespace GladosV3.Helpers
 
             return Task.FromResult(((long)result) == 1);
         }
-
-        public static Task CreateTable(this SQLiteConnection connection, string tableName,string parameters)
+        /// <summary>
+        /// Creates a table with a name and parameters..
+        /// </summary>
+        public static Task CreateTableAsync(this SQLiteConnection connection, string tableName,string parameters)
         {
             string sql = $"CREATE TABLE `{tableName}` ({parameters});";
             using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                 command.ExecuteNonQuery();
             return Task.CompletedTask;
         }
-        public static Task SetValue<T>(this SQLiteConnection connection, string tableName, string parameter,T value, string guildid = "")
+        /// <summary>
+        /// Sets/updates a value in a table.
+        /// </summary>
+        public static Task SetValueAsync<T>(this SQLiteConnection connection, string tableName, string parameter,T value, string guildid = "")
         {
             string sql = $"UPDATE {tableName} SET {parameter}='{value.ToString()}'";
             if (guildid != "")
@@ -47,7 +55,10 @@ namespace GladosV3.Helpers
                 command.ExecuteNonQuery();
             return Task.CompletedTask;
         }
-        public static Task<DataTable> GetValues(this SQLiteConnection connection, string tableName,string guildid="")
+        /// <summary>
+        /// Returns a DataTable.
+        /// </summary>
+        public static Task<DataTable> GetValuesAsync(this SQLiteConnection connection, string tableName,string guildid="")
         {
             string sql = $"SELECT * FROM {tableName}";
             DataTable dt = new DataTable();
@@ -58,18 +69,23 @@ namespace GladosV3.Helpers
             dt.TableName = tableName;
             return Task.FromResult(dt);
         }
+        /// <summary>
+        /// Starts SQLite connection and checks for tables.
+        /// </summary>
         public static void Start()
         {
             if (!File.Exists(DirPath))
                 SQLiteConnection.CreateFile(DirPath);
             Connection.Open();
-            if(!Connection.TableExists("servers").GetAwaiter().GetResult())
-                Connection.CreateTable("servers", "`guildid` INTEGER,`nsfw` INTEGER DEFAULT \'false\',`joinleave_cid` INTEGER,`join_msg` TEXT DEFAULT \'Hey {mention}! Welcome to {sname}!\',`join_toggle` INTEGER DEFAULT 0,`leave_msg` TEXT DEFAULT \'Bye {uname}!\',`leave_toggle` INTEGER DEFAULT 0");
-            if (!Connection.TableExists("BlacklistedUsers").GetAwaiter().GetResult())
-                Connection.CreateTable("BlacklistedUsers", "`UserId` INTEGER,`Reason` TEXT DEFAULT \'Unspecified.\', `Date` INTEGER");
+            if(!Connection.TableExistsAsync("servers").GetAwaiter().GetResult())
+                Connection.CreateTableAsync("servers", "`guildid` INTEGER,`nsfw` INTEGER DEFAULT \'false\',`joinleave_cid` INTEGER,`join_msg` TEXT DEFAULT \'Hey {mention}! Welcome to {sname}!\',`join_toggle` INTEGER DEFAULT 0,`leave_msg` TEXT DEFAULT \'Bye {uname}!\',`leave_toggle` INTEGER DEFAULT 0");
+            if (!Connection.TableExistsAsync("BlacklistedUsers").GetAwaiter().GetResult())
+                Connection.CreateTableAsync("BlacklistedUsers", "`UserId` INTEGER,`Reason` TEXT DEFAULT \'Unspecified.\', `Date` INTEGER");
         }
-
-        public static Task AddRecord<T>(this SQLiteConnection connection, string tablename, string values, T[] items,string filter="")
+        /// <summary>
+        /// Adds a new row into a table.
+        /// </summary>
+        public static Task AddRecordAsync<T>(this SQLiteConnection connection, string tablename, string values, T[] items,string filter="")
         {
             string result = "";
             for (int i = 1; i <= items.Length; i++)
@@ -87,7 +103,10 @@ namespace GladosV3.Helpers
             }
             return Task.CompletedTask;
         }
-        public static Task RemoveRecord(this SQLiteConnection connection, string tablename,string filter)
+        /// <summary>
+        /// Removes a row from the selected table.
+        /// </summary>
+        public static Task RemoveRecordAsync(this SQLiteConnection connection, string tablename,string filter)
         {
             if (string.IsNullOrWhiteSpace(filter))
                 return Task.FromException(new SQLiteException("Filter mustn't be empty!"));

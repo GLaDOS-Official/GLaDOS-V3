@@ -61,7 +61,7 @@ namespace GladosV3.Services
                     Console.Out.WriteLine(logText);
                     break;
                 case LogSeverity.Verbose:
-                    Console.Out.WriteLine(logText);
+                    Tools.WriteColorLine(ConsoleColor.Gray, logText);
                     break;
             }
             return Task.CompletedTask;
