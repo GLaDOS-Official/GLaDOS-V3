@@ -82,7 +82,8 @@ namespace GladosV3.Services
                     try
                     {
                         var asm = Assembly.LoadFile(file);
-                        if (!asm.GetTypes().Select(t => t.Namespace).Distinct().ToArray()[0].Contains("GladosV3.Module")) continue;
+                        if(!IsValidExtension(asm)) continue;
+                        await LoadExtension(asm).ConfigureAwait(false);
                         await _commands.AddModulesAsync(asm);
                         var modules = asm.GetTypes().Where(type => type.IsClass && !type.IsSpecialName && type.IsPublic)
                             .Aggregate(string.Empty, (current, type) => current + type.Name + ", ");
@@ -92,6 +93,44 @@ namespace GladosV3.Services
                     catch { }
                 }
             SqLite.Start();
+        }
+
+        public bool IsValidExtension(Assembly asm)
+        {
+            try
+            {
+                if (!asm.GetTypes().Any(t => t.Namespace.Contains("GladosV3.Module"))) return false;
+                if (!asm.GetTypes().Any(type => (type.IsClass && type.IsPublic && type.Name == "ModuleInfo"))) return false;
+                Type asmType = asm.GetTypes().Where(type => type.IsClass && type.Name == "ModuleInfo").Distinct().First();
+                ConstructorInfo asmConstructor = asmType.GetConstructor(Type.EmptyTypes);
+                object classO = asmConstructor.Invoke(new object[] { });
+                if (string.IsNullOrWhiteSpace(GetModuleInfo(asmType, classO, "Name").ToString())) return false;
+                if (string.IsNullOrWhiteSpace(GetModuleInfo(asmType, classO, "Version").ToString())) return false;
+                if (string.IsNullOrWhiteSpace(GetModuleInfo(asmType, classO, "Author").ToString())) return false;
+            }
+            catch
+            { return false; }
+            return true;
+        }
+        public Task LoadExtension(Assembly asm)
+        {
+            try
+            {
+                Type asmType = asm.GetTypes().Where(type => type.IsClass && type.Name == "ModuleInfo").Distinct().First();
+                ConstructorInfo asmConstructor = asmType.GetConstructor(Type.EmptyTypes);
+                object magicClassObject = asmConstructor.Invoke(new object[] { });
+                var memberInfo = asmType.GetMethod("OnLoad", BindingFlags.Instance | BindingFlags.Public);
+                if(memberInfo != null)
+                    ((MethodInfo)memberInfo).Invoke(magicClassObject, new object[] { _discord, _commands, _config, _provider });
+            }
+            catch (Exception ex)
+            { return Task.FromException(ex); }
+            return Task.CompletedTask;
+        }
+        public object GetModuleInfo(Type type,object classO,string info)
+        {
+            var memberInfo = type.GetMethod(info, BindingFlags.Instance | BindingFlags.Public);
+            return ((MethodInfo)memberInfo).Invoke(classO, new object[] { });
         }
     }
 }
