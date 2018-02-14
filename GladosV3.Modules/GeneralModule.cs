@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Discord.Commands;
 using GladosV3.Helpers;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace GladosV3.Modules
+namespace GladosV3.Module.Default
 {
     [Name("General")]
     public class GeneralModule : ModuleBase<SocketCommandContext>

@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Data;
 using System.Globalization;
-using Discord.Commands;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Discord.Commands;
 using org.mariuszgromada.math.mxparser;
-namespace GladosV3.Modules
+
+namespace GladosV3.Module.Default
 {
     [Name("Math")]
     [Remarks("Do some math I guess")]

@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Discord.Commands;
-using HtmlAgilityPack;
 using Newtonsoft.Json.Linq;
 
-namespace GladosV3.Modules
+namespace GladosV3.Module.Default
 {
     [Name("Fun")]
     public class FunModule : ModuleBase<SocketCommandContext>

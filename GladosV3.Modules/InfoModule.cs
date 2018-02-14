@@ -1,20 +1,14 @@
 ﻿using System;
-using System.Collections;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
+using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using System.Threading.Tasks;
-using GladosV3.Services;
-using Microsoft.Extensions.PlatformAbstractions;
-using System.IO;
 using GladosV3.Attributes;
+using Microsoft.Extensions.PlatformAbstractions;
 
-namespace GladosV3.Modules
+namespace GladosV3.Module.Default
 {
     [Name("Info")]
     public class InfoModule : ModuleBase<SocketCommandContext>

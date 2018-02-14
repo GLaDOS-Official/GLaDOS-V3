@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 
-namespace GladosV3.Modules
+namespace GladosV3.Module.Default
 {
     public class ModuleInfo : IGladosModule
     {

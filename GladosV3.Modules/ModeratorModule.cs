@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using System.Threading.Tasks;
-using GladosV3.Helpers;
-using GladosV3.Attributes;
-namespace GladosV3.Modules
+
+namespace GladosV3.Module.Default
 {
     [Name("Moderator")]
     [RequireContext(ContextType.Guild)]

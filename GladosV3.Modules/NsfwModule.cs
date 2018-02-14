@@ -1,20 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data.SqlTypes;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
-using System.Xml;
 using System.Xml.Linq;
-using System.Xml.Serialization;
 using Discord.Commands;
-using GladosV3.Attributes;
 using GladosV3.Helpers;
 using Newtonsoft.Json.Linq;
 
-namespace GladosV3.Modules
+namespace GladosV3.Module.Default
 {
     [Name("NSFW")]
     public class NsfwModule : ModuleBase<SocketCommandContext>
