@@ -45,17 +45,20 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Binaries\ffmpeg.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Binaries\youtube-dl.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="database.db">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="ffmpeg.exe">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="libsodium.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="opus.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="youtube-dl.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

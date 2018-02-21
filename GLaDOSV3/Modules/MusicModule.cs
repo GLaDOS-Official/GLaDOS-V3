@@ -21,24 +21,24 @@ namespace GladosV3.Modules
         // You *MUST* mark these commands with 'RunMode.Async'
         // otherwise the bot will not respond until the Task times out.
         [Command("join", RunMode = RunMode.Async)]
-        public async Task JoinCmd()
+        public Task JoinCmd()
         {
-            await _service.JoinAudio(Context.Guild, (Context.User as IVoiceState).VoiceChannel);
+            return _service.JoinAudio(Context.Guild, ((IVoiceState) Context.User).VoiceChannel);
         }
 
         // Remember to add preconditions to your commands,
         // this is merely the minimal amount necessary.
         // Adding more commands of your own is also encouraged.
         [Command("leave", RunMode = RunMode.Async)]
-        public async Task LeaveCmd()
+        public Task LeaveCmd()
         {
-            await _service.LeaveAudio(Context.Guild);
+            return _service.LeaveAudio(Context.Guild);
         }
 
         [Command("play", RunMode = RunMode.Async)]
-        public async Task PlayCmd([Remainder] string song)
+        public Task PlayCmd([Remainder] string song)
         {
-            await _service.SendAudioAsync(Context.Guild, Context.Channel, song);
+            return _service.SendAudioAsync(Context.Guild, Context.Channel, song);
         }
     }
 }

@@ -72,7 +72,6 @@ namespace GladosV3.Services
                 Environment.Exit(0);
             }
 
-
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly());     // Load commands and modules into the command service
             if (Directory.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules")))
                 foreach (var file in Directory.GetFiles(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules"))) // Bad extension loading
@@ -81,20 +80,50 @@ namespace GladosV3.Services
                     if (new System.IO.FileInfo(file).Length == 0) continue;
                     try
                     {
+                        if(!IsValidCLRFile(file)) continue; // file is not .NET assembly
                         var asm = Assembly.LoadFile(file);
-                        if(!IsValidExtension(asm)) continue;
-                        await LoadExtension(asm).ConfigureAwait(false);
-                        await _commands.AddModulesAsync(asm);
+                        if(!IsValidExtension(asm)) continue; // every extension must have ModuleInfo class
+                        await LoadExtension(asm).ConfigureAwait(false); // load the extension
+                        await _commands.AddModulesAsync(asm); // add the extension's commands
                         var modules = asm.GetTypes().Where(type => type.IsClass && !type.IsSpecialName && type.IsPublic)
                             .Aggregate(string.Empty, (current, type) => current + type.Name + ", ");
                         await LoggingService.Log(LogSeverity.Verbose, "Module",
                             $"Loaded modules: {modules.Remove(modules.Length - 2)} from {Path.GetFileNameWithoutExtension(file)}");
                     }
-                    catch { }
+                    catch(BadImageFormatException) { }
                 }
             SqLite.Start();
         }
-
+        private bool IsValidCLRFile(string file) // based on PE headers
+        {
+            bool? returnBool = null;
+            uint[] dataDictionaryRVA = new uint[16];
+            uint[] dataDictionarySize = new uint[16];
+            Stream fs = new FileStream(file, FileMode.Open,FileAccess.Read);
+            BinaryReader reader = new BinaryReader(fs);
+            fs.Position = 0x3C;
+            var peHeader = reader.ReadUInt32();
+            fs.Position = peHeader;
+            var peHeaderSignature = reader.ReadUInt32();
+            ushort dataDictionaryStart = Convert.ToUInt16(Convert.ToUInt16(fs.Position) + 0x60);
+            fs.Position = dataDictionaryStart;
+            for (int i = 0; i < 15; i++)
+            {
+                dataDictionaryRVA[i] = reader.ReadUInt32();
+                dataDictionarySize[i] = reader.ReadUInt32();
+            }
+            if(peHeaderSignature != 17744)
+            { LoggingService.Log(LogSeverity.Error, "Module", $"{file} has non-valid PE header!"); returnBool = false; }
+            if (dataDictionaryRVA[13] == 64 && returnBool == null)
+            {
+                LoggingService.Log(LogSeverity.Error,"Module",$"{file} is NOT a valid CLR file!!");
+                returnBool = false;
+            }
+            else
+                returnBool = true;
+            fs.Close();
+            return (bool) returnBool;
+        }
         public bool IsValidExtension(Assembly asm)
         {
             try

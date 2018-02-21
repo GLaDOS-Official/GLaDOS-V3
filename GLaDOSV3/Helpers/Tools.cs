@@ -89,5 +89,26 @@ namespace GladosV3.Helpers
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
             GC.WaitForPendingFinalizers();
         }
+        public static string[] splitMessage(string message) // discord.js :D
+        {
+            if (message.Length <= 2000) return new[] { message };
+            var splitText = message.Split('\n');
+            if (splitText.Length == 1) throw new Exception("SPLIT_MAX_LEN");
+            List<string> messages = new List<string>();
+            var msg = "";
+            foreach (var chunk in splitText)
+            {
+                if (($"{msg}\n{chunk}").Length > 2000)
+                {
+                    messages.Add(msg);
+                    msg = "";
+                }
+
+                msg += $"{(msg != "" ? "\n" : "")}{chunk}";
+            }
+
+            messages.Add(msg);
+            return messages.ToArray();
+        }
     }
 }

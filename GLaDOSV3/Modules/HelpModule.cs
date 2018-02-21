@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using GladosV3.Helpers;
 
 namespace GladosV3.Modules
 {
@@ -116,33 +117,12 @@ namespace GladosV3.Modules
                         
                     }
                 }
-                foreach(var msg in splitMessage($"{list.Aggregate(string.Empty, (current, cmi) => string.Concat(current, $"\n= {cmi.GetModName()} =\n{cmi.GetDec()}\n"))}"))
+                foreach(var msg in Tools.splitMessage($"{list.Aggregate(string.Empty, (current, cmi) => string.Concat(current, $"\n= {cmi.GetModName()} =\n{cmi.GetDec()}\n"))}"))
                     await dm.SendMessageAsync($"```asciidoc\n{msg}```");
             }
         }
 
-        private static string[] splitMessage(string text) // discord.js :D
-        {
-            if (text.Length <= 2000) return new []{ text };
-            var splitText = text.Split('\n');
-            if (splitText.Length == 1) throw new Exception("SPLIT_MAX_LEN");
-            List<string> messages = new List<string>();
-            var msg = "";
-            foreach (var chunk in splitText)
-            {
-                if (($"{msg}\n{chunk}").Length > 2000)
-                {
-                    messages.Add(msg);
-                    msg = "";
-                }
-
-                msg += $"{(msg != "" ? "\n" : "")}{chunk}";
-            }
-
-            //var returl = string.Concat(messages.Aggregate<string, string>(null, string.Concat), msg);
-            messages.Add(msg);
-            return messages.ToArray();
-        }
+       
     }
 
     public class CommandInfo
