@@ -25,7 +25,7 @@ namespace GladosV3.Modules
         [Summary("Bot connect to the VC!")]
         public Task JoinCmd()
         {
-            return _service.JoinAudio(Context.Guild, ((IVoiceState) Context.User).VoiceChannel);
+            return _service.JoinAudioAsync(Context.Guild, ((IVoiceState) Context.User).VoiceChannel);
         }
 
         // Remember to add preconditions to your commands,
@@ -36,7 +36,7 @@ namespace GladosV3.Modules
         [Summary("Bot disconnects from the VC!")]
         public Task LeaveCmd()
         {
-            return _service.LeaveAudio(Context.Guild);
+            return _service.LeaveAudioAsync(Context.Guild);
         }
 
         [Command("play", RunMode = RunMode.Async)]
@@ -45,6 +45,14 @@ namespace GladosV3.Modules
         public Task PlayCmd([Remainder] string song)
         {
             return _service.SendAudioAsync(Context.Guild, Context.Channel, song);
+        }
+        [Command("queue", RunMode = RunMode.Async)]
+        [Remarks("queue")]
+        [Summary("Gets the playlist!")]
+        public Task QueueCmd()
+        {
+            var result = _service.QueueAsync(Context.Guild).GetAwaiter().GetResult();
+            return ReplyAsync(string.IsNullOrWhiteSpace(result) ? "Queue is empty!" : result);
         }
     }
 }
