@@ -76,8 +76,8 @@ namespace GladosV3.Services
             if (Directory.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules")))
                 foreach (var file in Directory.GetFiles(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules"))) // Bad extension loading
                 {
-                    if (Path.GetExtension(file) != ".dll") continue;
-                    if (new System.IO.FileInfo(file).Length == 0) continue;
+                    if (Path.GetExtension(file) != ".dll") continue; 
+                    if (new System.IO.FileInfo(file).Length == 0) continue; // file is empty!
                     try
                     {
                         if(!IsValidCLRFile(file)) continue; // file is not .NET assembly
@@ -129,13 +129,14 @@ namespace GladosV3.Services
             try
             {
                 if (!asm.GetTypes().Any(t => t.Namespace.Contains("GladosV3.Module"))) return false;
-                if (!asm.GetTypes().Any(type => (type.IsClass && type.IsPublic && type.Name == "ModuleInfo"))) return false;
-                Type asmType = asm.GetTypes().Where(type => type.IsClass && type.Name == "ModuleInfo").Distinct().First();
-                ConstructorInfo asmConstructor = asmType.GetConstructor(Type.EmptyTypes);
-                object classO = asmConstructor.Invoke(new object[] { });
-                if (string.IsNullOrWhiteSpace(GetModuleInfo(asmType, classO, "Name").ToString())) return false;
-                if (string.IsNullOrWhiteSpace(GetModuleInfo(asmType, classO, "Version").ToString())) return false;
-                if (string.IsNullOrWhiteSpace(GetModuleInfo(asmType, classO, "Author").ToString())) return false;
+                if (!asm.GetTypes().Any(type => (type.IsClass && type.IsPublic && type.Name == "ModuleInfo"))) return false; //extension doesn't have ModuleInfo class
+                Type asmType = asm.GetTypes().Where(type => type.IsClass && type.Name == "ModuleInfo").Distinct().First(); //create type
+                if (asmType.GetInterfaces().Distinct().FirstOrDefault() != typeof(IGladosModule)) return false; // extension's moduleinfo is not extended
+                ConstructorInfo asmConstructor = asmType.GetConstructor(Type.EmptyTypes); // get extension's constructor
+                object classO = asmConstructor.Invoke(new object[] { }); // create object of class
+                if (string.IsNullOrWhiteSpace(GetModuleInfo(asmType, classO, "Name").ToString())) return false; // class doesn't have Name string
+                if (string.IsNullOrWhiteSpace(GetModuleInfo(asmType, classO, "Version").ToString())) return false; // class doesn't have Version string
+                if (string.IsNullOrWhiteSpace(GetModuleInfo(asmType, classO, "Author").ToString())) return false; // class doesn't have Author string
             }
             catch
             { return false; }
@@ -145,12 +146,12 @@ namespace GladosV3.Services
         {
             try
             {
-                Type asmType = asm.GetTypes().Where(type => type.IsClass && type.Name == "ModuleInfo").Distinct().First();
-                ConstructorInfo asmConstructor = asmType.GetConstructor(Type.EmptyTypes);
-                object magicClassObject = asmConstructor.Invoke(new object[] { });
-                var memberInfo = asmType.GetMethod("OnLoad", BindingFlags.Instance | BindingFlags.Public);
-                if(memberInfo != null)
-                    ((MethodInfo)memberInfo).Invoke(magicClassObject, new object[] { _discord, _commands, _config, _provider });
+                Type asmType = asm.GetTypes().Where(type => type.IsClass && type.Name == "ModuleInfo").Distinct().First(); //create type
+                ConstructorInfo asmConstructor = asmType.GetConstructor(Type.EmptyTypes);  // get extension's constructor
+                object magicClassObject = asmConstructor.Invoke(new object[] { }); // create object of class
+                var memberInfo = asmType.GetMethod("OnLoad", BindingFlags.Instance | BindingFlags.Public); //get OnLoad method
+                if (memberInfo != null)  // does the extension have OnLoad?
+                    ((MethodInfo)memberInfo).Invoke(magicClassObject, new object[] { _discord, _commands, _config, _provider });// invoke OnLoad method
             }
             catch (Exception ex)
             { return Task.FromException(ex); }

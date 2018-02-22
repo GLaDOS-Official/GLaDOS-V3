@@ -16,13 +16,12 @@ namespace GladosV3.Module.Default
         [Command("info")]
         [Summary("Displays bot info.")]
         [Remarks("info")]
-        [Timeout(1,1,Measure.Minutes)]
+        [Timeout(1, 1, Measure.Minutes)]
         public async Task Info()
         {
             IDMChannel DM = await Context.Message.Author.GetOrCreateDMChannelAsync();
             var waitMessage = DM.SendMessageAsync("Please wait!").GetAwaiter().GetResult();
-            var date = DateTime.Now;
-            var uptime = (date - Process.GetCurrentProcess().StartTime).ToString(@"d'd 'hh'h 'mm'm 'ss's'");
+            var uptime = (DateTime.Now - Process.GetCurrentProcess().StartTime).ToString(@"d'd 'hh'h 'mm'm 'ss's'");
             string heapsize = ToFileSize2(GC.GetTotalMemory(true));
             var guildcount = Context.Client.Guilds.Count;
             string ToFileSize2(Double size)
@@ -53,28 +52,31 @@ namespace GladosV3.Module.Default
             }
             var channelCount = 0;
             var userCount = 0;
+
             foreach (var g in Context.Client.Guilds)
             {
                 channelCount += g.Channels.Count;
                 userCount += g.MemberCount;
             }
+
             var message = (
                 $"{Format.Bold("Info")}\n" +
                 $"- Library: Discord.Net ({DiscordConfig.APIVersion.ToString()})\n" +
                 $"- Runtime: {PlatformServices.Default.Application.RuntimeFramework.Identifier.Replace("App", String.Empty)} {PlatformServices.Default.Application.RuntimeFramework.Version} {(IntPtr.Size * 8).ToString()}-bit\n" +
                 $"- System: {System.Runtime.InteropServices.RuntimeInformation.OSDescription} {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString().ToLower()}\n" +
                 $"- Up-time: {uptime}\n" +
-                $"- Ping: {Context.Client.Latency.ToString()} ms\n"+
+                $"- Ping: {Context.Client.Latency.ToString()} ms\n" +
                 $"- Thread running: {Process.GetCurrentProcess().Threads.OfType<ProcessThread>().Count(t => t.ThreadState == ThreadState.Running).ToString()} out of {Process.GetCurrentProcess().Threads.Count.ToString()}\n" +
                 $"- RAM usage: {ToFileSize2(Process.GetCurrentProcess().PagedMemorySize64)}\n" +
                 $"- CPU usage: {GetCpuUsage():N1}%\n" +
                 $"- Heap Size: {heapsize}\n" +
                 $"- Owner of the bot: <@{IsOwner.GetOwner(Context).GetAwaiter().GetResult().ToString()}>\n" +
                 $"- Author of the bot: <@195225230908588032> \n\n" +
-                 
+
                 $"{Format.Bold("Stats")}\n" +
                 $"- Servers: {guildcount.ToString()}\n"
             );
+
             if (Context.Guild != null)
             {
                 var channelscount = Context.Guild.Channels.Count;
@@ -86,6 +88,7 @@ namespace GladosV3.Module.Default
                        $"- Users: {userCount.ToString()} (total) \n";
             await waitMessage.ModifyAsync(u => u.Content = message);
         }
+
         [Command("ping")]
         [Summary("Shows bot's latency.")]
         [Remarks("ping")]
@@ -95,11 +98,12 @@ namespace GladosV3.Module.Default
             var message = await ReplyAsync("Ping!").ConfigureAwait(false);
             sw.Stop();
             var usual = (sw.ElapsedMilliseconds > 10000) ? "there could be something wrong." : "there's nothing wrong";
-            await message.ModifyAsync(delegate(MessageProperties properties)
+            await message.ModifyAsync(delegate (MessageProperties properties)
             {
                 properties.Content = $":ping_pong: Pong! {sw.ElapsedMilliseconds.ToString()}ms. It means that {usual}.";
             });
         }
+
         [Command("invite")]
         [Remarks("invite")]
         [Summary("Gives an invite link to invite me to your own guild!")]
@@ -123,6 +127,7 @@ namespace GladosV3.Module.Default
             IDMChannel dm = await Context.Message.Author.GetOrCreateDMChannelAsync();
             await dm.SendMessageAsync("", false, eb);
         }
+
         [Command("user")]
         [Summary("Returns info about the current user, or the user parameter, if one passed.")]
         [Remarks("user [mention]")]
@@ -202,7 +207,7 @@ namespace GladosV3.Module.Default
                         x.Name = "Joined Guild";
                         x.IsInline = true;
                         x.Value =
-                            $"{socketUser?.JoinedAt.ToString().Remove(socketUser.JoinedAt.ToString().Length - 6)}\n({(int) DateTime.Now.ToUniversalTime().Subtract(((DateTimeOffset) socketUser?.JoinedAt).DateTime).TotalDays} days ago)";
+                            $"{socketUser?.JoinedAt.ToString().Remove(socketUser.JoinedAt.ToString().Length - 6)}\n({(int)DateTime.Now.ToUniversalTime().Subtract(((DateTimeOffset)socketUser?.JoinedAt).DateTime).TotalDays} days ago)";
                     });
                     string permissions = "";
                     int take = 0;
@@ -210,7 +215,7 @@ namespace GladosV3.Module.Default
                     list?.ForEach(x =>
                     {
                         if (list.Contains(GuildPermission.Administrator))
-                        { permissions = "Administrator"; return;} 
+                        { permissions = "Administrator"; return; }
                         permissions += x.ToString() + ", ";
                         take++;
                         if (list.Last() == x)
@@ -225,7 +230,9 @@ namespace GladosV3.Module.Default
                     eb.AddField((x) =>
                     {
                         string roles = "";
-                        if(socketUser != null && socketUser.Roles.Count > 1) {
+
+                        if (socketUser != null && socketUser.Roles.Count > 1)
+                        {
                             foreach (var role in socketUser.Roles)
                             {
                                 if (role.Name != "@everyone" && socketUser.Roles.ToList().Last() != role)
@@ -238,7 +245,6 @@ namespace GladosV3.Module.Default
                         x.IsInline = true;
                         x.Value = $"{(String.IsNullOrWhiteSpace(roles) ? "*none*" : $"{roles}")}";
                     });
-
                 }
 
                 await Context.Channel.SendMessageAsync("", false, eb);
@@ -247,7 +253,6 @@ namespace GladosV3.Module.Default
             {
                 Console.WriteLine(e);
             }
-
         }
 
         [Command("serverinfo")]
@@ -276,6 +281,7 @@ namespace GladosV3.Module.Default
                 var guild = ((SocketGuild)Context.Guild);
                 var GuildOwner = Context.Guild.GetUser(Context.Guild.OwnerId);
                 int online = 0;
+
                 foreach (var u in guild.Users)
                     if (u.Status != UserStatus.Invisible && u.Status != UserStatus.Offline)
                         online++;
@@ -341,7 +347,9 @@ namespace GladosV3.Module.Default
                     {
                         x.Name = "Emojis";
                         x.IsInline = false;
+
                         string val = "";
+
                         foreach (var e in Context.Guild.Emotes)
                         {
                             if (val.Length < 950)
