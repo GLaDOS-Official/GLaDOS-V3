@@ -144,7 +144,7 @@ namespace GladosV3.Module.Default
                     Color = new Color(4, 97, 247),
                     ThumbnailUrl = (avatarUrl),
                     Title = $"{userInfo.Username}#{userInfo.Discriminator}",
-                    Description = $"Created on {userInfo.CreatedAt.ToString().Remove(userInfo.CreatedAt.ToString().Length - 6)}. That is {(int)(DateTime.Now.Subtract(userInfo.CreatedAt.DateTime).TotalDays)} days ago!", //{(int)(DateTime.Now.Subtract(Context.Guild.CreatedAt.DateTime).TotalDays)}
+                    Description = $"Created on {userInfo.CreatedAt.ToString().Remove(userInfo.CreatedAt.ToString().Length - 6)}. That is {(int)(DateTime.Now.ToUniversalTime().Subtract(userInfo.CreatedAt.DateTime).TotalDays)} days ago!", //{(int)(DateTime.Now.Subtract(Context.Guild.CreatedAt.DateTime).TotalDays)}
                     Footer = new EmbedFooterBuilder()
                     {
                         Text = $"Requested by {Context.User.Username}#{Context.User.Discriminator} | {userInfo.Username} ID: {userInfo.Id}",
@@ -270,34 +270,25 @@ namespace GladosV3.Module.Default
                     Color = new Color(4, 97, 247),
                     ThumbnailUrl = (avatarURL),
                     Title = $"{Context.Guild.Name} ({Context.Guild.Id})",
-
-                    Description = $"Created on {Context.Guild.CreatedAt.ToString().Remove(Context.Guild.CreatedAt.ToString().Length - 6)}. That's {(DateTime.Now.ToUniversalTime().Subtract(Context.Guild.CreatedAt.DateTime).TotalDays).ToString()} days ago!",
+                    Description = $"Created on {Context.Guild.CreatedAt.ToString().Remove(Context.Guild.CreatedAt.ToString().Length - 6)}. That's {Math.Round(DateTime.Now.ToUniversalTime().Subtract(Context.Guild.CreatedAt.DateTime).TotalDays)} days ago!",
                     Footer = new EmbedFooterBuilder()
                     {
                         Text = $"Requested by {Context.User.Username}#{Context.User.Discriminator} | Guild ID: {Context.Guild.Id}",
                         IconUrl = (Context.User.GetAvatarUrl())
                     }
                 };
-                var guild = ((SocketGuild)Context.Guild);
-                var GuildOwner = Context.Guild.GetUser(Context.Guild.OwnerId);
-                int online = 0;
-
-                foreach (var u in guild.Users)
-                    if (u.Status != UserStatus.Invisible && u.Status != UserStatus.Offline)
-                        online++;
-
                 eb.AddField((x) =>
                 {
                     x.Name = "Owner";
                     x.IsInline = true;
-                    x.Value = GuildOwner.Username;
+                    x.Value = Context.Guild.GetUser(Context.Guild.OwnerId).Username;
                 });
 
                 eb.AddField((x) =>
                 {
                     x.Name = "Members";
                     x.IsInline = true;
-                    x.Value = $"{online} / {(Context.Guild).MemberCount}";
+                    x.Value = $"{(((SocketGuild)Context.Guild).Users.Count(u => u.Status != UserStatus.Invisible && u.Status != UserStatus.Offline)).ToString()} / {(Context.Guild).MemberCount}";
                 });
 
                 eb.AddField((x) =>
@@ -332,7 +323,7 @@ namespace GladosV3.Module.Default
                 {
                     x.Name = "Total Emojis";
                     x.IsInline = true;
-                    x.Value = $"{Context.Guild.Emotes.Count}";
+                    x.Value = $"{(Context.Guild.Emotes.Count == 0 ? "Anti-emoji" : Context.Guild.Emotes.Count.ToString())}";
                 });
 
                 eb.AddField((x) =>
@@ -341,7 +332,7 @@ namespace GladosV3.Module.Default
                     x.IsInline = true;
                     x.Value = $"[Click to view]({avatarURL})";
                 });
-                if (Context.Guild.Emotes.Count != 0)
+                if (Context.Guild.Emotes.Count > 0)
                 {
                     eb.AddField((x) =>
                     {

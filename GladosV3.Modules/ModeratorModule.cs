@@ -125,7 +125,7 @@ namespace GladosV3.Module.Default
             }
         }
 
-        [Command("leave")]
+        /*[Command("leave")]
         [Remarks("leave")]
         [Summary("Sad to see you go!")]
         [Attributes.RequireUserPermission(GuildPermission.ManageGuild)]
@@ -134,7 +134,7 @@ namespace GladosV3.Module.Default
             if (Context.Guild == null) { await ReplyAsync("This command can only be ran in a server."); return; }
             await ReplyAsync("Bye! :wave:");
             await Context.Guild.LeaveAsync();
-        }
+        }*/
 
         [Command("say"), Alias("s")]
         [Remarks("say <text>")]

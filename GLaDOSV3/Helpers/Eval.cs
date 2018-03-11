@@ -19,17 +19,17 @@ using Newtonsoft.Json.Linq;
 namespace GladosV3.Helpers
 {
    public class Eval
-    {
+   {
         public class Globals
         {
-            public Discord.WebSocket.SocketUserMessage Message => this.Context.Message;
-            public Discord.WebSocket.ISocketMessageChannel Channel => this.Context.Message.Channel;
-            public Discord.WebSocket.SocketGuild Guild => this.Context.Guild;
-            public Discord.WebSocket.SocketUser User => this.Context.Message.Author;
-            public Newtonsoft.Json.Linq.JObject Config => Tools.GetConfigAsync(1).GetAwaiter().GetResult();
-            public Discord.WebSocket.DiscordSocketClient Client => this.Context.Client;
-            public Helpers.Tools Tools => new Tools();
-            public Discord.Commands.SocketCommandContext Context { get; private set; }
+            public SocketUserMessage Message => this.Context.Message;
+            public ISocketMessageChannel Channel => this.Context.Message.Channel;
+            public SocketGuild Guild => this.Context.Guild;
+            public SocketUser User => this.Context.Message.Author;
+            public JObject Config => Tools.GetConfigAsync(1).GetAwaiter().GetResult();
+            public DiscordSocketClient Client => this.Context.Client;
+            public Tools Tools => new Tools();
+            public SocketCommandContext Context { get; private set; }
 
             public Globals(SocketCommandContext ctx)
             {
@@ -44,7 +44,7 @@ namespace GladosV3.Helpers
                 "System.IO","Microsoft.Extensions.Configuration","System.Diagnostics","GladosV3.Helpers","Discord","Discord.Commands","Discord.WebSocket","Newtonsoft.Json"
             };
             try
-            {
+                {
                 ScriptOptions options = ScriptOptions.Default.WithReferences(AppDomain.CurrentDomain.GetAssemblies().Where(asm => !asm.IsDynamic && !string.IsNullOrWhiteSpace(asm.Location))).WithImports(imports).WithEmitDebugInformation(true);
                 Script result = CSharpScript.Create(cScode, options, typeof(Globals));
                 var returnVal = result.RunAsync(new Globals(ctx)).GetAwaiter().GetResult().ReturnValue?.ToString();
@@ -62,6 +62,5 @@ namespace GladosV3.Helpers
                 return await Task.FromResult<string>($"**Exception!**{e.Message}\n{e.StackTrace}");
             }
         }
-
-    }
+   }
 }

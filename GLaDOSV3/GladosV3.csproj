@@ -18,23 +18,28 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Binaries\**" />
+    <EmbeddedResource Remove="Binaries\**" />
+    <None Remove="Binaries\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="_configuration - example.json" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Discord.Net" Version="1.0.2" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.6.16" />
-    <PackageReference Include="MathParser.org-mXparser" Version="4.1.1" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Compilers" Version="2.6.1" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.6.1" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.7.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Compilers" Version="2.7.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.7.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
     <PackageReference Include="NReco.ImageGenerator" Version="1.1.1" />
     <PackageReference Include="SQLite.Native" Version="3.12.3" />
-    <PackageReference Include="System.Data.SQLite" Version="1.0.107" />
-    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.107" />
-    <PackageReference Include="System.Data.SQLite.Linq" Version="1.0.107" />
+    <PackageReference Include="System.Data.SQLite" Version="1.0.108" />
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.108" />
+    <PackageReference Include="System.Data.SQLite.Linq" Version="1.0.108" />
     <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="4.5.0-preview1-25914-04" />
   </ItemGroup>
 
@@ -45,16 +50,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Binaries\ffmpeg.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Binaries\youtube-dl.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="database.db">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="libsodium.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="opus.dll">

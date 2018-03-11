@@ -9,19 +9,24 @@ using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Audio;
+using Discord.Commands;
+using GladosV3.Helpers;
+using GladosV3.Services;
 using Microsoft.CodeAnalysis;
 using Newtonsoft.Json.Linq;
 
-namespace GladosV3.Services
+namespace GladosV3.Module.Music
 {
     public class AudioService
     {
         private readonly ConcurrentDictionary<ulong, MusicClass> _connectedChannels = new ConcurrentDictionary<ulong, MusicClass>();
-
         public AudioService()
         {
-            if (!File.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries\\youtube-dl.exe"))) LoggingService.Log(LogSeverity.Error, "AudioService", "youtube-dl.exe not found!");
-            if (!File.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries\\ffmpeg.exe"))) LoggingService.Log(LogSeverity.Error, "AudioService", "ffmpeg.exe not found!");
+            if (!File.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "..\\Binaries\\youtube-dl.exe"))) LoggingService.Log(LogSeverity.Error, "AudioService", "youtube-dl.exe not found!");
+            if (!File.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "..\\Binaries\\ffmpeg.exe"))) LoggingService.Log(LogSeverity.Error, "AudioService", "ffmpeg.exe not found!");
+            //LoadLibraryEx.Invoke(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "libsodium.dll"), IntPtr.Zero, 0);
+            //LoadLibraryEx.Invoke(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "opus.dll"), IntPtr.Zero, 0);
+
         }
 
         public async Task JoinAudioAsync(IGuild guild, IVoiceChannel target)
@@ -34,14 +39,23 @@ namespace GladosV3.Services
         public async Task LeaveAudioAsync(IGuild guild)
         {
             if (_connectedChannels.TryRemove(guild.Id, out MusicClass mclass))
+            {
+                mclass.ClearQueue();
                 await mclass.GetClient.StopAsync().ConfigureAwait(false);
+            }
         }
 
-        public async Task SendAudioAsync(IGuild guild, IMessageChannel channel, string path)
+        public async Task SendAudioAsync(string path, ICommandContext context)
         {
-            if (!_connectedChannels.TryGetValue(guild.Id, out MusicClass mclass)) return;
+            if (!_connectedChannels.TryGetValue(context.Guild.Id, out MusicClass mclass))
+            {
+                await JoinAudioAsync(context.Guild, ((IVoiceState)context.User).VoiceChannel);
+                _connectedChannels.TryGetValue(context.Guild.Id, out mclass);
+            }
             if (string.IsNullOrWhiteSpace(path))
-            { await channel.SendMessageAsync("We're sorry, something went wrong on our side."); return; }
+            { await context.Channel.SendMessageAsync("We're sorry, something went wrong on our side."); return; }
+            if (!path.StartsWith("http")) // i guess we search it on youtube?
+                path = $"ytsearch:{path}";
             if (mclass.GetQueue.Count >= 1) { mclass.AddToQueue(path); return; }
             else
                 mclass.AddToQueue(path);
@@ -74,7 +88,7 @@ namespace GladosV3.Services
             var output = "";
             for (var index = 0; index < queue.Count; index++)
             {
-                output += $"{index}. <{queue[index]}>\n";
+                output += $"{index}. <{queue[index].Replace("ytsearch:", "https://youtube.com/results?search_query=")}>\n";
                 if (index == 0) output = $"{output.Remove(output.Length - 1)} <-- playing\n";
             }
             return Task.FromResult(output);
@@ -84,15 +98,15 @@ namespace GladosV3.Services
             Process x = Process.Start(new ProcessStartInfo
             {
                 FileName = "cmd.exe",
-                Arguments = $"/C youtube-dl.exe --no-playlist -q --no-warnings --geo-bypass --no-mark-watched -f bestaudio \"{mclass.GetQueue[0]}\" -o - | ffmpeg.exe -hide_banner -loglevel panic -i pipe:0 -ac 2 -f s16le -ar 48000 -filter:a \"volume=1.25\" pipe:1",
+                Arguments = $"/C youtube-dl.exe --no-playlist -q --age-limit 15 --no-warnings --geo-bypass --no-mark-watched -f bestaudio \"{mclass.GetQueue[0]}\" -o - | ffmpeg.exe -hide_banner -loglevel panic -i pipe:0 -ac 2 -f s16le -ar 48000 -filter:a \"volume=1.25\" pipe:1",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardInput = true,
-                WorkingDirectory = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries")
+                WorkingDirectory = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "..\\Binaries")
             });
-            mclass.ProcessID = x.Id;
             if (x.HasExited)
                 throw new Exception("youtube-dl or ffmpeg has exited immediately!");
+            mclass.ProcessID = x.Id;
             x.StandardInput.WriteLine(""); // don't ask me why, without this, it wouldn't work
             x.StandardInput.WriteLine(""); // don't ask me why, without this, it wouldn't work
             return x;

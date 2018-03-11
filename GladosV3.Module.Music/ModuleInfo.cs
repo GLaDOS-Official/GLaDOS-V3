@@ -3,11 +3,11 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 
-namespace GladosV3.Module.Default
+namespace GladosV3.Module.Music
 {
     public class ModuleInfo : IGladosModule
     {
-        public string Name() => "Default";
+        public string Name() => "Music";
 
         public string Version() => "0.0.0.1";
 
@@ -15,7 +15,7 @@ namespace GladosV3.Module.Default
 
         public string Author() => "BlackOfWorld#8125";
 
-        public Type[] Services => new Type[] { };
+        public Type[] Services => new Type[] { typeof(AudioService) };
 
         public void PreLoad(DiscordSocketClient discord, CommandService commands, IConfigurationRoot config, IServiceProvider provider)
         {}

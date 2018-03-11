@@ -8,7 +8,7 @@ using System.Text;
 
 namespace GladosV3.Helpers
 {
-    class PInvokes // Found this on pastebin. Autor unknown
+    class PInvokes // Original source found: https://pastebin.com/7qtiPv3A
     {
         /// <summary>
         /// Map a native function to a delegate

@@ -11,6 +11,9 @@ namespace GladosV3
         string Version();
         string UpdateUrl();
         string Author();
-        void OnLoad(DiscordSocketClient discord, CommandService commands, IConfigurationRoot config, IServiceProvider provider);
+        Type[] Services { get; }
+
+        void PreLoad(DiscordSocketClient discord, CommandService commands, IConfigurationRoot config, IServiceProvider provider);
+        void PostLoad(DiscordSocketClient discord, CommandService commands, IConfigurationRoot config, IServiceProvider provider);
     }
 }

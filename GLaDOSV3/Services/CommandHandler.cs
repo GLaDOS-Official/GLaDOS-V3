@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -33,6 +34,8 @@ namespace GladosV3.Services
             if (!(s is SocketUserMessage msg)) return; // Ensure the message is from a user/bot
             if (msg.Author.Id == _discord.CurrentUser.Id) return;     // Ignore self when checking commands
             if (msg.Author.IsBot) return; // Ignore other bots
+            if(msg.MentionedUsers.Count > 0)
+              await MentionBomb(msg);
             int argPos = 0; // Check if the message has a valid command prefix
             if (!msg.HasStringPrefix(_config["prefix"], ref argPos) && !msg.HasMentionPrefix(_discord.CurrentUser, ref argPos))  return; // Ignore messages that aren't meant for the bot
             var context = new SocketCommandContext(_discord, msg); // Create the command context
@@ -54,6 +57,14 @@ namespace GladosV3.Services
                         await context.Channel.SendMessageAsync($@"**Error:** {result.ErrorReason}").ConfigureAwait(false);
                         break;
               }
+        }
+
+        private Task MentionBomb(SocketUserMessage msg)
+        {
+            if (msg.MentionedUsers.Distinct().Count() < 5) return Task.CompletedTask;
+            msg.DeleteAsync().GetAwaiter();
+            msg.Channel.SendMessageAsync($"{msg.Author.Mention} Please don't mention bomb!").GetAwaiter();
+            return Task.CompletedTask;
         }
     }
 }
