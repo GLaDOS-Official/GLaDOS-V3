@@ -55,7 +55,7 @@ namespace GladosV3.Module.Music
             if (string.IsNullOrWhiteSpace(path))
             { await context.Channel.SendMessageAsync("We're sorry, something went wrong on our side."); return; }
             if (!path.StartsWith("http")) // i guess we search it on youtube?
-                path = $"ytsearch:{path}";
+                path = $"ytsearch:{Uri.EscapeUriString(path)}";
             if (mclass.GetQueue.Count >= 1) { mclass.AddToQueue(path); return; }
             else
                 mclass.AddToQueue(path);
