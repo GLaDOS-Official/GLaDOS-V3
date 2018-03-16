@@ -8,6 +8,8 @@
 *.sln.docstates
 # Glados config file
 /GLaDOSV3/_configuration.json
+/GLaDOSV3/commit.bat
+/Build/release.zip
 /GladosV3.Modules/PrereleaseModule.cs
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -252,4 +254,4 @@ paket-files/
 # JetBrains Rider
 .idea/
 *.sln.iml
-/GLaDOSV3/commit.bat
+/GLaDOSV3/DateCompiled.cs

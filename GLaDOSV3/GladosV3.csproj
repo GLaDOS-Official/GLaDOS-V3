@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -6,7 +6,27 @@
     <RootNamespace>GladosV3</RootNamespace>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
-
+  <UsingTask TaskName="BuildTask" TaskFactory="CodeTaskFactory" AssemblyFile="$(RoslynCodeTaskFactory)">
+    <Task>
+      <Using Namespace="System" />
+      <Using Namespace="System.Collections.Generic" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Linq" />
+      <Using Namespace="System.Text" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[        
+                    Log.LogMessage(MessageImportance.High,"Creating random stuff lol idk");
+					
+                ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+  <Target Name="RunBuildTask" AfterTargets="Compile">
+    <BuildTask />
+  </Target>
+  <PropertyGroup>
+    <TransformOnBuild>true</TransformOnBuild>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <Prefer32Bit>false</Prefer32Bit>
     <NoWarn>1702;1705;NU1605;NU1701</NoWarn>
@@ -18,13 +38,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Binaries\**" />
-    <EmbeddedResource Remove="Binaries\**" />
-    <None Remove="Binaries\**" />
+    <None Remove="_configuration - example.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="_configuration - example.json" />
+    <None Include="DateCompiled.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>DateCompiled.tt</DependentUpon>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -32,18 +54,24 @@
     <PackageReference Include="HtmlAgilityPack" Version="1.7.1" />
     <PackageReference Include="Microsoft.CodeAnalysis.Compilers" Version="2.7.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.7.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.1" />
     <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
     <PackageReference Include="NReco.ImageGenerator" Version="1.1.1" />
+    <PackageReference Include="RoslynCodeTaskFactory" Version="1.2.6" />
     <PackageReference Include="SQLite.Native" Version="3.12.3" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.108" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.108" />
     <PackageReference Include="System.Data.SQLite.Linq" Version="1.0.108" />
-    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="4.5.0-preview1-25914-04" />
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="4.5.0-preview1-26216-02" />
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="DateCompiled.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>DateCompiled.tt</DependentUpon>
+    </Compile>
     <Compile Update="Program.cs">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
@@ -52,6 +80,10 @@
   <ItemGroup>
     <None Update="database.db">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="DateCompiled.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>DateCompiled.cs</LastGenOutput>
     </None>
     <None Update="opus.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -62,6 +94,10 @@
     <None Update="_configuration.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
 
 </Project>

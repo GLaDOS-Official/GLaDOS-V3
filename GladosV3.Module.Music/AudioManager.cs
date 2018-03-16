@@ -40,7 +40,6 @@ namespace GladosV3.Module.Music
         {
             if (_connectedChannels.TryRemove(guild.Id, out MusicClass mclass))
             {
-                mclass.ClearQueue();
                 await mclass.GetClient.StopAsync().ConfigureAwait(false);
             }
         }
@@ -59,26 +58,24 @@ namespace GladosV3.Module.Music
             if (mclass.GetQueue.Count >= 1) { mclass.AddToQueue(path); return; }
             else
                 mclass.AddToQueue(path);
-            var client = mclass.GetClient;
-            await client.SetSpeakingAsync(false);
+            using (var client = mclass.GetClient) { 
+            await client.SetSpeakingAsync(true);
             using (var stream = client.CreatePCMStream(AudioApplication.Music, 98304, 200))
             {
                 atg:
                 using (var output = CmdYoutube(mclass))
                 {
                     try
-                    { await output.StandardOutput.BaseStream.CopyToAsync(stream); }
-                    catch
-                    { await stream.FlushAsync(); if (!output.HasExited) output.Kill(); }
-                    finally
-                    { await stream.FlushAsync(); }
+                    { await output.StandardOutput.BaseStream.CopyToAsync(stream); await stream.FlushAsync(); }
+                    catch(TaskCanceledException)
+                    { stream.Close(); await client.StopAsync(); if (!output.HasExited) output.Kill(); _connectedChannels.TryRemove(context.Guild.Id, out mclass); return; } // PANIC
                 }
                 mclass.GetQueue.Remove(mclass.GetQueue[0]);
                 if (mclass.GetQueue.Count >= 1)
                     goto atg;
             }
-
             await client.SetSpeakingAsync(false);
+            }
         }
 
         public Task<string> QueueAsync(IGuild guild)
@@ -98,7 +95,7 @@ namespace GladosV3.Module.Music
             Process x = Process.Start(new ProcessStartInfo
             {
                 FileName = "cmd.exe",
-                Arguments = $"/C youtube-dl.exe --no-playlist -q --age-limit 15 --no-warnings --geo-bypass --no-mark-watched -f bestaudio \"{mclass.GetQueue[0]}\" -o - | ffmpeg.exe -hide_banner -loglevel panic -i pipe:0 -ac 2 -f s16le -ar 48000 -filter:a \"volume=1.25\" pipe:1",
+                Arguments = $"/C youtube-dl.exe --no-playlist -q --age-limit 15 --youtube-skip-dash-manifest --no-warnings --geo-bypass --no-mark-watched -f 'bestaudio[filesize<=30M]/worstaudio' \"{mclass.GetQueue[0]}\" -o - | ffmpeg.exe -hide_banner -loglevel panic -i pipe:0 -ac 2 -f s16le -ar 48000 -filter:a \"volume=1.25\" pipe:1",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardInput = true,
@@ -107,7 +104,6 @@ namespace GladosV3.Module.Music
             if (x.HasExited)
                 throw new Exception("youtube-dl or ffmpeg has exited immediately!");
             mclass.ProcessID = x.Id;
-            x.StandardInput.WriteLine(""); // don't ask me why, without this, it wouldn't work
             x.StandardInput.WriteLine(""); // don't ask me why, without this, it wouldn't work
             return x;
         }

@@ -48,6 +48,7 @@ namespace GladosV3.Services
             Console.Title = _config["name"];
             Console.Clear();
             Console.SetWindowSize(150, 35);
+            DateCompiled.WriteToConsole();
             string discordToken = _config["tokens:discord"];     // Get the discord token from the config file
             string gameTitle = _config["discord:game"]; // Get bot's game status
             if (string.IsNullOrWhiteSpace(discordToken) || string.IsNullOrEmpty(discordToken))
