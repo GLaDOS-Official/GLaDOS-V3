@@ -35,8 +35,13 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Dependencies\" />
+  </ItemGroup>
+
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.0\Modules\"></Copy>
+    <Copy SourceFiles="Dependencies\MathParser.org-mXparser.Core11.dll" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.0\Dependencies\"></Copy>
   </Target>
 
 </Project>
