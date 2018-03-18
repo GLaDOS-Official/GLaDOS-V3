@@ -48,7 +48,11 @@ namespace GladosV3.Services
                         object magicClassObject = asmConstructor.Invoke(new object[] { }); // create object of class
                         var memberInfo = asmType.GetMethod("get_Services", BindingFlags.Instance | BindingFlags.Public); //get services method
                         if (memberInfo != null)  // does the extension have services?
-                            types.AddRange((System.Type[])((MethodInfo)memberInfo).Invoke(magicClassObject, new object[] { })); // invoke services method
+                        {
+                            var item = (System.Type[])((MethodInfo)memberInfo).Invoke(magicClassObject, new object[] { });
+                            if ( item != null && item.Length > 0)
+                              types.AddRange(item); // invoke services method
+                        }
                         else
                             continue;
                     }
@@ -103,7 +107,7 @@ namespace GladosV3.Services
                 }
             }
         }
-        private IDictionary<string, Assembly> dependencies = new Dictionary<string, Assembly>();
+        private static IDictionary<string, Assembly> dependencies = new Dictionary<string, Assembly>();
         private Assembly CurrentDomainOnAssemblyResolve(object sender, ResolveEventArgs args)
         {
             return dependencies.TryGetValue(args.Name, out var res) ? res : Assembly.LoadFile(args.Name);

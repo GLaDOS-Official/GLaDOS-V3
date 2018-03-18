@@ -15,7 +15,7 @@ namespace GladosV3.Module.Default
 
         public string Author() => "BlackOfWorld#8125";
 
-        public Type[] Services => new Type[] { };
+        public Type[] Services => null;
 
         public void PreLoad(DiscordSocketClient discord, CommandService commands, IConfigurationRoot config, IServiceProvider provider)
         {}

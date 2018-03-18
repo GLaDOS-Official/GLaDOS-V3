@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GLaDOSV3\GladosV3.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Binaries\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Binaries\wkhtmltoimage.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Images\delete.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Images\shit.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.0\Modules\"></Copy>
+    <Copy SourceFiles="Binaries\wkhtmltoimage.exe" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.0\Binaries\"></Copy>
+    <Copy SourceFiles="Images\shit.html" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.0\Images\"></Copy>
+    <Copy SourceFiles="Images\delete.html" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.0\Images\"></Copy>
+  </Target>
+</Project>

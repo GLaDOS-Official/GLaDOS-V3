@@ -21,9 +21,6 @@ namespace GladosV3.Module.Default
         {
             IDMChannel DM = await Context.Message.Author.GetOrCreateDMChannelAsync();
             var waitMessage = DM.SendMessageAsync("Please wait!").GetAwaiter().GetResult();
-            var uptime = (DateTime.Now - Process.GetCurrentProcess().StartTime).ToString(@"d'd 'hh'h 'mm'm 'ss's'");
-            string heapsize = ToFileSize2(GC.GetTotalMemory(true));
-            var guildcount = Context.Client.Guilds.Count;
             string ToFileSize2(Double size)
             {
                 int scale = 1024;
@@ -64,25 +61,26 @@ namespace GladosV3.Module.Default
                 $"- Library: Discord.Net ({DiscordConfig.APIVersion.ToString()})\n" +
                 $"- Runtime: {PlatformServices.Default.Application.RuntimeFramework.Identifier.Replace("App", String.Empty)} {PlatformServices.Default.Application.RuntimeFramework.Version} {(IntPtr.Size * 8).ToString()}-bit\n" +
                 $"- System: {System.Runtime.InteropServices.RuntimeInformation.OSDescription} {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString().ToLower()}\n" +
-                $"- Up-time: {uptime}\n" +
+                $"- Up-time: {(DateTime.Now - Process.GetCurrentProcess().StartTime).ToString(@"d'd 'hh'h 'mm'm 'ss's'")}\n" +
                 $"- Ping: {Context.Client.Latency.ToString()} ms\n" +
                 $"- Thread running: {Process.GetCurrentProcess().Threads.OfType<ProcessThread>().Count(t => t.ThreadState == ThreadState.Running).ToString()} out of {Process.GetCurrentProcess().Threads.Count.ToString()}\n" +
                 $"- RAM usage: {ToFileSize2(Process.GetCurrentProcess().PagedMemorySize64)}\n" +
                 $"- CPU usage: {GetCpuUsage():N1}%\n" +
-                $"- Heap Size: {heapsize}\n" +
+                $"- Heap Size: {ToFileSize2(GC.GetTotalMemory(true))}\n" +
                 $"- Owner of the bot: <@{IsOwner.GetOwner(Context).GetAwaiter().GetResult().ToString()}>\n" +
-                $"- Author of the bot: <@195225230908588032> \n\n" +
+                $"- Version: {FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).ProductVersion}  (Compiled on {GladosV3.DateCompiled.ToString}) \n" +
+                "- Author of the bot: <@195225230908588032> \n\n" +
 
                 $"{Format.Bold("Stats")}\n" +
-                $"- Servers: {guildcount.ToString()}\n"
+                $"- Servers: {Context.Client.Guilds.Count.ToString()}\n"
             );
 
             if (Context.Guild != null)
             {
                 var channelscount = Context.Guild.Channels.Count;
                 var userscount = Context.Guild.Users.Count;
-                message += $"- Channels: {channelscount.ToString()} (in this guild) \n" +
-                           $"- Users: {userscount.ToString()} (in this guild) \n";
+                message += $"- Channels: {channelscount.ToString()} (in {Context.Guild.Name}) \n" +
+                           $"- Users: {userscount.ToString()} (in {Context.Guild.Name}) \n";
             }
             message += $"- Channels: {channelCount.ToString()} (total) \n" +
                        $"- Users: {userCount.ToString()} (total) \n";

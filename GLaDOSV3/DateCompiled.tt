@@ -8,11 +8,12 @@ using System;
 
 namespace GladosV3
 {
-    class DateCompiled
+    public class DateCompiled
     {
         public static void WriteToConsole()
         {
-           Console.WriteLine("This version of GLaDOS V3 was compiled at: <#= DateTime.UtcNow.ToString("dd/mm/yyy HH:mm:ss", System.Globalization.DateTimeFormatInfo.InvariantInfo) #>");
+           Console.WriteLine("This version of GLaDOS V3 was compiled at: <#= DateTime.UtcNow.ToString("dd/MM/yyy HH:mm:ss", System.Globalization.DateTimeFormatInfo.InvariantInfo) #>");
         }
+		 public new static string ToString => "<#= DateTime.UtcNow.ToString("dd/MM/yyy HH:mm:ss", System.Globalization.DateTimeFormatInfo.InvariantInfo) #>";
     }
 }

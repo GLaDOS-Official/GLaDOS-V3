@@ -6,18 +6,25 @@
     <RootNamespace>GladosV3</RootNamespace>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
-  <UsingTask TaskName="BuildTask" TaskFactory="CodeTaskFactory" AssemblyFile="$(RoslynCodeTaskFactory)">
+  <UsingTask TaskName="BuildTask" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
     <Task>
       <Using Namespace="System" />
       <Using Namespace="System.Collections.Generic" />
       <Using Namespace="System.IO" />
       <Using Namespace="System.Linq" />
       <Using Namespace="System.Text" />
+      <Using Namespace="System.Diagnostics" />
+      <Using Namespace="System.Threading" />
       <Code Type="Fragment" Language="cs">
         <![CDATA[        
-                    Log.LogMessage(MessageImportance.High,"Creating random stuff lol idk");
-					
-                ]]>
+        Log.LogMessage(MessageImportance.High,"Transforming DateCompiled.tt");
+        ProcessStartInfo psi = new ProcessStartInfo("TextTransform.exe");
+        psi.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+        psi.CreateNoWindow = true;
+        psi.WorkingDirectory = @"$(DevEnvDir)";
+        psi.Arguments = @"$(SolutionDir)GladosV3\DateCompiled.tt";
+        Process.Start(psi);
+       ]]>
       </Code>
     </Task>
   </UsingTask>
@@ -57,8 +64,6 @@
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.1" />
     <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
-    <PackageReference Include="NReco.ImageGenerator" Version="1.1.1" />
-    <PackageReference Include="RoslynCodeTaskFactory" Version="1.2.6" />
     <PackageReference Include="SQLite.Native" Version="3.12.3" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.108" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.108" />
