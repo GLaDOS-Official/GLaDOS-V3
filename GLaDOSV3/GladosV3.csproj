@@ -17,13 +17,7 @@
       <Using Namespace="System.Threading" />
       <Code Type="Fragment" Language="cs">
         <![CDATA[        
-        Log.LogMessage(MessageImportance.High,"Transforming DateCompiled.tt");
-        ProcessStartInfo psi = new ProcessStartInfo("TextTransform.exe");
-        psi.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-        psi.CreateNoWindow = true;
-        psi.WorkingDirectory = @"$(DevEnvDir)";
-        psi.Arguments = @"$(SolutionDir)GladosV3\DateCompiled.tt";
-        Process.Start(psi);
+        Log.LogMessage(MessageImportance.High,"Sample text!!!!");
        ]]>
       </Code>
     </Task>
@@ -46,14 +40,6 @@
 
   <ItemGroup>
     <None Remove="_configuration - example.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="DateCompiled.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>DateCompiled.tt</DependentUpon>
-    </None>
   </ItemGroup>
 
   <ItemGroup>

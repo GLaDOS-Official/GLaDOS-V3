@@ -112,18 +112,18 @@ namespace GladosV3.Module.Music
     public class MusicClass
     {
         public int ProcessID;
-        private List<string> queue { get; } = new List<string>(15); // limit so memory usage won't go **bam boom**
-        private bool playing { get;  } = false;
-        private IAudioClient client { get; }
-        public void AddToQueue(string url) => queue.Add(url);
-        public void ClearQueue() => queue.Clear();
-        public List<string> GetQueue => queue;
-        public bool IsPlaying => playing;
-        public IAudioClient GetClient => client;
+        private List<string> Queue { get; } = new List<string>(15); // limit so memory usage won't go **bam boom**
+        private bool Playing { get;  } = false;
+        private IAudioClient Client { get; }
+        public void AddToQueue(string url) => Queue.Add(url);
+        public void ClearQueue() => Queue.Clear();
+        public List<string> GetQueue => Queue;
+        public bool IsPlaying => Playing;
+        public IAudioClient GetClient => Client;
 
         public MusicClass(IAudioClient client)
         {
-            this.client = client;
+            this.Client = client;
         }
     }
 }

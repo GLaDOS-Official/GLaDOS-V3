@@ -26,14 +26,16 @@ namespace GladosV3.Services
             _commands = commands;
             _config = config;
             _provider = provider;
-            
+            if (!Directory.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Dependencies")))
+                Directory.CreateDirectory(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Dependencies"));
+            if (!Directory.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules")))
+                Directory.CreateDirectory(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules"));
         }
 
-    public Task<Type[]> GetServices()
-    {
+        public Task<Type[]> GetServices()
+        {
             List<Type> types = new List<Type>();
-            if (Directory.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
-    "Modules")))
+
             {
                 foreach (var file in Directory.GetFiles(
                     Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules"))
@@ -50,8 +52,8 @@ namespace GladosV3.Services
                         if (memberInfo != null)  // does the extension have services?
                         {
                             var item = (System.Type[])((MethodInfo)memberInfo).Invoke(magicClassObject, new object[] { });
-                            if ( item != null && item.Length > 0)
-                              types.AddRange(item); // invoke services method
+                            if (item != null && item.Length > 0)
+                                types.AddRange(item); // invoke services method
                         }
                         else
                             continue;
@@ -79,32 +81,27 @@ namespace GladosV3.Services
         }
         public async Task Load()
         {
-            if (Directory.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
-                "Modules")))
+            foreach (var file in Directory.GetFiles(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules"))) // Bad extension loading
             {
-                foreach (var file in Directory.GetFiles(
-                    Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules"))
-                ) // Bad extension loading
+                try
                 {
-                    try {
-                        Assembly asm = ValidFile(file);
-                        if (asm == null) continue;
-                        await LoadExtension(asm).ConfigureAwait(false); // load the extension
-                        var modules = asm.GetTypes().Where(type => type.IsClass && !type.IsSpecialName && type.IsPublic)
-                            .Aggregate(string.Empty, (current, type) => current + type.Name + ", ");
-                        await LoggingService.Log(LogSeverity.Verbose, "Module",
-                            $"Loaded modules: {modules.Remove(modules.Length - 2)} from {Path.GetFileNameWithoutExtension(file)}");
-                    }
-                    catch (BadImageFormatException)
-                    {
-                    }
+                    Assembly asm = ValidFile(file);
+                    if (asm == null) continue;
+                    await LoadExtension(asm).ConfigureAwait(false); // load the extension
+                    var modules = asm.GetTypes().Where(type => type.IsClass && !type.IsSpecialName && type.IsPublic)
+                        .Aggregate(string.Empty, (current, type) => current + type.Name + ", ");
+                    await LoggingService.Log(LogSeverity.Verbose, "Module",
+                        $"Loaded modules: {modules.Remove(modules.Length - 2)} from {Path.GetFileNameWithoutExtension(file)}");
                 }
-                foreach (var assemblyName in Directory.GetFiles(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Dependencies")))
+                catch (BadImageFormatException)
                 {
-                    if (!IsValidCLRFile(assemblyName)) continue;
-                    var asm = Assembly.LoadFile(assemblyName);
-                    dependencies.Add(asm.FullName, asm);
                 }
+            }
+            foreach (var assemblyName in Directory.GetFiles(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Dependencies")))
+            {
+                if (!IsValidCLRFile(assemblyName)) continue;
+                var asm = Assembly.LoadFile(assemblyName);
+                dependencies.Add(asm.FullName, asm);
             }
         }
         private static IDictionary<string, Assembly> dependencies = new Dictionary<string, Assembly>();

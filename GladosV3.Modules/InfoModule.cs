@@ -68,7 +68,7 @@ namespace GladosV3.Module.Default
                 $"- CPU usage: {GetCpuUsage():N1}%\n" +
                 $"- Heap Size: {ToFileSize2(GC.GetTotalMemory(true))}\n" +
                 $"- Owner of the bot: <@{IsOwner.GetOwner(Context).GetAwaiter().GetResult().ToString()}>\n" +
-                $"- Version: {FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).ProductVersion}  (Compiled on {GladosV3.DateCompiled.ToString}) \n" +
+                $"- Version: {FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).ProductVersion} \n" +
                 "- Author of the bot: <@195225230908588032> \n\n" +
 
                 $"{Format.Bold("Stats")}\n" +

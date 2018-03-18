@@ -48,11 +48,10 @@ namespace GladosV3.Services
             Console.Title = _config["name"];
             Console.Clear();
             Console.SetWindowSize(150, 35);
-            DateCompiled.WriteToConsole();
             string discordToken = _config["tokens:discord"];     // Get the discord token from the config file
             string gameTitle = _config["discord:game"]; // Get bot's game status
             if (string.IsNullOrWhiteSpace(discordToken) || string.IsNullOrEmpty(discordToken))
-                throw new Exception("Please enter your bot's token into the `_configuration.json` file found in the applications root directory.");
+            { LoggingService.Log(LogSeverity.Critical, "Bot", "Please enter your bot's token into the `_configuration.json` file found in the applications root directory."); Environment.Exit(-1); }
             else if (!string.IsNullOrWhiteSpace(discordToken) || !string.IsNullOrEmpty(discordToken))
                 await _discord.SetGameAsync(gameTitle); // set bot's game status
             try
