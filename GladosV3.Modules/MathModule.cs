@@ -16,12 +16,6 @@ namespace GladosV3.Module.Default
         [Summary("Solves the math problem!")]
         public async Task Solve([Remainder] string math = "")
         {
-            if (math == "")
-            {
-                foreach(var message in Tools.splitMessage(mXparser.getHelp()))
-                   await ReplyAsync(message);
-                return;
-            }
             try
             {
                 var done = new Expression(math).calculate();

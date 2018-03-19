@@ -70,6 +70,7 @@ namespace GladosV3.Module.Default
                 $"- Owner of the bot: <@{IsOwner.GetOwner(Context).GetAwaiter().GetResult().ToString()}>\n" +
                 $"- Version: {FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).ProductVersion} \n" +
                 "- Author of the bot: <@195225230908588032> \n\n" +
+                "- Thanks to <@425343815357038623> for being overall helpful. He's developing WD2MP, if you like WD2, you should definitely check it out! \n" +
 
                 $"{Format.Bold("Stats")}\n" +
                 $"- Servers: {Context.Client.Guilds.Count.ToString()}\n"
