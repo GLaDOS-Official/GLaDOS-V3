@@ -117,7 +117,7 @@ namespace GladosV3.Modules
                         
                     }
                 }
-                foreach(var msg in Tools.splitMessage($"{list.Aggregate(string.Empty, (current, cmi) => string.Concat(current, $"\n= {cmi.GetModName()} =\n{cmi.GetDec()}\n"))}"))
+                foreach(var msg in Tools.SplitMessage($"{list.Aggregate(string.Empty, (current, cmi) => string.Concat(current, $"\n= {cmi.GetModName()} =\n{cmi.GetDec()}\n"))}"))
                     await dm.SendMessageAsync($"```asciidoc\n{msg}```");
                 await Context.Channel.SendMessageAsync("Check your DMs!");
             }

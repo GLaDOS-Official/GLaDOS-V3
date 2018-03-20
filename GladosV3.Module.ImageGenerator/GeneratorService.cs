@@ -13,9 +13,10 @@ namespace GladosV3.Module.ImageGeneration
     public class GeneratorService
     {
         IDisposable typing;
+        public bool fail = false;
         public GeneratorService()
         {
-            if (!File.Exists(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "..\\Binaries\\wkhtmltoimage.exe"))) LoggingService.Log(Discord.LogSeverity.Error, "GeneratorService", "wkhtmltoimage.exe not found!");
+            if (!File.Exists(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "..\\Binaries\\wkhtmltoimage.exe"))) { LoggingService.Log(Discord.LogSeverity.Error, "ImageGenerator", "wkhtmltoimage.exe not found!"); fail = true; };
         }
         public Task<MemoryStream> Shit(string[] items, ICommandContext context)
         {

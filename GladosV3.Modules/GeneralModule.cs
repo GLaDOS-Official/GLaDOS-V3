@@ -19,6 +19,7 @@ namespace GladosV3.Module.Default
             [Command("farewell")]
             [Summary("Saying goodbye!")]
             [Remarks("guild farewell <action> <value>")]
+            [RequireUserPermission(Discord.GuildPermission.ManageGuild)]
             public async Task Farewell(string action, string value)
             {
                 string id = Context.Guild.Id.ToString();
@@ -46,6 +47,7 @@ namespace GladosV3.Module.Default
             [Command("join")]
             [Summary("Saying hi!")]
             [Remarks("guild join <action> <value>")]
+            [RequireUserPermission(Discord.GuildPermission.ManageGuild)]
             public async Task Join(string action, string value)
             {
                 switch (action)
@@ -86,6 +88,7 @@ namespace GladosV3.Module.Default
         [Summary("Creates a strawpoll on strawpoll.me (splitting by comma character)")]
         [Remarks("strawpoll <title> | <options>")]
         [Alias("poll")]
+        [Attributes.Timeout(1, 1, Attributes.Measure.Minutes)]
         public async Task Strawpoll([Remainder] string text)
         {
             string[] array = text.Split('|');

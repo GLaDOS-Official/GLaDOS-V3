@@ -89,7 +89,7 @@ namespace GladosV3.Helpers
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
             GC.WaitForPendingFinalizers();
         }
-        public static string[] splitMessage(string message) // discord.js :D
+        public static string[] SplitMessage(string message) // discord.js :D
         {
             if (message.Length <= 2000) return new[] { message };
             var splitText = message.Split('\n');

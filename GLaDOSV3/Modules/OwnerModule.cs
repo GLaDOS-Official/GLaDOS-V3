@@ -101,7 +101,12 @@ namespace GladosV3.Modules
             public async Task Message([Remainder]string message)
             {
                 var progress = await ReplyAsync("Sending...");
-                foreach (var t in Context.Client.Guilds) await t.DefaultChannel.SendMessageAsync($"System message: {message}");
+                foreach (var t in Context.Client.Guilds) {
+                    if(t.DefaultChannel != null)
+                        await t.DefaultChannel.SendMessageAsync($"System message: {message}");
+                    else
+                        await t.TextChannels.ToArray()[0].SendMessageAsync($"System message: {message}");
+                }
                 var correctSpellingEnglishIHateIt = Context.Client.Guilds.Count <= 1 ? "guild" : "guilds";
                 await progress.ModifyAsync(properties => properties.Content = $"Done! Sent to {Context.Client.Guilds.Count} {correctSpellingEnglishIHateIt}.");
             }

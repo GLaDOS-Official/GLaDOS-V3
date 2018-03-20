@@ -16,7 +16,7 @@ namespace GladosV3.Module.Default
         [Command("info")]
         [Summary("Displays bot info.")]
         [Remarks("info")]
-        [Timeout(1, 1, Measure.Minutes)]
+        [Timeout(1, 45, Measure.Seconds)]
         public async Task Info()
         {
             IDMChannel DM = await Context.Message.Author.GetOrCreateDMChannelAsync();
@@ -91,6 +91,7 @@ namespace GladosV3.Module.Default
         [Command("ping")]
         [Summary("Shows bot's latency.")]
         [Remarks("ping")]
+        [Timeout(5, 1, Measure.Minutes)]
         public async Task Ping()
         {
             var sw = Stopwatch.StartNew();
@@ -114,7 +115,7 @@ namespace GladosV3.Module.Default
                 Color = new Color(4, 97, 247),
                 Footer = new EmbedFooterBuilder()
                 {
-                    Text = $"Requested by {Context.User.Username}#{Context.User.Discriminator}",
+                    Text = $"Requested by {Context.User.Username}#{Context.User.Discriminator} | ID: {Context.User.Id}",
                     IconUrl = (Context.User.GetAvatarUrl())
                 },
                 Description =
@@ -131,6 +132,7 @@ namespace GladosV3.Module.Default
         [Summary("Returns info about the current user, or the user parameter, if one passed.")]
         [Remarks("user [mention]")]
         [Alias("userinfo", "whois")]
+        [Timeout(3, 1, Measure.Minutes)]
         public async Task UserInfo([Summary("The (optional) user to get info for")] SocketUser user = null)
         {
             try
@@ -146,7 +148,7 @@ namespace GladosV3.Module.Default
                     Description = $"Created on {userInfo.CreatedAt.ToString().Remove(userInfo.CreatedAt.ToString().Length - 6)}. That is {(int)(DateTime.Now.ToUniversalTime().Subtract(userInfo.CreatedAt.DateTime).TotalDays)} days ago!", //{(int)(DateTime.Now.Subtract(Context.Guild.CreatedAt.DateTime).TotalDays)}
                     Footer = new EmbedFooterBuilder()
                     {
-                        Text = $"Requested by {Context.User.Username}#{Context.User.Discriminator} | {userInfo.Username} ID: {userInfo.Id}",
+                        Text = $"Requested by {Context.User.Username}#{Context.User.Discriminator} | ID: {Context.User.Id}",
                         IconUrl = (Context.User.GetAvatarUrl())
                     }
                 };
@@ -232,13 +234,16 @@ namespace GladosV3.Module.Default
 
                         if (socketUser != null && socketUser.Roles.Count > 1)
                         {
-                            foreach (var role in socketUser.Roles)
-                            {
-                                if (role.Name != "@everyone" && socketUser.Roles.ToList().Last() != role)
-                                    roles += $"{role.Name}, ";
-                                else if (socketUser.Roles.ToList().Last() == role)
-                                    roles = roles.Remove(roles.Length - 2);
-                            }
+                            if(socketUser.Roles.Count == 2)
+                                roles = socketUser.Roles.ToArray()[1].Name; 
+                            else
+                                foreach (var role in socketUser.Roles)
+                                {
+                                    if (role.Name != "@everyone" && socketUser.Roles.ToList().Last() != role)
+                                        roles += $"{role.Name}, ";
+                                    else if (socketUser.Roles.ToList().Last() == role)
+                                        roles = roles.Remove(roles.Length - 2);
+                                }
                         }
                         x.Name = "Roles";
                         x.IsInline = true;
@@ -259,6 +264,7 @@ namespace GladosV3.Module.Default
         [Remarks("serverinfo")]
         [Alias("server", "guild")]
         [RequireContext(ContextType.Guild)]
+        [Timeout(3, 1, Measure.Minutes)]
         public async Task ServerInfo()
         {
             try
@@ -345,7 +351,6 @@ namespace GladosV3.Module.Default
                             if (val.Length < 950)
                                 val += $"<:{e.Name}:{e.Id}> ";
                         }
-
                         x.Value = (string.IsNullOrWhiteSpace(val) ? "*none*" : val);
                     });
                 }

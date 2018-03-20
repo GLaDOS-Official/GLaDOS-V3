@@ -7,7 +7,14 @@
   <ItemGroup>
     <ProjectReference Include="..\GLaDOSV3\GladosV3.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Binaries\StampVer.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.0\Modules\"></Copy>
+      <Copy SourceFiles="Binaries\StampVer.exe" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.0\Binaries\"></Copy>
   </Target>
 </Project>

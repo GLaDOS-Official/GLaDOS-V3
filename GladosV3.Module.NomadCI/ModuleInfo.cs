@@ -1,6 +1,7 @@
 ﻿using System;
 using Discord.Commands;
 using Discord.WebSocket;
+using GladosV3.Helpers;
 using Microsoft.Extensions.Configuration;
 
 namespace GladosV3.Module.NomadCI
@@ -19,12 +20,14 @@ namespace GladosV3.Module.NomadCI
 
         public void PreLoad(DiscordSocketClient discord, CommandService commands, IConfigurationRoot config, IServiceProvider provider)
         {
-            BuilderService.config = config;
+            BuilderService.config = Tools.GetConfigAsync(1).GetAwaiter().GetResult();
         }
 
         public void PostLoad(DiscordSocketClient discord, CommandService commands, IConfigurationRoot config, IServiceProvider provider)
         {
             provider.GetService(typeof(BuilderService));
+            BuilderService.client = discord;
+            BuilderService.client.Ready += BuilderService.LoadCIChannel;
         }
     }
 }

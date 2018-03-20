@@ -30,6 +30,7 @@ namespace GladosV3.Module.Default
         [Command("illegal")]
         [Remarks("illegal <thing>")]
         [Summary("Did the president banned something again? Powered by IsNowIllegal.com")]
+        [Attributes.Timeout(2, 45, Attributes.Measure.Seconds)]
         public async Task Illegal([Remainder]string word)
         {
             if (word.Length < 1 || word.Length > 10) {
@@ -58,6 +59,7 @@ namespace GladosV3.Module.Default
         [Command("bunny")]
         [Remarks("bunny")]
         [Summary("Random bunny!")]
+        [Attributes.Timeout(3, 15, Attributes.Measure.Seconds)]
         public async Task Bunny()
         {
             using (var http = new HttpClient())
@@ -75,6 +77,7 @@ namespace GladosV3.Module.Default
         [Command("cat")]
         [Remarks("cat")]
         [Summary("Random cat!")]
+        [Attributes.Timeout(3, 15, Attributes.Measure.Seconds)]
         public async Task Cat()
         {
             using (var http = new HttpClient())
@@ -92,6 +95,7 @@ namespace GladosV3.Module.Default
         [Command("dog")]
         [Remarks("dog")]
         [Summary("Random dog!")]
+        [Attributes.Timeout(3, 15, Attributes.Measure.Seconds)]
         public async Task Dog()
         {
             using (var http = new HttpClient())

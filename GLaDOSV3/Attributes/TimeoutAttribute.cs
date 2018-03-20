@@ -43,6 +43,9 @@ namespace GladosV3.Attributes
                 case Measure.Minutes:
                     _invokeLimitPeriod = TimeSpan.FromMinutes(period);
                     break;
+                case Measure.Seconds:
+                    _invokeLimitPeriod = TimeSpan.FromSeconds(period);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(measure), measure, null);
             }
@@ -107,6 +110,7 @@ namespace GladosV3.Attributes
    {
         Days,
         Hours,
-        Minutes
+        Minutes,
+        Seconds
    }
 }

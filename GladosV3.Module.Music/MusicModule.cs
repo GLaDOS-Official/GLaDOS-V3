@@ -25,9 +25,13 @@ namespace GladosV3.Module.Music
         [Command("join", RunMode = RunMode.Async)]
         [Remarks("join")]
         [Summary("Bot connect to the VC!")]
+        [RequireContext(ContextType.Guild)]
         public Task JoinCmd()
         {
-            return _service.JoinAudioAsync(Context.Guild, ((IVoiceState) Context.User).VoiceChannel);
+            if (!_service.fail)
+                return _service.JoinAudioAsync(Context.Guild, ((IVoiceState)Context.User).VoiceChannel);
+            else
+            { Context.Channel.SendMessageAsync("There was an error... Check the logs!").GetAwaiter(); return Task.CompletedTask; }
         }
 
         // Remember to add preconditions to your commands,
@@ -36,23 +40,34 @@ namespace GladosV3.Module.Music
         [Command("leave", RunMode = RunMode.Async)]
         [Remarks("leave")]
         [Summary("Bot disconnects from the VC!")]
+        [RequireContext(ContextType.Guild)]
         public Task LeaveCmd()
         {
-            return _service.LeaveAudioAsync(Context.Guild);
+            if (!_service.fail)
+                return _service.LeaveAudioAsync(Context.Guild);
+            else
+            { Context.Channel.SendMessageAsync("There was an error... Check the logs!").GetAwaiter(); return Task.CompletedTask; }
         }
 
         [Command("play", RunMode = RunMode.Async)]
         [Remarks("play <youtube url>")]
         [Summary("Plays music from youtube!")]
+        [RequireContext(ContextType.Guild)]
         public Task PlayCmd([Remainder] string song)
         {
-            return _service.SendAudioAsync(song,Context);
+            if (!_service.fail)
+                return _service.SendAudioAsync(song,Context);
+            else
+            { Context.Channel.SendMessageAsync("There was an error... Check the logs!").GetAwaiter(); return Task.CompletedTask; }
         }
         [Command("queue", RunMode = RunMode.Async)]
         [Remarks("queue")]
         [Summary("Gets the playlist!")]
+        [RequireContext(ContextType.Guild)]
         public Task QueueCmd()
         {
+            if (_service.fail)
+            { Context.Channel.SendMessageAsync("There was an error... Check the logs!").GetAwaiter(); return Task.CompletedTask; }
             var result = _service.QueueAsync(Context.Guild).GetAwaiter().GetResult();
             return ReplyAsync(string.IsNullOrWhiteSpace(result) ? "Queue is empty!" : result);
         }

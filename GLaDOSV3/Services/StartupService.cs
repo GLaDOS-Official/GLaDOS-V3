@@ -51,7 +51,7 @@ namespace GladosV3.Services
             string discordToken = _config["tokens:discord"];     // Get the discord token from the config file
             string gameTitle = _config["discord:game"]; // Get bot's game status
             if (string.IsNullOrWhiteSpace(discordToken) || string.IsNullOrEmpty(discordToken))
-            { LoggingService.Log(LogSeverity.Critical, "Bot", "Please enter your bot's token into the `_configuration.json` file found in the applications root directory."); Environment.Exit(-1); }
+            { await LoggingService.Log(LogSeverity.Critical, "Bot", "Please enter your bot's token into the `_configuration.json` file found in the applications root directory."); Environment.Exit(-1); }
             else if (!string.IsNullOrWhiteSpace(discordToken) || !string.IsNullOrEmpty(discordToken))
                 await _discord.SetGameAsync(gameTitle); // set bot's game status
             try

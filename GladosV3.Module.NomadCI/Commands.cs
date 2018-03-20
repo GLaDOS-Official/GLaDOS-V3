@@ -19,7 +19,8 @@ namespace GladosV3.Module.NomadCI
         [Summary("build")]
         public Task JoinCmd()
         {
-            return ReplyAsync(_service.BuildNow().GetAwaiter().GetResult());
+            _service.BuildNow().GetAwaiter().GetResult();
+            return Task.CompletedTask;
         }
     }
 }

@@ -45,7 +45,7 @@ namespace GladosV3.Module.Default
             }
 
         }
-
+        string[] blacklisted_tags = { "GORE","loli","shota" };
         [Command("e621")]
         [Remarks("e621 [tags]")]
         [Summary("Find images on e621 by the given tags.")]
@@ -57,8 +57,8 @@ namespace GladosV3.Module.Default
             string url = "https://e621.net/post/index.json?limit=20";
             if (tags != "")
                 url += String.Format("&tags={0}", string.Join(" ", tags));
-            if (tags.ToUpper().Contains("GORE"))
-            { await ReplyAsync("What is wrong with you? Seriously? Gore?"); return; }
+            if (blacklisted_tags.Any(tags.ToUpper().Contains))
+            { await ReplyAsync("You should probadly read the discord TOS..."); return; }
             using (var http = new HttpClient())
             {
                 http.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G920A) AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)"); // we are GoogleBot
@@ -94,8 +94,8 @@ namespace GladosV3.Module.Default
             string url = "https://rule34.xxx/index.php?page=dapi&s=post&q=index&limit=20";
             if (tags != "")
                 url += String.Format("&tags={0}", string.Join(" ", tags));
-            if (tags.ToUpper().Contains("GORE"))
-            { await ReplyAsync("What is wrong with you? Seriously? Gore?"); return; }
+            if (blacklisted_tags.Any(tags.ToUpper().Contains))
+            { await ReplyAsync("You should probadly read the discord TOS..."); return; }
             using (var http = new HttpClient())
             {
                 http.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G920A) AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)"); // we are GoogleBot

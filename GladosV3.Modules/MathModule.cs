@@ -14,6 +14,7 @@ namespace GladosV3.Module.Default
         [Command("solve")]
         [Remarks("solve <math>")]
         [Summary("Solves the math problem!")]
+        [Attributes.Timeout(10, 5, Attributes.Measure.Minutes)]
         public async Task Solve([Remainder] string math = "")
         {
             try

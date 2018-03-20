@@ -9,6 +9,7 @@ using System.Xml;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
+using System.Linq;
 
 namespace GladosV3.Helpers
 {
@@ -44,7 +45,13 @@ namespace GladosV3.Helpers
             {
                 var input = Console.ReadLine();
                 if (input == string.Empty) continue;
-                foreach (var t in _discord.Guilds) t.DefaultChannel.SendMessageAsync($"System message: {input}");
+                foreach (var t in _discord.Guilds)
+                {
+                    if (t.DefaultChannel != null)
+                        t.DefaultChannel.SendMessageAsync($"System message: {input}");
+                    else
+                        t.TextChannels.ToArray()[0].SendMessageAsync($"System message: {input}");
+                }
 
                 Console.WriteLine($"[Service]System message: Sent!");
             }
