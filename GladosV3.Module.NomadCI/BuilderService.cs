@@ -42,7 +42,7 @@ namespace GladosV3.Module.NomadCI
                 GladosV3.Services.LoggingService.Log(Discord.LogSeverity.Error, "NomadCI", "Failed to load!");
         }
 
-        public static System.Threading.Tasks.Task LoadCIChannel()
+        public static Task LoadCIChannel()
         {
             textChannel = client.GetChannel(config["nomad"]["CIChannel"].Value<ulong>()) as SocketTextChannel;
             client.Ready -= LoadCIChannel;

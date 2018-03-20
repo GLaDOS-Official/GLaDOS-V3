@@ -9,5 +9,14 @@
   },
   "tokens": {
     "discord": "Discord token" 
+  },
+  "nomad": {
+    "batPath": "D:\\Honzik\\Desktop\\GlaDos\\GlaDOSV3\\GladosV3.Module.NomadCI\\testbuild.bat",
+    "logFile": "D:\\Honzik\\Desktop\\GlaDos\\GlaDOSV3\\GladosV3.Module.NomadCI\\testlog.txt",
+    "time": 8.64e+7,
+    "bPart": 0,
+    "CIChannel": 363290689468891136,
+    "nextVersion": "0.0.0.0",
+    "role": 326746793071083520
   }
 }
