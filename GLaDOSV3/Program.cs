@@ -23,6 +23,8 @@ namespace GladosV3
         public async Task StartAsync()
         {
             Tools.ReleaseMemory();
+            if(!IsValidJson())
+            { await LoggingService.Log(LogSeverity.Error, "GLaDOS V3", "_configuration.json file is not a valid json file!"); await Task.Delay(5000); return; }
             _config = await Tools.GetConfigAsync();              // Build the configuration file
 
             var services = new ServiceCollection()      // Begin building the service provider
@@ -63,6 +65,21 @@ namespace GladosV3
             provider.GetRequiredService<CommandHandler>();
             provider.GetRequiredService<SystemMessage>().KeyPress();
             await Task.Delay(-1);     // Prevent the application from closing
+        }
+        internal bool IsValidJson()
+        {
+            var path = Path.Combine(AppContext.BaseDirectory, "_configuration.json");
+            if (!File.Exists(path))
+            { LoggingService.Log(LogSeverity.Error, "GLaDOS V3", "_configuration.json file does not exist!").GetAwaiter(); return false; ; }
+            try
+            {
+                Newtonsoft.Json.Linq.JContainer.Parse(File.ReadAllTextAsync(path).GetAwaiter().GetResult());
+            }
+            catch(Newtonsoft.Json.JsonReaderException)
+            {
+                return false;
+            }
+            return true;
         }
     }
 }

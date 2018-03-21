@@ -54,8 +54,7 @@ namespace GladosV3.Modules
                     clasO["maintenance"] = false;
                 string status = clasO["maintenance"].Value<bool>() ? "enabled" : "disabled";
                 await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json"),clasO.ToString());
-                await ReplyAsync($"Set maintenance mode to: {status}.\nRestarting the bot!");
-                Tools.RestartApp();
+                await ReplyAsync($"Set maintenance mode to: {status}!");
             }
             [Command("restart")]
             [Remarks("bot restart")]
@@ -82,8 +81,8 @@ namespace GladosV3.Modules
                     Tools.GetConfigAsync(1).GetAwaiter().GetResult();
                 clasO["name"] = username;
                 await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json"), clasO.ToString());
-                await ReplyAsync($"Set bot's username to {clasO["name"].Value<string>()}.\nRestarting the bot!");
-                Tools.RestartApp();
+                await ReplyAsync($"Set bot's username to {clasO["name"].Value<string>()}.");
+                await Context.Client.CurrentUser.ModifyAsync((properties) => { properties.Username = clasO["name"].Value<string>(); });
             }
             [Command("eval")]
             [Remarks("bot eval <code>")]
@@ -123,10 +122,10 @@ namespace GladosV3.Modules
                 clasO["discord"]["game"] = status;
                 await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json"), clasO.ToString());
                 if(status == "")
-                    await ReplyAsync($"Reset bot's game state\nRestarting the bot!");
+                    await ReplyAsync($"Reset bot's game state");
                 else
-                    await ReplyAsync($"Set bot's game state to {clasO["discord"]["game"].Value<string>()}.\nRestarting the bot!");
-                Tools.RestartApp();
+                    await ReplyAsync($"Set bot's game state to {clasO["discord"]["game"].Value<string>()}.");
+                await Context.Client.SetGameAsync(clasO["discord"]["game"].Value<string>());
             }
 
             [Command("blacklist")]
@@ -173,8 +172,8 @@ namespace GladosV3.Modules
                 await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json"),
                     clasO.ToString());
                 await ReplyAsync(
-                        $"Set bot's game state to {clasO["discord"]["status"].Value<string>()}.\nRestarting the bot!");
-                Tools.RestartApp();
+                        $"Set bot's game state to {clasO["discord"]["status"].Value<string>()}.");
+                await Context.Client.SetStatusAsync(Enum.Parse<UserStatus>(status));
             }
         }
     }

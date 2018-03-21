@@ -6,25 +6,6 @@
     <RootNamespace>GladosV3</RootNamespace>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
-  <UsingTask TaskName="BuildTask" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
-    <Task>
-      <Using Namespace="System" />
-      <Using Namespace="System.Collections.Generic" />
-      <Using Namespace="System.IO" />
-      <Using Namespace="System.Linq" />
-      <Using Namespace="System.Text" />
-      <Using Namespace="System.Diagnostics" />
-      <Using Namespace="System.Threading" />
-      <Code Type="Fragment" Language="cs">
-        <![CDATA[        
-        Log.LogMessage(MessageImportance.High,"Sample text!!!!");
-       ]]>
-      </Code>
-    </Task>
-  </UsingTask>
-  <Target Name="RunBuildTask" AfterTargets="Compile">
-    <BuildTask />
-  </Target>
   <PropertyGroup>
     <TransformOnBuild>true</TransformOnBuild>
   </PropertyGroup>

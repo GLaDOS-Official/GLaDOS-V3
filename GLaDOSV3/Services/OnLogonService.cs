@@ -53,7 +53,7 @@ namespace GladosV3.Services
         private async Task GetUserFromConfigAsync()
         {
             if (_discord.CurrentUser == null) return;
-            if (_discord.CurrentUser.Username != _config["name"])
+            if (_discord.CurrentUser.Username != _config["name"])   
             {
                 await _discord.CurrentUser.ModifyAsync(u => u.Username = _config["name"]);
                 foreach (SocketGuild guild in _discord.Guilds)

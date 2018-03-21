@@ -75,8 +75,12 @@ namespace GladosV3.Module.NomadCI
                         file.Close();
                     }
                     if (!string.IsNullOrWhiteSpace(text)) {
-                        var array = text.Split(Environment.NewLine);
-                        build = array[array.Length - 2];
+                        var array = text.Split(Environment.NewLine).Distinct();
+                        foreach (var line in array)
+                        {
+                            if (line.StartsWith("OUTDIR: "))
+                            { build = line.Remove(0, 8); break; } 
+                        }
                     }
                     sw.BaseStream.Flush();
                     sw.BaseStream.Close();
@@ -86,7 +90,7 @@ namespace GladosV3.Module.NomadCI
             }
             catch(Exception ex)
             {
-                GladosV3.Services.LoggingService.Log(Discord.LogSeverity.Error, "NomadCI", $"Exception happened during build! {ex.Message},{ex.StackTrace.ToString()}");
+                GladosV3.Services.LoggingService.Log(Discord.LogSeverity.Error, "NomadCI", $"Exception happened during build!{Environment.NewLine}   {ex.Message}{Environment.NewLine}   Type:{ex.GetType()}{Environment.NewLine}{ex.StackTrace.ToString()}");
                 textChannel.SendMessageAsync($"Exception happened during build! Details should be inside the console.").GetAwaiter().GetResult();
                 return Task.CompletedTask;
             }
@@ -99,12 +103,14 @@ namespace GladosV3.Module.NomadCI
         }
         internal void IncrementVersion(string output)
         {
+            if(!File.Exists(output))
+                throw new IOException("Output file not found! Please check the logs.");
             FileVersionInfo fversion = FileVersionInfo.GetVersionInfo(output);
             List<int> array = config["nomad"]["nextVersion"].Value<string>().Split('.').ToList().ConvertAll(int.Parse);
-            int bPart = array[3];
-            int pPart = array[2];
-            int minorPart = array[1];
-            int majorPart = array[0];
+            int bPart = array[3]; // build number
+            int pPart = array[2]; // revision number
+            int minorPart = array[1]; // minor number
+            int majorPart = array[0]; // major number
             bPart++;
             if (bPart > config["nomad"]["bPart"].Value<Int32>() + 100)
             { pPart++; config["nomad"]["bPart"] = bPart; }

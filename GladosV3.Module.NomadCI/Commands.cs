@@ -18,6 +18,7 @@ namespace GladosV3.Module.NomadCI
         [Remarks("build")]
         [Summary("build")]
         [RequireUserPermission(GuildPermission.Administrator)]
+        [NomadOnly]
         public Task JoinCmd()
         {
             _service.BuildNow().GetAwaiter().GetResult();
