@@ -1,7 +1,9 @@
 ﻿using Discord;
 using Discord.Commands;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,7 +19,7 @@ namespace GladosV3.Module.NomadCI
             {
                 case TokenType.Bot:
                     var application = context.Client.GetApplicationInfoAsync();
-                    return Task.FromResult(context.Guild.Id != 259776446942150656 ? PreconditionResult.FromError("hidden") : PreconditionResult.FromSuccess());
+                    return Task.FromResult(context.Guild.Id != BuilderService.config["nomad"]["serverID"].Value<ulong>() ? PreconditionResult.FromError("hidden") : PreconditionResult.FromSuccess());
                 default:
                     return Task.FromResult(PreconditionResult.FromError("hidden"));
             }

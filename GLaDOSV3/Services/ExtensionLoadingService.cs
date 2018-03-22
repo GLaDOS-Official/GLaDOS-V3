@@ -38,7 +38,7 @@ namespace GladosV3.Services
 
             {
                 foreach (var file in Directory.GetFiles(
-                    Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules"))
+                    Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules"), "*.dll")
                 ) // Bad extension loading
                 {
                     try
@@ -67,7 +67,6 @@ namespace GladosV3.Services
 
         private Assembly ValidFile(string file)
         {
-            if (Path.GetExtension(file) != ".dll") return null;
             if (new System.IO.FileInfo(file).Length == 0) return null; // file is empty!
             Assembly asm = null;
             try
@@ -81,7 +80,7 @@ namespace GladosV3.Services
         }
         public async Task Load()
         {
-            foreach (var file in Directory.GetFiles(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules"))) // Bad extension loading
+            foreach (var file in Directory.GetFiles(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules"), "*.dll")) // Bad extension loading
             {
                 try
                 {
@@ -136,6 +135,7 @@ namespace GladosV3.Services
             }
             else
                 returnBool = true;
+            reader.Close();
             fs.Close();
             return (bool)returnBool;
         }
@@ -143,7 +143,7 @@ namespace GladosV3.Services
         {
             try
             {
-                if (!asm.GetTypes().Any(t => t.Namespace.Contains("GladosV3.Module"))) return false;
+                if (!asm.GetTypes().Any(t =>t.Namespace.Contains("GladosV3.Module"))) return false;
                 if (!asm.GetTypes().Any(type => (type.IsClass && type.IsPublic && type.Name == "ModuleInfo"))) return false; //extension doesn't have ModuleInfo class
                 Type asmType = asm.GetTypes().Where(type => type.IsClass && type.Name == "ModuleInfo").Distinct().First(); //create type
                 if (asmType.GetInterfaces().Distinct().FirstOrDefault() != typeof(IGladosModule)) return false; // extension's moduleinfo is not extended

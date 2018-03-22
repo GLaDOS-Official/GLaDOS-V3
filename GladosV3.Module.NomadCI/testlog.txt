@@ -3,6 +3,6 @@ idk some waiting
 Could be done
 idk
 Let's pretend this is the output ÔćôÔćôÔćô
-OUTDIR: D:\Desktop\GlaDos\GlaDOSV3\GladosV3.Module.NomadCI\GladosV3.Module.NomadCI.dll
+OUTDIR: D:\Desktop\GlaDos\GlaDOSV3\GladosV3.Module.NomadCI\test
 Some random unnecessary content
 test?
