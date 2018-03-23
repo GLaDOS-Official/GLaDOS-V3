@@ -31,12 +31,14 @@ namespace GladosV3.Module.Music
 
         }
 
-        public async Task JoinAudioAsync(IGuild guild, IVoiceChannel target)
+        public async Task<bool> JoinAudioAsync(IGuild guild, IVoiceChannel target)
         {
-            if (_connectedChannels.TryGetValue(guild.Id, out _)) return;
-            if (target.Guild.Id != guild.Id) return;
+            if (_connectedChannels.TryGetValue(guild.Id, out _)) return false;
+            if (target == null) return false;
+            if (target.Guild.Id != guild.Id) return false;
             var audioClient = await target.ConnectAsync();
-            if (_connectedChannels.TryAdd(guild.Id, new MusicClass(audioClient))) return;
+            if (_connectedChannels.TryAdd(guild.Id, new MusicClass(audioClient))) return true;
+            return false;
         }   
         public async Task LeaveAudioAsync(IGuild guild)
         {
@@ -50,7 +52,8 @@ namespace GladosV3.Module.Music
         {
             if (!_connectedChannels.TryGetValue(context.Guild.Id, out MusicClass mclass))
             {
-                await JoinAudioAsync(context.Guild, ((IVoiceState)context.User).VoiceChannel);
+                if (!await JoinAudioAsync(context.Guild, ((IVoiceState)context.User).VoiceChannel))
+                { await context.Channel.SendMessageAsync("Please join VC first!"); return; }
                 _connectedChannels.TryGetValue(context.Guild.Id, out mclass);
             }
             if (string.IsNullOrWhiteSpace(path))
@@ -97,7 +100,7 @@ namespace GladosV3.Module.Music
             Process x = Process.Start(new ProcessStartInfo
             {
                 FileName = "cmd.exe",
-                Arguments = $"/C youtube-dl.exe --no-playlist -q --age-limit 15 --youtube-skip-dash-manifest --no-warnings --geo-bypass --no-mark-watched -f 'bestaudio[filesize<=30M]/worstaudio' \"{mclass.GetQueue[0]}\" -o - | ffmpeg.exe -hide_banner -loglevel panic -i pipe:0 -ac 2 -f s16le -ar 48000 -filter:a \"volume=1.25\" pipe:1",
+                Arguments = $"/C youtube-dl.exe --no-playlist -q --age-limit 15 --youtube-skip-dash-manifest --no-warnings --geo-bypass --no-mark-watched -f \"bestaudio[filesize<=30M]/worstaudio\" \"{mclass.GetQueue[0]}\" -o - | ffmpeg.exe -hide_banner -loglevel panic -i pipe:0 -ac 2 -f s16le -ar 48000 -filter:a \"volume=1.25\" pipe:1",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardInput = true,
