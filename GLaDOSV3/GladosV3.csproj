@@ -28,8 +28,8 @@
     <PackageReference Include="HtmlAgilityPack" Version="1.7.1" />
     <PackageReference Include="Microsoft.CodeAnalysis.Compilers" Version="2.7.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.7.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.1.0-preview1-final" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.0-preview1-final" />
     <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
     <PackageReference Include="SQLite.Native" Version="3.12.3" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.108" />
@@ -38,16 +38,6 @@
     <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="4.5.0-preview1-26216-02" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="DateCompiled.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>DateCompiled.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Program.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-  </ItemGroup>
 
   <ItemGroup>
     <None Update="database.db">

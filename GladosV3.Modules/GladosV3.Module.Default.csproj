@@ -19,8 +19,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <NoWarn>1701;1702;1705;1702;1705;NU1605;NU1701</NoWarn>
   </PropertyGroup>
-
-
   <ItemGroup>
     <PackageReference Include="MathParser.org-mXparser" Version="4.1.1" />
   </ItemGroup>
@@ -43,5 +41,6 @@
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.0\Modules\"></Copy>
     <Copy SourceFiles="Dependencies\MathParser.org-mXparser.Core11.dll" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.0\Dependencies\"></Copy>
   </Target>
+
 
 </Project>
