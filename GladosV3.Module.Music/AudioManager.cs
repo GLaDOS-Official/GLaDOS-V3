@@ -100,7 +100,7 @@ namespace GladosV3.Module.Music
             Process x = Process.Start(new ProcessStartInfo
             {
                 FileName = "cmd.exe",
-                Arguments = $"/C youtube-dl.exe --no-playlist -q --age-limit 15 --youtube-skip-dash-manifest --no-warnings --geo-bypass --no-mark-watched -f \"bestaudio[filesize<=30M]/worstaudio\" \"{mclass.GetQueue[0]}\" -o - | ffmpeg.exe -hide_banner -loglevel panic -i pipe:0 -ac 2 -f s16le -ar 48000 -filter:a \"volume=1.25\" pipe:1",
+                Arguments = $"/C youtube-dl.exe --no-playlist -4 -q --age-limit 15 --youtube-skip-dash-manifest --no-warnings --geo-bypass --no-mark-watched -f \"bestaudio[filesize<=30M]/worstaudio\" \"{mclass.GetQueue[0]}\" -o - | ffmpeg.exe -hide_banner -loglevel panic -i pipe:0 -ac 2 -f s16le -ar 48000 -filter:a \"volume=4\" pipe:1",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardInput = true,
