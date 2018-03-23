@@ -47,15 +47,6 @@ namespace GladosV3.Module.Default
                 System.Threading.Thread.Sleep(1000);
                 return cpuCounter.NextValue();
             }
-            var channelCount = 0;
-            var userCount = 0;
-
-            foreach (var g in Context.Client.Guilds)
-            {
-                channelCount += g.Channels.Count;
-                userCount += g.MemberCount;
-            }
-
             var message = (
                 $"{Format.Bold("Info")}\n" +
                 $"- Library: Discord.Net ({DiscordConfig.APIVersion.ToString()})\n" +
@@ -68,23 +59,22 @@ namespace GladosV3.Module.Default
                 $"- CPU usage: {GetCpuUsage():N1}%\n" +
                 $"- Heap Size: {ToFileSize2(GC.GetTotalMemory(true))}\n" +
                 $"- Owner of the bot: <@{IsOwner.GetOwner(Context).GetAwaiter().GetResult().ToString()}>\n" +
-                $"- Version: {FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).ProductVersion} \n" +
-                "- Author of the bot: <@195225230908588032> \n\n" +
-                "- Thanks to <@425343815357038623> for being overall helpful. He's developing WD2MP, if you like WD2, you should definitely check it out! \n" +
+                $"- Version: {FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).ProductVersion}\n" +
+                "- Author of the bot: <@419568355771416577>\n" +
+                "- Thanks to <@194151547846787072> for being overall helpful. He's developing WD2MP, if you like WD2, you should definitely check it out!\n\n" +
 
                 $"{Format.Bold("Stats")}\n" +
-                $"- Servers: {Context.Client.Guilds.Count.ToString()}\n"
+                $"- Servers: {Context.Client.Guilds.Count.ToString()}\n" +
+                $"- Bot invite: {Context.Client.GetApplicationInfoAsync().GetAwaiter().GetResult().Flags}\n"
             );
 
             if (Context.Guild != null)
             {
-                var channelscount = Context.Guild.Channels.Count;
-                var userscount = Context.Guild.Users.Count;
-                message += $"- Channels: {channelscount.ToString()} (in {Context.Guild.Name}) \n" +
-                           $"- Users: {userscount.ToString()} (in {Context.Guild.Name}) \n";
+                message += $"- Channels: {Context.Guild.Channels.Count} (in {Context.Guild.Name})\n" +
+                           $"- Users: {Context.Guild.Users.Count} (in {Context.Guild.Name})\n";
             }
-            message += $"- Channels: {channelCount.ToString()} (total) \n" +
-                       $"- Users: {userCount.ToString()} (total) \n";
+            message += $"- Channels: {Context.Client.Guilds.Sum(guild => guild.Channels.Count)} (total)\n" +
+                       $"- Users: {Context.Client.Guilds.Sum(guild => guild.Users.Count)} (total)\n";
             await waitMessage.ModifyAsync(u => u.Content = message);
         }
 

@@ -4,6 +4,7 @@ using Discord;
 using Discord.Commands;
 using GladosV3.Helpers;
 using Microsoft.Extensions.Configuration;
+using System.Linq;
 
 namespace GladosV3.Attributes
 {
@@ -17,13 +18,9 @@ namespace GladosV3.Attributes
             {
                 case TokenType.Bot:
                     var application = await context.Client.GetApplicationInfoAsync();
-                    if (context.User.Id != application.Owner.Id && Convert.ToUInt64(config["ownerID"]) != context.User.Id)
-                        return PreconditionResult.FromError("Command can only be run by the owner of the bot");
-                    return PreconditionResult.FromSuccess();
+                    return (context.User.Id != application.Owner.Id && ulong.Parse(config["ownerID"]) != context.User.Id && !IsOwner.IsCoOwner(config, context.User.Id)) ? PreconditionResult.FromError("Command can only be run by the owner of the bot") : PreconditionResult.FromSuccess(); //&& (IConfigurationRoot)config["co-owners"].ToString().Split(',').Any(t => t == context.User.Id))
                 case TokenType.User:
-                    if (context.User.Id != context.Client.CurrentUser.Id)
-                        return PreconditionResult.FromError("Command can only be run by the owner of the bot");
-                    return PreconditionResult.FromSuccess();
+                    return (context.User.Id != context.Client.CurrentUser.Id) ? PreconditionResult.FromError("Command can only be run by the owner of the bot") : PreconditionResult.FromSuccess();
                 default:
                     return PreconditionResult.FromError($"{nameof(RequireOwnerAttribute)} is not supported by this {nameof(TokenType)}.");
             }
@@ -32,6 +29,18 @@ namespace GladosV3.Attributes
 
     public class IsOwner
     {
+        public static bool IsCoOwner(IConfigurationRoot _config, ulong ID)
+        {
+            bool fail = true;
+            for (int i = 0; i < 30; i++)
+            {
+                if (_config[$"co-owners:{i}"] == null)
+                    break;
+                if (ID == ulong.Parse(_config[$"co-owners:{i}"]))
+                { fail = false; break; }
+            }
+            return !fail;
+        }
         public static async Task<bool> CheckPermission(ICommandContext context)
         {
             var config = await Tools.GetConfigAsync();
@@ -39,13 +48,9 @@ namespace GladosV3.Attributes
             {
                 case TokenType.Bot:
                     var application = await context.Client.GetApplicationInfoAsync();
-                    if (Convert.ToUInt64(config["ownerID"]) == context.User.Id || context.User.Id == application.Owner.Id)
-                        return true;
-                    return false;
+                        return (ulong.Parse(config["ownerID"]) != context.User.Id && context.User.Id != application.Owner.Id && !IsCoOwner(config, context.User.Id));
                 case TokenType.User:
-                    if (context.User.Id != context.Client.CurrentUser.Id)
-                        return false;
-                    return true;
+                        return (context.User.Id != context.Client.CurrentUser.Id);
                 default:
                     return false;
             }
@@ -56,10 +61,9 @@ namespace GladosV3.Attributes
             switch (context.Client.TokenType)
             {
                 case TokenType.Bot:
-                    var application = await context.Client.GetApplicationInfoAsync();
-                        return application.Owner.Id;
+                        return context.Client.GetApplicationInfoAsync().GetAwaiter().GetResult().Owner.Id;
                 case TokenType.User:
-                        return Convert.ToUInt64(config["ownerID"]);
+                        return ulong.Parse(config["ownerID"]);
                 default:
                     return UInt64.MaxValue;
             }

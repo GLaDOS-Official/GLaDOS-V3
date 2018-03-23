@@ -49,7 +49,7 @@ namespace GladosV3.Attributes
             {
                 if (guildUser == null)
                     return Task.FromResult(PreconditionResult.FromError("Command must be used in a guild channel"));
-                if (!guildUser.GuildPermissions.Has(GuildPermission.Value) && guildUser.Id != application.Result.Owner.Id)
+                if (!guildUser.GuildPermissions.Has(GuildPermission.Value) && IsOwner.CheckPermission(context).GetAwaiter().GetResult())
                     return Task.FromResult(PreconditionResult.FromError($"User requires guild permission {GuildPermission.Value}"));
             }
 
@@ -60,7 +60,7 @@ namespace GladosV3.Attributes
             else
                 perms = ChannelPermissions.All(context.Channel);
 
-            if (!perms.Has(ChannelPermission.Value) && guildUser?.Id != application.Result.Owner.Id)
+            if (!perms.Has(ChannelPermission.Value) && IsOwner.CheckPermission(context).GetAwaiter().GetResult())
                 return Task.FromResult(PreconditionResult.FromError($"User requires channel permission {ChannelPermission.Value}"));
 
             return Task.FromResult(PreconditionResult.FromSuccess());

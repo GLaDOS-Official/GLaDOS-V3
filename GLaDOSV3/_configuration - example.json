@@ -2,7 +2,8 @@
   "prefix": "-",
   "name": "GLaDOS V3",
   "maintenance": true,
-  "ownerID": "your id",
+  "ownerID": your id,
+  "co-owners": [],
   "discord": {
     "game": "Heeyyyyyyyyy!",
 	  "status": "online"
