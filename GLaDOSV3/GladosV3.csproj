@@ -43,16 +43,6 @@
     <None Update="database.db">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="DateCompiled.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>DateCompiled.cs</LastGenOutput>
-    </None>
-    <None Update="opus.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="youtube-dl.exe">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="_configuration.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

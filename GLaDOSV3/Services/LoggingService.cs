@@ -24,13 +24,16 @@ namespace GladosV3.Services
         // DiscordSocketClient and CommandService are injected automatically from the IServiceProvider
         public LoggingService(DiscordSocketClient discord, CommandService commands, bool init = true)
         {
-            if (!Directory.Exists(_logDirectory))     // Create the log directory if it doesn't exist
-                Directory.CreateDirectory(_logDirectory);
             _discord = discord;
             _commands = commands;
             if (!init) return;
             _discord.Log += OnLogAsync;
             _commands.Log += OnLogAsync;
+        }
+        public static void Begin()
+        {
+            if (!Directory.Exists(_logDirectory))     // Create the log directory if it doesn't exist
+                Directory.CreateDirectory(_logDirectory);
         }
 
         private static Task OnLogAsync(LogMessage msg)

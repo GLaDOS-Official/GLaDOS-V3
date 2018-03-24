@@ -28,12 +28,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="libsodium.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="Dependencies\" />
   </ItemGroup>
 
@@ -41,6 +35,4 @@
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.0\Modules\"></Copy>
     <Copy SourceFiles="Dependencies\MathParser.org-mXparser.Core11.dll" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.0\Dependencies\"></Copy>
   </Target>
-
-
 </Project>
