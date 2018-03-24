@@ -61,6 +61,7 @@ namespace GladosV3.Module.NomadCI
             try
             {
                 string build = "";
+                string corepath = "";
                 Process process = Process.Start(new ProcessStartInfo("cmd.exe", $"/c \"{BatchFilePath}\"")
                 {
                     CreateNoWindow = false,
@@ -84,7 +85,9 @@ namespace GladosV3.Module.NomadCI
                         foreach (var line in array)
                         {
                             if (line.StartsWith("OUTDIR: "))
-                            { build = line.Remove(0, 8); break; }
+                            { build = line.Remove(0, 8); }
+                            else if (line.StartsWith("COREPATH: "))
+                            { corepath = line.Remove(0, 10); }
                         }
                     }
                     sw.BaseStream.Flush();
@@ -95,7 +98,7 @@ namespace GladosV3.Module.NomadCI
                 CreateObjects(build, objects);
                 Compress(new DirectoryInfo(build), objects);
                 BuildJson(build, objects);
-                //IncrementVersion(build);
+                IncrementVersion(corepath);
             }
             catch (Exception ex)
             {
@@ -167,7 +170,7 @@ namespace GladosV3.Module.NomadCI
         }
         internal void CreateObjects(string output, Dictionary<string, NomadJsonObject> objects)
         {
-            foreach (var pattern in new string[] { "*.exe", "*.dll" })
+            foreach (string pattern in new string[] { "*.exe", "*.dll" })
                 foreach (var file in Directory.GetFiles(output, pattern)) // , "*.exe|*.dll"
                 {
                     byte[] hash;
