@@ -25,7 +25,7 @@ namespace GladosV3
             Tools.ReleaseMemory();
             LoggingService.Begin();
             if(!IsValidJson())
-            { await Task.Delay(5000); return; }
+            { await Task.Delay(10000); return; }
             _config = await Tools.GetConfigAsync();              // Build the configuration file
 
             var services = new ServiceCollection()      // Begin building the service provider
@@ -76,8 +76,8 @@ namespace GladosV3
             {
                 Newtonsoft.Json.Linq.JContainer.Parse(File.ReadAllTextAsync(path).GetAwaiter().GetResult());
             }
-            catch(Newtonsoft.Json.JsonReaderException)
-            { LoggingService.Log(LogSeverity.Error, "GLaDOS V3", "_configuration.json file is not a valid json file!").GetAwaiter(); return false; }
+            catch(Newtonsoft.Json.JsonReaderException e)
+            { LoggingService.Log(LogSeverity.Error, "GLaDOS V3", $"_configuration.json file is not a valid json file! {e.Message}").GetAwaiter(); return false; }
             return true;
         }
     }
