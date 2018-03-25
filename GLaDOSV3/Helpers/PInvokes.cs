@@ -8,7 +8,7 @@ using System.Text;
 
 namespace GladosV3.Helpers
 {
-    class PInvokes // Original source found: https://pastebin.com/7qtiPv3A
+    public class PInvokes // Original source found: https://pastebin.com/7qtiPv3A
     {
         /// <summary>
         /// Map a native function to a delegate
@@ -46,7 +46,7 @@ namespace GladosV3.Helpers
             return Marshal.GetDelegateForFunctionPointer(ptr, typeof(T));
         }
 
-        [DllImport("kernel32.dll", EntryPoint = "LoadLibraryA", SetLastError =  true)]
+        [DllImport("kernel32.dll", EntryPoint = "LoadLibrary", SetLastError =  true)]
         private static extern IntPtr GetModulePtr(string libraryFile);
 
         [DllImport("kernel32.dll", EntryPoint = "GetProcAddress",SetLastError = true)]

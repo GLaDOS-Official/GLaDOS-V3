@@ -13,6 +13,7 @@ using Discord.WebSocket;
 using GladosV3.Services;
 using Discord;
 using System.IO.Compression;
+using System.Runtime.InteropServices;
 
 namespace GladosV3.Module.NomadCI
 {
@@ -25,6 +26,12 @@ namespace GladosV3.Module.NomadCI
         internal string BatchFilePath;
         internal static Discord.WebSocket.DiscordSocketClient client;
         public static Discord.WebSocket.SocketTextChannel textChannel;
+        #region IncremenentVersion pinvoke stuff
+        [DllImport("VersionIncrementer.dll", SetLastError = true, CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I4)]
+        public static extern int VersionIncrement(string filename, string fileversion);
+        #endregion
+
         public BuilderService()
         {
             if (!File.Exists(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "..\\Binaries\\StampVer.exe"))) { LoggingService.Log(LogSeverity.Error, "NomadCI", "StampVer.exe not found!"); return; }
@@ -61,7 +68,6 @@ namespace GladosV3.Module.NomadCI
             try
             {
                 string build = "";
-                string corepath = "";
                 Process process = Process.Start(new ProcessStartInfo("cmd.exe", $"/c \"{BatchFilePath}\"")
                 {
                     CreateNoWindow = false,
@@ -85,9 +91,7 @@ namespace GladosV3.Module.NomadCI
                         foreach (var line in array)
                         {
                             if (line.StartsWith("OUTDIR: "))
-                            { build = line.Remove(0, 8); }
-                            else if (line.StartsWith("COREPATH: "))
-                            { corepath = line.Remove(0, 10); }
+                            { build = line.Remove(0, 8); break; }
                         }
                     }
                     sw.BaseStream.Flush();
@@ -98,7 +102,7 @@ namespace GladosV3.Module.NomadCI
                 CreateObjects(build, objects);
                 Compress(new DirectoryInfo(build), objects);
                 BuildJson(build, objects);
-                IncrementVersion(corepath);
+                IncrementVersionTask(build);
             }
             catch (Exception ex)
             {
@@ -116,11 +120,8 @@ namespace GladosV3.Module.NomadCI
             textChannel.SendMessageAsync($"Done! Should be compiled! Build command has been enabled. Also, log is available... you know where :^) {TryingToBeFunnyHereLol}").GetAwaiter().GetResult();
             return Task.CompletedTask;
         }
-        internal void IncrementVersion(string output)
+        internal void IncrementVersionTask(string output)
         {
-            if (!File.Exists(output))
-                throw new IOException("Output file not found! Please check the logs.");
-            FileVersionInfo fversion = FileVersionInfo.GetVersionInfo(output);
             List<int> array = config["nomad"]["nextVersion"].Value<string>().Split('.').ToList().ConvertAll(int.Parse);
             int bPart = array[3]; // build number
             int pPart = array[2]; // revision number
@@ -136,12 +137,13 @@ namespace GladosV3.Module.NomadCI
             string version = $"{majorPart}.{minorPart}.{pPart}.{bPart}";
             config["nomad"]["nextVersion"] = version;
             File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "_configuration.json"), config.ToString());
-            Process process = Process.Start(new ProcessStartInfo(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "..\\Binaries\\StampVer.exe"), $"-k -f\"{version}\" -p\"{version}\" {output}")
-            {
-                CreateNoWindow = true,
-                UseShellExecute = false,
-                WindowStyle = ProcessWindowStyle.Hidden,
-            });
+            foreach (var pattern in new string[] { "*.exe", "*.dll" })
+                foreach (var file in Directory.GetFiles(output, pattern)) // , "*.exe|*.dll"
+                {
+                    var response = VersionIncrement(file, version);
+                    if (response != 0)
+                        throw new Exception($"Something failed during versionincrement! Response code: {response}");
+                }
         }
         internal void BuildJson(string output, Dictionary<string, NomadJsonObject> objects)
         {
