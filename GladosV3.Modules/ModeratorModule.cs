@@ -31,8 +31,11 @@ namespace GladosV3.Module.Default
                 var enumerable = await Context.Channel.GetMessagesAsync(limit).Flatten().ConfigureAwait(false);
                 try
                 {
-                    await Context.Channel.DeleteMessagesAsync(enumerable).ConfigureAwait(false);
-                    await ReplyAsync($"Purged {enumerable.Count().ToString()} messages!");
+                    var enumerable1 = enumerable as IMessage[] ?? enumerable.ToArray();
+                    var messages = enumerable1.Where((something) => (something.Timestamp - DateTimeOffset.UtcNow).TotalDays > -13).OrderByDescending(msg => msg.Timestamp);
+                    await Context.Channel.DeleteMessagesAsync(messages);
+                    var warning = enumerable1.Count() - messages.Count() != 0 ? "Some messages failed to delete! This is not an error." : null;
+                    await ReplyAsync($"Purged {messages.Count().ToString()} messages! {warning}");
                 }
                 catch (ArgumentOutOfRangeException)
                 {
@@ -54,7 +57,7 @@ namespace GladosV3.Module.Default
             else if (count > 100)
                 await ReplyAsync("**Error: **I can only clear 100 Messages at a time!");
             await Context.Message.DeleteAsync().ConfigureAwait(false);
-            var newlist = (await Context.Channel.GetMessagesAsync().Flatten().ConfigureAwait(false)).Where(x => x.Author == UserMention).Take(count).ToArray();
+            var newlist = (await Context.Channel.GetMessagesAsync().Flatten().ConfigureAwait(false)).Where(x => x.Author == UserMention && (x.Timestamp - DateTimeOffset.UtcNow).TotalDays > -13).Take(count).ToArray();
             try
             {
                 await Context.Channel.DeleteMessagesAsync(newlist).ConfigureAwait(false);
