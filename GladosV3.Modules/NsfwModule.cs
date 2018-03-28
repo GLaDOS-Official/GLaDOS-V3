@@ -45,7 +45,7 @@ namespace GladosV3.Module.Default
             }
 
         }
-        string[] blacklisted_tags = { "GORE","loli","shota" };
+        string[] blacklisted_tags = { "GORE","LOLI","SHOTA" };
         [Command("e621")]
         [Remarks("e621 [tags]")]
         [Summary("Find images on e621 by the given tags.")]
