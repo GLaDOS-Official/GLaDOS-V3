@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -41,7 +39,7 @@ namespace GladosV3.Services
                         .SendMessageAsync(text);
                 else
                 {
-                    await ((IUser)guild.Owner)
+                    await guild.Owner
                         .SendMessageAsync("I tried to send a welcome message to a channel, but it now longer exists. Please set this up again.");
                     await Disable(guild);
                 }
@@ -60,7 +58,7 @@ namespace GladosV3.Services
                         .SendMessageAsync(text);
                 else
                 {
-                    await ((IUser)guild.Owner)
+                    await guild.Owner
                         .SendMessageAsync("I tried to send a farewell message to a channel, but it now longer exists. Please set this up again.");
                     await Disable(guild);
                 }

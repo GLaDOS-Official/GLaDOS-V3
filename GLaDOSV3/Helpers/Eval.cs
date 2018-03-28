@@ -1,19 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.Loader;
-using System.Text;
 using System.Threading.Tasks;
-using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Scripting;
-using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 
 namespace GladosV3.Helpers
@@ -22,18 +14,18 @@ namespace GladosV3.Helpers
    {
         public class Globals
         {
-            public SocketUserMessage Message => this.Context.Message;
-            public ISocketMessageChannel Channel => this.Context.Message.Channel;
-            public SocketGuild Guild => this.Context.Guild;
-            public SocketUser User => this.Context.Message.Author;
+            public SocketUserMessage Message => Context.Message;
+            public ISocketMessageChannel Channel => Context.Message.Channel;
+            public SocketGuild Guild => Context.Guild;
+            public SocketUser User => Context.Message.Author;
             public JObject Config => Tools.GetConfigAsync(1).GetAwaiter().GetResult();
-            public DiscordSocketClient Client => this.Context.Client;
+            public DiscordSocketClient Client => Context.Client;
             public Tools Tools => new Tools();
             public SocketCommandContext Context { get; private set; }
 
             public Globals(SocketCommandContext ctx)
             {
-                this.Context = ctx;
+                Context = ctx;
             }
         }
         public static async Task<string> EvalTask(SocketCommandContext ctx, string cScode)
@@ -48,18 +40,18 @@ namespace GladosV3.Helpers
                 ScriptOptions options = ScriptOptions.Default.WithReferences(AppDomain.CurrentDomain.GetAssemblies().Where(asm => !asm.IsDynamic && !string.IsNullOrWhiteSpace(asm.Location))).WithImports(imports).WithEmitDebugInformation(true);
                 Script result = CSharpScript.Create(cScode, options, typeof(Globals));
                 var returnVal = result.RunAsync(new Globals(ctx)).GetAwaiter().GetResult().ReturnValue?.ToString();
-                if (!string.IsNullOrWhiteSpace(returnVal) && returnVal?.ToString().Contains(Tools.GetConfigAsync(0).GetAwaiter().GetResult()["tokens:discord"]))
+                if (!string.IsNullOrWhiteSpace(returnVal) && returnVal?.Contains(Tools.GetConfigAsync(0).GetAwaiter().GetResult()["tokens:discord"]))
                    returnVal = returnVal?.Replace(Tools.GetConfigAsync(0).GetAwaiter().GetResult()["tokens:discord"].ToString(),
                         "Nah, no token leak 4 u.");
                 return !string.IsNullOrWhiteSpace(returnVal) ? await Task.FromResult( $"**Executed!**{Environment.NewLine}Output: ```{string.Join(Environment.NewLine, returnVal)}```").ConfigureAwait(true) : await Task.FromResult("**Executed!** *No output.*");
             }
             catch (CompilationErrorException e)
             {
-                return await Task.FromResult<string>($"**Compiler error**{Environment.NewLine}Output: ```{string.Join(Environment.NewLine, e.Diagnostics)}```");
+                return await Task.FromResult($"**Compiler error**{Environment.NewLine}Output: ```{string.Join(Environment.NewLine, e.Diagnostics)}```");
             }
             catch (Exception e)
             {
-                return await Task.FromResult<string>($"**Exception!**{e.Message}\n{e.StackTrace}");
+                return await Task.FromResult($"**Exception!**{e.Message}\n{e.StackTrace}");
             }
         }
    }

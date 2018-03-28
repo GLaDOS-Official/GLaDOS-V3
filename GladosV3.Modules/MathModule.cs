@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Threading.Tasks;
 using Discord.Commands;
-using GladosV3.Helpers;
+using GladosV3.Attributes;
 using org.mariuszgromada.math.mxparser;
 
 namespace GladosV3.Module.Default
@@ -14,7 +14,7 @@ namespace GladosV3.Module.Default
         [Command("solve")]
         [Remarks("solve <math>")]
         [Summary("Solves the math problem!")]
-        [Attributes.Timeout(10, 5, Attributes.Measure.Minutes)]
+        [Timeout(10, 5, Measure.Minutes)]
         public async Task Solve([Remainder] string math = "")
         {
             try

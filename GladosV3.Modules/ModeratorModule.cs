@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using GladosV3.Attributes;
 
 namespace GladosV3.Module.Default
 {
@@ -16,7 +17,7 @@ namespace GladosV3.Module.Default
         [Summary("Removes specified amount of messages")]
         [Attributes.RequireUserPermission(GuildPermission.ManageMessages)]
         [RequireBotPermission(GuildPermission.ManageMessages)]
-        [Attributes.RequireMFA]
+        [RequireMFA]
         public async Task Purge(int count = 100)
         {
             if (count < 2)
@@ -36,7 +37,6 @@ namespace GladosV3.Module.Default
                 catch (ArgumentOutOfRangeException)
                 {
                     await ReplyAsync("Some messages failed to delete! This is not a error and can not be fixed!");
-                    return;
                 }
             }
         }
@@ -46,7 +46,7 @@ namespace GladosV3.Module.Default
         [Summary("Removes most recent messages from a user")]
         [Attributes.RequireUserPermission(GuildPermission.ManageMessages)]
         [RequireBotPermission(GuildPermission.ManageMessages)]
-        [Attributes.RequireMFA]
+        [RequireMFA]
         public async Task Prune(IUser UserMention, int count = 100)
         {
             if (count < 2)
@@ -72,7 +72,7 @@ namespace GladosV3.Module.Default
         [Summary("Kicks the specified user.")]
         [Attributes.RequireUserPermission(GuildPermission.KickMembers)]
         [RequireBotPermission(GuildPermission.KickMembers)]
-        [Attributes.RequireMFA]
+        [RequireMFA]
         public async Task Kick(SocketGuildUser UserMention, [Remainder] string reason = "Unspecified.")
         {
             if (UserMention.Id == Context.User.Id)
@@ -80,9 +80,11 @@ namespace GladosV3.Module.Default
             SocketGuildUser moderator = Context.User as SocketGuildUser;
             if (UserMention.Hierarchy > moderator?.Hierarchy)
             { await ReplyAsync($"Sorry, you can't kick {UserMention.Mention} as he's above you."); return; }
-            else if (UserMention?.Hierarchy > Context.Guild.CurrentUser.Hierarchy)
+
+            if (UserMention?.Hierarchy > Context.Guild.CurrentUser.Hierarchy)
             { await ReplyAsync($"Sorry, I can't kick {UserMention.Mention} as he's above me."); return; }
-            else if (UserMention?.Id == Context.Client.CurrentUser.Id)
+
+            if (UserMention?.Id == Context.Client.CurrentUser.Id)
             { await ReplyAsync($"Ok, bye!"); await Context.Guild.LeaveAsync(); return; }
             try
             {
@@ -100,7 +102,7 @@ namespace GladosV3.Module.Default
         [Summary("Bans the specified user.")]
         [Attributes.RequireUserPermission(GuildPermission.BanMembers)]
         [RequireBotPermission(GuildPermission.BanMembers)]
-        [Attributes.RequireMFA]
+        [RequireMFA]
         public async Task Ban(SocketGuildUser UserMention, [Remainder] params string[] reasonArray)
         {
             if (UserMention.Id == Context.User.Id)
@@ -108,9 +110,11 @@ namespace GladosV3.Module.Default
             SocketGuildUser moderator = Context.User as SocketGuildUser;
             if(moderator?.Hierarchy > UserMention.Hierarchy)
             { await ReplyAsync($"Sorry, you can't ban {UserMention.Mention} as he's above you."); return;}
-            else if(UserMention?.Hierarchy > Context.Guild.CurrentUser.Hierarchy)
+
+            if(UserMention?.Hierarchy > Context.Guild.CurrentUser.Hierarchy)
             { await ReplyAsync($"Sorry, I can't ban {UserMention.Mention} as he's above me."); return; }
-            else if(UserMention?.Id == Context.Client.CurrentUser.Id)
+
+            if(UserMention?.Id == Context.Client.CurrentUser.Id)
             { await ReplyAsync($"Ok, bye!"); await Context.Guild.LeaveAsync();  return; }
             try
             {

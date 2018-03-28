@@ -5,7 +5,7 @@ using Discord.Commands;
 
 namespace GladosV3.Attributes
 {
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
     public class RequireUserPermissionAttribute : PreconditionAttribute
     {
         public GuildPermission? GuildPermission { get; }

@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Data;
-using System.IO;
+﻿using System.Data;
 using System.Data.SQLite;
+using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 
 namespace GladosV3.Helpers
 {
@@ -95,7 +91,7 @@ namespace GladosV3.Helpers
             string sql = $"INSERT INTO {tablename} ({values}) VALUES ({result.Remove(result.Length - 1)}) ";
             if (filter != "")
                 sql += $"WHERE {filter}";
-            using (SQLiteCommand command = new SQLiteCommand(sql, SqLite.Connection))
+            using (SQLiteCommand command = new SQLiteCommand(sql, Connection))
             {
                 for (int i = 1; i <= items.Length; i++)
                     command.Parameters.AddWithValue($"@val{i}", items[i - 1]);
@@ -111,7 +107,7 @@ namespace GladosV3.Helpers
             if (string.IsNullOrWhiteSpace(filter))
                 return Task.FromException(new SQLiteException("Filter mustn't be empty!"));
             string sql = $"DELETE FROM {tablename} WHERE {filter}";
-            using (SQLiteCommand command = new SQLiteCommand(sql, SqLite.Connection))
+            using (SQLiteCommand command = new SQLiteCommand(sql, Connection))
                 command.ExecuteNonQuery();
             return Task.CompletedTask;
         }

@@ -1,21 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
+using GladosV3.Attributes;
 using GladosV3.Helpers;
-using GladosV3.Services;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 
 namespace GladosV3.Modules
@@ -37,7 +28,7 @@ namespace GladosV3.Modules
 
 
         [Group("Bot")]
-        [Attributes.CommandHidden]
+        [CommandHidden]
         [Attributes.RequireOwner]
         public class Bot : ModuleBase<SocketCommandContext>
         {
@@ -82,7 +73,7 @@ namespace GladosV3.Modules
                 clasO["name"] = username;
                 await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json"), clasO.ToString());
                 await ReplyAsync($"Set bot's username to {clasO["name"].Value<string>()}.");
-                await Context.Client.CurrentUser.ModifyAsync((properties) => { properties.Username = clasO["name"].Value<string>(); });
+                await Context.Client.CurrentUser.ModifyAsync(properties => { properties.Username = clasO["name"].Value<string>(); });
             }
             [Command("eval")]
             [Remarks("bot eval <code>")]

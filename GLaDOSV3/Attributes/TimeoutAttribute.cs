@@ -6,7 +6,7 @@ using Discord.Commands;
 
 namespace GladosV3.Attributes
 {
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = false)]
     public class TimeoutAttribute : PreconditionAttribute
     {
         private readonly uint _invokeLimit;
@@ -90,8 +90,8 @@ namespace GladosV3.Attributes
                 _tracker[key] = timeout;
                 return Task.FromResult(PreconditionResult.FromSuccess());
             }
-            else
-                return Task.FromResult(PreconditionResult.FromError("You're currently in timeout."));
+
+            return Task.FromResult(PreconditionResult.FromError("You're currently in timeout."));
         }
 
         private class CommandTimeout

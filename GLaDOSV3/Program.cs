@@ -1,16 +1,16 @@
-﻿using Discord;
+﻿using System;
+using System.IO;
+using System.Threading.Tasks;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using GladosV3.Helpers;
+using GladosV3.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using GladosV3.Attributes;
-using GladosV3.Services;
-using GladosV3.Helpers;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
 namespace GladosV3
 {
     public class Program
@@ -45,9 +45,6 @@ namespace GladosV3
                 .AddSingleton<CommandHandler>()     // Add remaining services to the provider
                 .AddSingleton<LoggingService>()     // Bad idea not logging commands 
                 .AddSingleton<StartupService>()     // Do commands on startup
-                .AddSingleton<Random>()             // You get better random with a single instance than by creating a new one every time you need it
-                .AddSingleton<SystemMessage>()      // System message, simple
-                .AddSingleton<IsOwner>()            // I don't like the way Discord.NET handles owner attribute
                 .AddSingleton<OnLogonService>()     // Execute commands after websocket connects
                 .AddSingleton<ClientEvents>()       // Discord client events
                 .AddSingleton<Tools>()
@@ -64,19 +61,18 @@ namespace GladosV3
             provider.GetRequiredService<OnLogonService>();
             await provider.GetRequiredService<StartupService>().StartAsync();
             provider.GetRequiredService<CommandHandler>();
-            provider.GetRequiredService<SystemMessage>().KeyPress();
             await Task.Delay(-1);     // Prevent the application from closing
         }
         internal bool IsValidJson()
         {
             var path = Path.Combine(AppContext.BaseDirectory, "_configuration.json");
             if (!File.Exists(path))
-            { LoggingService.Log(LogSeverity.Error, "GLaDOS V3", "_configuration.json file does not exist!").GetAwaiter(); return false; ; }
+            { LoggingService.Log(LogSeverity.Error, "GLaDOS V3", "_configuration.json file does not exist!").GetAwaiter(); return false; }
             try
             {
-                Newtonsoft.Json.Linq.JContainer.Parse(File.ReadAllTextAsync(path).GetAwaiter().GetResult());
+                JToken.Parse(File.ReadAllTextAsync(path).GetAwaiter().GetResult());
             }
-            catch(Newtonsoft.Json.JsonReaderException e)
+            catch(JsonReaderException e)
             { LoggingService.Log(LogSeverity.Error, "GLaDOS V3", $"_configuration.json file is not a valid json file! {e.Message}").GetAwaiter(); return false; }
             return true;
         }

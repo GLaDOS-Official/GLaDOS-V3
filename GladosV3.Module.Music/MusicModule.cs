@@ -1,9 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using GladosV3.Helpers;
-using GladosV3.Services;
 
 namespace GladosV3.Module.Music
 {
@@ -30,8 +27,7 @@ namespace GladosV3.Module.Music
         {
             if (!_service.fail)
                 return _service.JoinAudioAsync(Context.Guild, ((IVoiceState)Context.User).VoiceChannel);
-            else
-            { Context.Channel.SendMessageAsync("There was an error... Check the logs!").GetAwaiter(); return Task.CompletedTask; }
+            Context.Channel.SendMessageAsync("There was an error... Check the logs!").GetAwaiter(); return Task.CompletedTask;
         }
 
         // Remember to add preconditions to your commands,
@@ -45,8 +41,7 @@ namespace GladosV3.Module.Music
         {
             if (!_service.fail)
                 return _service.LeaveAudioAsync(Context.Guild);
-            else
-            { Context.Channel.SendMessageAsync("There was an error... Check the logs!").GetAwaiter(); return Task.CompletedTask; }
+            Context.Channel.SendMessageAsync("There was an error... Check the logs!").GetAwaiter(); return Task.CompletedTask;
         }
 
         [Command("play", RunMode = RunMode.Async)]
@@ -57,7 +52,6 @@ namespace GladosV3.Module.Music
         {
             if (!_service.fail)
                 return _service.SendAudioAsync(song,Context);
-            else
             { Context.Channel.SendMessageAsync("There was an error... Check the logs!").GetAwaiter(); return Task.CompletedTask; }
         }
         [Command("queue", RunMode = RunMode.Async)]

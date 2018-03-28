@@ -1,14 +1,13 @@
-﻿using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
-using Microsoft.Extensions.Configuration;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
+using Discord;
+using Discord.Commands;
+using Discord.WebSocket;
+using Microsoft.Extensions.Configuration;
 
 namespace GladosV3.Services
 {
@@ -49,16 +48,13 @@ namespace GladosV3.Services
                         ConstructorInfo asmConstructor = asmType.GetConstructor(Type.EmptyTypes);  // get extension's constructor
                         object magicClassObject = asmConstructor.Invoke(new object[] { }); // create object of class
                         var memberInfo = asmType.GetMethod("get_Services", BindingFlags.Instance | BindingFlags.Public); //get services method
-                        if (memberInfo != null)  // does the extension have services?
-                        {
-                            var item = (System.Type[])((MethodInfo)memberInfo).Invoke(magicClassObject, new object[] { });
-                            if (item != null && item.Length > 0)
-                                types.AddRange(item); // invoke services method
-                        }
-                        else
-                            continue;
+                        if (memberInfo == null) continue;
+                        var item = (Type[])memberInfo.Invoke(magicClassObject, new object[] { });
+                        if (item != null && item.Length > 0)
+                            types.AddRange(item); // invoke services method
                     }
-                    catch (Exception) { continue; }
+                    catch (Exception) {
+                    }
                 }
             }
             return Task.FromResult(types.ToArray());
@@ -67,7 +63,7 @@ namespace GladosV3.Services
 
         private Assembly ValidFile(string file)
         {
-            if (new System.IO.FileInfo(file).Length == 0) return null; // file is empty!
+            if (new FileInfo(file).Length == 0) return null; // file is empty!
             Assembly asm = null;
             try
             {
@@ -166,11 +162,11 @@ namespace GladosV3.Services
                 object magicClassObject = asmConstructor.Invoke(new object[] { }); // create object of class
                 var memberInfo = asmType.GetMethod("PreLoad", BindingFlags.Instance | BindingFlags.Public); //get PreLoad method
                 if (memberInfo != null)  // does the extension have PreLoad?
-                    ((MethodInfo)memberInfo).Invoke(magicClassObject, new object[] { _discord, _commands, _config, _provider });// invoke PreLoad method
+                    memberInfo.Invoke(magicClassObject, new object[] { _discord, _commands, _config, _provider });// invoke PreLoad method
                 _commands.AddModulesAsync(asm).GetAwaiter(); // add the extension's commands
                 memberInfo = asmType.GetMethod("PostLoad", BindingFlags.Instance | BindingFlags.Public); //get PostLoad method
                 if (memberInfo != null)  // does the extension have PostLoad?
-                    ((MethodInfo)memberInfo).Invoke(magicClassObject, new object[] { _discord, _commands, _config, _provider });// invoke PostLoad method
+                    memberInfo.Invoke(magicClassObject, new object[] { _discord, _commands, _config, _provider });// invoke PostLoad method
             }
             catch (Exception ex)
             { return Task.FromException(ex); }
@@ -179,7 +175,7 @@ namespace GladosV3.Services
         public object GetModuleInfo(Type type, object classO, string info)
         {
             var memberInfo = type.GetMethod(info, BindingFlags.Instance | BindingFlags.Public);
-            return ((MethodInfo)memberInfo).Invoke(classO, new object[] { });
+            return memberInfo.Invoke(classO, new object[] { });
         }
     }
 }

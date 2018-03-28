@@ -1,9 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
-using Discord;
+﻿using System.Threading.Tasks;
 using Discord.Commands;
-using GladosV3.Helpers;
-using GladosV3.Services;
+using GladosV3.Attributes;
 
 namespace GladosV3.Module.ImageGeneration
 {
@@ -18,7 +15,7 @@ namespace GladosV3.Module.ImageGeneration
         [Command("delete", RunMode = RunMode.Async)]
         [Remarks("delete")]
         [Summary("delete")]
-        [Attributes.Timeout(1, 30, Attributes.Measure.Seconds)]
+        [Timeout(1, 30, Measure.Seconds)]
         public async Task Delete([Remainder]string text)
         {
             if (!_service.fail)
@@ -29,7 +26,7 @@ namespace GladosV3.Module.ImageGeneration
         [Command("shit", RunMode = RunMode.Async)]
         [Remarks("shit")]
         [Summary("shit")]
-        [Attributes.Timeout(1,30, Attributes.Measure.Seconds)]
+        [Timeout(1,30, Measure.Seconds)]
         public async Task Shit([Remainder]string text)
         {
             if (!_service.fail)

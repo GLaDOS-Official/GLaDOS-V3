@@ -15,7 +15,7 @@ namespace GladosV3.Module.ImageGeneration
 
         public string Author() => "BlackOfWorld#8125";
 
-        public Type[] Services => new Type[] { typeof(GeneratorService) };
+        public Type[] Services => new[] { typeof(GeneratorService) };
 
         public void PreLoad(DiscordSocketClient discord, CommandService commands, IConfigurationRoot config, IServiceProvider provider)
         { }

@@ -16,7 +16,7 @@ namespace GladosV3.Module.NomadCI
 
         public string Author() => "BlackOfWorld#8125";
 
-        public Type[] Services => new Type[] { typeof(BuilderService) };
+        public Type[] Services => new[] { typeof(BuilderService) };
 
         public void PreLoad(DiscordSocketClient discord, CommandService commands, IConfigurationRoot config, IServiceProvider provider)
         {

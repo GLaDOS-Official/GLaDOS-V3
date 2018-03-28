@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using Microsoft.Extensions.Configuration;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using GladosV3.Helpers;
+using Microsoft.Extensions.Configuration;
 
 namespace GladosV3.Modules
 {
@@ -53,9 +51,9 @@ namespace GladosV3.Modules
         {
             IDMChannel dm = await Context.Message.Author.GetOrCreateDMChannelAsync();
             Random rnd = new Random();
-            EmbedBuilder builder = new EmbedBuilder()
+            EmbedBuilder builder = new EmbedBuilder
             {
-                Color = new Color(rnd.Next(256), rnd.Next(256), rnd.Next(256)),
+                Color = new Color(rnd.Next(256), rnd.Next(256), rnd.Next(256))
             };
             string prefix = _config["prefix"];;
             if (command != null)

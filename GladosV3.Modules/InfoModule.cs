@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -31,35 +34,32 @@ namespace GladosV3.Module.Default
 
                 if (size < kb)
                     return size + " Bytes";
-                else if (size < mb)
-                    return ((Double)size / kb).ToString("0.## KB");
-                else if (size < gb)
-                    return ((Double)size / mb).ToString("0.## MB");
-                else if (size < tb)
-                    return ((Double)size / gb).ToString("0.## GB");
-                else
-                    return ((Double)size / tb).ToString("0.## TB");
+                if (size < mb)
+                    return (size / kb).ToString("0.## KB");
+                if (size < gb)
+                    return (size / mb).ToString("0.## MB");
+                return size < tb ? (size / gb).ToString("0.## GB") : (size / tb).ToString("0.## TB");
             }
             float GetCpuUsage()
             {
                 var cpuCounter = new PerformanceCounter("Process", "% Processor Time", Process.GetCurrentProcess().ProcessName); //, Process.GetCurrentProcess().ProcessName,true
                 cpuCounter.NextValue();
-                System.Threading.Thread.Sleep(1000);
+                Thread.Sleep(1000);
                 return cpuCounter.NextValue();
             }
             var message = (
                 $"{Format.Bold("Info")}\n" +
                 $"- Library: Discord.Net ({DiscordConfig.APIVersion.ToString()})\n" +
                 $"- Runtime: {PlatformServices.Default.Application.RuntimeFramework.Identifier.Replace("App", String.Empty)} {PlatformServices.Default.Application.RuntimeFramework.Version} {(IntPtr.Size * 8).ToString()}-bit\n" +
-                $"- System: {System.Runtime.InteropServices.RuntimeInformation.OSDescription} {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString().ToLower()}\n" +
-                $"- Up-time: {(DateTime.Now - Process.GetCurrentProcess().StartTime).ToString(@"d'd 'hh'h 'mm'm 'ss's'")}\n" +
-                $"- Ping: {Context.Client.Latency.ToString()} ms\n" +
-                $"- Thread running: {Process.GetCurrentProcess().Threads.OfType<ProcessThread>().Count(t => t.ThreadState == ThreadState.Running).ToString()} out of {Process.GetCurrentProcess().Threads.Count.ToString()}\n" +
+                $"- System: {RuntimeInformation.OSDescription} {RuntimeInformation.ProcessArchitecture.ToString().ToLower()}\n" +
+                $"- Up-time: {(DateTime.Now - Process.GetCurrentProcess().StartTime):d\'d \'hh\'h \'mm\'m \'ss\'s\'}\n" +
+                $"- Heartbeat: {Context.Client.Latency.ToString()} ms\n" +
+                $"- Thread running: {Process.GetCurrentProcess().Threads.OfType<ProcessThread>().Count(t => t.ThreadState == System.Diagnostics.ThreadState.Running).ToString()} out of {Process.GetCurrentProcess().Threads.Count.ToString()}\n" +
                 $"- RAM usage: {ToFileSize2(Process.GetCurrentProcess().PagedMemorySize64)}\n" +
                 $"- CPU usage: {GetCpuUsage():N1}%\n" +
                 $"- Heap Size: {ToFileSize2(GC.GetTotalMemory(true))}\n" +
                 $"- Owner of the bot: <@{IsOwner.GetOwner(Context).GetAwaiter().GetResult().ToString()}>\n" +
-                $"- Version: {FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).ProductVersion}\n" +
+                $"- Version: {FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion}\n" +
                 "- Author of the bot: <@419568355771416577>\n" +
                 "- Thanks to <@194151547846787072> for being overall helpful. He's developing WD2MP, if you like WD2, you should definitely check it out!\n\n" +
 
@@ -99,11 +99,11 @@ namespace GladosV3.Module.Default
         [Summary("Gives an invite link to invite me to your own guild!")]
         public async Task InviteAsync()
         {
-            var eb = new EmbedBuilder()
+            var eb = new EmbedBuilder
             {
                 Title = $"Invite {Context.Client.CurrentUser.Username}",
                 Color = new Color(4, 97, 247),
-                Footer = new EmbedFooterBuilder()
+                Footer = new EmbedFooterBuilder
                 {
                     Text = $"Requested by {Context.User.Username}#{Context.User.Discriminator} | ID: {Context.User.Id}",
                     IconUrl = (Context.User.GetAvatarUrl())
@@ -130,20 +130,20 @@ namespace GladosV3.Module.Default
                 var userInfo = user ?? Context.User;
                 var avatarUrl = userInfo.GetAvatarUrl() ??
                                 "http://ravegames.net/ow_userfiles/themes/theme_image_22.jpg";
-                var eb = new EmbedBuilder()
+                var eb = new EmbedBuilder
                 {
                     Color = new Color(4, 97, 247),
                     ThumbnailUrl = (avatarUrl),
                     Title = $"{userInfo.Username}#{userInfo.Discriminator}",
                     Description = $"Created on {userInfo.CreatedAt.ToString().Remove(userInfo.CreatedAt.ToString().Length - 6)}. That is {(int)(DateTime.Now.ToUniversalTime().Subtract(userInfo.CreatedAt.DateTime).TotalDays)} days ago!", //{(int)(DateTime.Now.Subtract(Context.Guild.CreatedAt.DateTime).TotalDays)}
-                    Footer = new EmbedFooterBuilder()
+                    Footer = new EmbedFooterBuilder
                     {
                         Text = $"Requested by {Context.User.Username}#{Context.User.Discriminator} | ID: {Context.User.Id}",
                         IconUrl = (Context.User.GetAvatarUrl())
                     }
                 };
                 var socketUser = userInfo as SocketGuildUser;
-                eb.AddField((x) =>
+                eb.AddField(x =>
                 {
                     x.Name = "Status";
                     x.IsInline = true;
@@ -151,7 +151,7 @@ namespace GladosV3.Module.Default
                 });
                 if (userInfo.Game.HasValue)
                 {
-                    eb.AddField((x) =>
+                    eb.AddField(x =>
                     {
                         x.Name = "Game";
                         x.IsInline = true;
@@ -159,7 +159,7 @@ namespace GladosV3.Module.Default
                     });
                 }
 
-                eb.AddField((x) =>
+                eb.AddField(x =>
                 {
                     x.Name = "ID";
                     x.IsInline = true;
@@ -169,7 +169,7 @@ namespace GladosV3.Module.Default
                 {
                     if (socketUser?.Nickname != null)
                     {
-                        eb.AddField((x) =>
+                        eb.AddField(x =>
                         {
                             x.Name = "Nickname";
                             x.IsInline = true;
@@ -178,14 +178,14 @@ namespace GladosV3.Module.Default
                     }
                 }
 
-                eb.AddField((x) =>
+                eb.AddField(x =>
                 {
                     x.Name = "Discriminator";
                     x.IsInline = true;
                     x.Value = $"#{userInfo.Discriminator}";
                 });
 
-                eb.AddField((x) =>
+                eb.AddField(x =>
                 {
                     x.Name = "Avatar";
                     x.IsInline = true;
@@ -193,7 +193,7 @@ namespace GladosV3.Module.Default
                 });
                 if (Context.Guild != null)
                 {
-                    eb.AddField((x) =>
+                    eb.AddField(x =>
                     {
                         x.Name = "Joined Guild";
                         x.IsInline = true;
@@ -212,13 +212,13 @@ namespace GladosV3.Module.Default
                         if (list.Last() == x)
                             permissions = permissions.Remove(permissions.Length - 2);
                     });
-                    eb.AddField((x) =>
+                    eb.AddField(x =>
                     {
                         x.Name = "Guild Permissions";
                         x.IsInline = true;
                         x.Value = $"{(String.IsNullOrWhiteSpace(permissions) ? "*none*" : permissions)}";
                     });
-                    eb.AddField((x) =>
+                    eb.AddField(x =>
                     {
                         string roles = "";
 
@@ -260,68 +260,68 @@ namespace GladosV3.Module.Default
             try
             {
                 var avatarURL = Context.Guild.IconUrl ?? "http://ravegames.net/ow_userfiles/themes/theme_image_22.jpg";
-                var eb = new EmbedBuilder()
+                var eb = new EmbedBuilder
                 {
                     Color = new Color(4, 97, 247),
                     ThumbnailUrl = (avatarURL),
                     Title = $"{Context.Guild.Name} ({Context.Guild.Id})",
                     Description = $"Created on {Context.Guild.CreatedAt.ToString().Remove(Context.Guild.CreatedAt.ToString().Length - 6)}. That's {Math.Round(DateTime.Now.ToUniversalTime().Subtract(Context.Guild.CreatedAt.DateTime).TotalDays)} days ago!",
-                    Footer = new EmbedFooterBuilder()
+                    Footer = new EmbedFooterBuilder
                     {
                         Text = $"Requested by {Context.User.Username}#{Context.User.Discriminator} | Guild ID: {Context.Guild.Id}",
                         IconUrl = (Context.User.GetAvatarUrl())
                     }
                 };
-                eb.AddField((x) =>
+                eb.AddField(x =>
                 {
                     x.Name = "Owner";
                     x.IsInline = true;
                     x.Value = Context.Guild.GetUser(Context.Guild.OwnerId).Username;
                 });
 
-                eb.AddField((x) =>
+                eb.AddField(x =>
                 {
                     x.Name = "Members";
                     x.IsInline = true;
-                    x.Value = $"{(((SocketGuild)Context.Guild).Users.Count(u => u.Status != UserStatus.Invisible && u.Status != UserStatus.Offline)).ToString()} / {(Context.Guild).MemberCount}";
+                    x.Value = $"{(Context.Guild.Users.Count(u => u.Status != UserStatus.Invisible && u.Status != UserStatus.Offline)).ToString()} / {(Context.Guild).MemberCount}";
                 });
 
-                eb.AddField((x) =>
+                eb.AddField(x =>
                 {
                     x.Name = "Region";
                     x.IsInline = true;
                     x.Value = Context.Guild.VoiceRegionId.ToUpper();
                 });
 
-                eb.AddField((x) =>
+                eb.AddField(x =>
                 {
                     x.Name = "Roles";
                     x.IsInline = true;
                     x.Value = "" + Context.Guild.Roles.Count;
                 });
 
-                eb.AddField((x) =>
+                eb.AddField(x =>
                 {
                     x.Name = "Channels";
                     x.IsInline = true;
                     x.Value = $"{Context.Guild.TextChannels.Count} text, {Context.Guild.VoiceChannels.Count} voice";
                 });
 
-                eb.AddField((x) =>
+                eb.AddField(x =>
                 {
                     x.Name = "AFK Channel";
                     x.IsInline = true;
-                    x.Value = $"{(Context.Guild.AFKChannel == null ? $"No AFK Channel" : $"{Context.Guild.AFKChannel.Name}\n*in {(int)(Context.Guild.AFKTimeout / 60)} Min*")}";
+                    x.Value = $"{(Context.Guild.AFKChannel == null ? $"No AFK Channel" : $"{Context.Guild.AFKChannel.Name}\n*in {Context.Guild.AFKTimeout / 60} Min*")}";
                 });
 
-                eb.AddField((x) =>
+                eb.AddField(x =>
                 {
                     x.Name = "Total Emojis";
                     x.IsInline = true;
                     x.Value = $"{(Context.Guild.Emotes.Count == 0 ? "Anti-emoji" : Context.Guild.Emotes.Count.ToString())}";
                 });
 
-                eb.AddField((x) =>
+                eb.AddField(x =>
                 {
                     x.Name = "Avatar Url";
                     x.IsInline = true;
@@ -329,7 +329,7 @@ namespace GladosV3.Module.Default
                 });
                 if (Context.Guild.Emotes.Count > 0)
                 {
-                    eb.AddField((x) =>
+                    eb.AddField(x =>
                     {
                         x.Name = "Emojis";
                         x.IsInline = false;

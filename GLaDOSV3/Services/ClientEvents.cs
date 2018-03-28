@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.SQLite;
-using System.Text;
-using System.Threading.Tasks;
-using Discord.Commands;
+﻿using System.Threading.Tasks;
 using Discord.WebSocket;
 using GladosV3.Helpers;
-using Microsoft.Extensions.Configuration;
 
 namespace GladosV3.Services
 {

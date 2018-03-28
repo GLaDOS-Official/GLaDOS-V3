@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord.Commands;
+using GladosV3.Attributes;
 using Newtonsoft.Json.Linq;
 
 namespace GladosV3.Module.Default
@@ -30,14 +31,11 @@ namespace GladosV3.Module.Default
         [Command("illegal")]
         [Remarks("illegal <thing>")]
         [Summary("Did the president banned something again? Powered by IsNowIllegal.com")]
-        [Attributes.Timeout(2, 45, Attributes.Measure.Seconds)]
+        [Timeout(2, 45, Measure.Seconds)]
         public async Task Illegal([Remainder]string word)
         {
-            if (word.Length < 1 || word.Length > 10) {
-                await ReplyAsync("Cannot be longer than 10 characters or shorter than 1 character."); return;
-            }
-            else if (new Regex("^[a-zA-Z\\s]$").IsMatch(word)) {
-                await ReplyAsync("You cannot use non-standard unicode characters."); return;
+            if (!new Regex("^[a-zA-Z\\s]{0,10}$").IsMatch(word)) {
+                await ReplyAsync("You cannot use non-standard unicode characters and it cannot be longer than 10 characters!"); return;
             }
 
             var msg = await ReplyAsync("Please wait...");
@@ -59,7 +57,7 @@ namespace GladosV3.Module.Default
         [Command("bunny")]
         [Remarks("bunny")]
         [Summary("Random bunny!")]
-        [Attributes.Timeout(3, 15, Attributes.Measure.Seconds)]
+        [Timeout(3, 15, Measure.Seconds)]
         public async Task Bunny()
         {
             using (var http = new HttpClient())
@@ -77,7 +75,7 @@ namespace GladosV3.Module.Default
         [Command("cat")]
         [Remarks("cat")]
         [Summary("Random cat!")]
-        [Attributes.Timeout(3, 15, Attributes.Measure.Seconds)]
+        [Timeout(3, 15, Measure.Seconds)]
         public async Task Cat()
         {
             using (var http = new HttpClient())
@@ -95,7 +93,7 @@ namespace GladosV3.Module.Default
         [Command("dog")]
         [Remarks("dog")]
         [Summary("Random dog!")]
-        [Attributes.Timeout(3, 15, Attributes.Measure.Seconds)]
+        [Timeout(3, 15, Measure.Seconds)]
         public async Task Dog()
         {
             using (var http = new HttpClient())

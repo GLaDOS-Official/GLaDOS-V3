@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -44,7 +42,7 @@ namespace GladosV3.Services
         private Task<bool> IsMfaEnabled()
         {
             if (_discord.CurrentUser == null) return Task.FromResult(false);
-            else if (_discord.CurrentUser.IsMfaEnabled) return Task.FromResult(true);
+            if (_discord.CurrentUser.IsMfaEnabled) return Task.FromResult(true);
             LoggingService.Log(LogSeverity.Warning, "Bot",
                 "MFA is disabled! Mod usage might not work!",
                 null).GetAwaiter();

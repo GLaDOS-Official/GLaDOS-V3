@@ -1,9 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using GladosV3.Helpers;
-using GladosV3.Services;
 
 namespace GladosV3.Module.NomadCI
 {

@@ -1,24 +1,13 @@
 ﻿using System;
-using System.IO;
+using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
-using Microsoft.CSharp;
-using System.CodeDom.Compiler;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Net;
-using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
 using Discord.Net;
+using Discord.WebSocket;
 using GladosV3.Helpers;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace GladosV3.Services
 {
@@ -62,12 +51,12 @@ namespace GladosV3.Services
             catch (HttpException ex) // Some error checking
             {
                 if (ex.DiscordCode == 401 || ex.HttpCode == HttpStatusCode.Unauthorized)
-                    Helpers.Tools.WriteColorLine(ConsoleColor.Red, "Wrong or invalid token.");
+                    Tools.WriteColorLine(ConsoleColor.Red, "Wrong or invalid token.");
                 else if (ex.DiscordCode == 502 || ex.HttpCode == HttpStatusCode.BadGateway)
-                    Helpers.Tools.WriteColorLine(ConsoleColor.Yellow, "Gateway unavailable.");
+                    Tools.WriteColorLine(ConsoleColor.Yellow, "Gateway unavailable.");
                 else if (ex.DiscordCode == 400 || ex.HttpCode == HttpStatusCode.BadRequest)
-                    Helpers.Tools.WriteColorLine(ConsoleColor.Red, "Bad request. Please wait for an update.");
-                Helpers.Tools.WriteColorLine(ConsoleColor.Red,
+                    Tools.WriteColorLine(ConsoleColor.Red, "Bad request. Please wait for an update.");
+                Tools.WriteColorLine(ConsoleColor.Red,
                     $"Discord has returned an error code: {ex.DiscordCode}{Environment.NewLine}Here's exception message: {ex.Message}");
                 Task.Delay(10000).Wait();
                 Environment.Exit(0);

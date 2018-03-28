@@ -4,17 +4,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Serialization;
-using Discord.Commands;
-using Discord.WebSocket;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace GladosV3.Helpers
@@ -72,17 +63,15 @@ namespace GladosV3.Helpers
                 json = await reader.ReadToEndAsync();
             if (string.IsNullOrWhiteSpace(json)) return await Task.FromResult("");
             var Object = JObject.Parse(json);
-            return await Task.FromResult(new WebProxy { Address = new Uri($"http://{Object["ipPort"].ToString()}") });
+            return await Task.FromResult(new WebProxy { Address = new Uri($"http://{Object["ipPort"]}") });
         }
         public static async Task<dynamic> GetConfigAsync(int type = 0) // 
         {
             if(type == 0)
             return await Task.FromResult(Builder.Build()); // default reading
-            else if (type == 1)
                 return await Task.FromResult(JObject.Parse(File
                     .ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json")).GetAwaiter()
                     .GetResult())); // alternative reading
-            return Task.CompletedTask; // this will never get called
         }
         internal static void ReleaseMemory()
         {

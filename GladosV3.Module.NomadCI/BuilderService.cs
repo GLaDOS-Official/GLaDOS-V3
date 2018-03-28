@@ -1,31 +1,30 @@
-﻿using Microsoft.Extensions.Configuration;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Timers;
-using System.Threading.Tasks;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
-using Newtonsoft.Json.Linq;
-using GladosV3.Helpers;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Threading.Tasks;
+using System.Timers;
+using Discord;
 using Discord.WebSocket;
 using GladosV3.Services;
-using Discord;
-using System.IO.Compression;
-using System.Runtime.InteropServices;
+using Newtonsoft.Json.Linq;
 
 namespace GladosV3.Module.NomadCI
 {
     public class BuilderService
     {
         internal static JObject config;
-        internal static bool IsBuilding = false;
-        internal static double TimerValue = 0;
+        internal static bool IsBuilding;
+        internal static double TimerValue;
         internal static Timer _timer;
         internal string BatchFilePath;
-        internal static Discord.WebSocket.DiscordSocketClient client;
-        public static Discord.WebSocket.SocketTextChannel textChannel;
+        internal static DiscordSocketClient client;
+        public static SocketTextChannel textChannel;
         #region IncremenentVersion pinvoke stuff
         [DllImport("VersionIncrementer.dll", SetLastError = true, CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I4)]
@@ -34,21 +33,21 @@ namespace GladosV3.Module.NomadCI
 
         public BuilderService()
         {
-            if (!File.Exists(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "..\\Binaries\\StampVer.exe"))) { LoggingService.Log(LogSeverity.Error, "NomadCI", "StampVer.exe not found!"); return; }
+            if (!File.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "..\\Binaries\\StampVer.exe"))) { LoggingService.Log(LogSeverity.Error, "NomadCI", "StampVer.exe not found!"); return; }
             BatchFilePath = config["nomad"]["batPath"].Value<string>();
             if (!File.Exists(BatchFilePath))
             {
-                GladosV3.Services.LoggingService.Log(Discord.LogSeverity.Error, "NomadCI", $"Batch file not found : {BatchFilePath}");
+                LoggingService.Log(LogSeverity.Error, "NomadCI", $"Batch file not found : {BatchFilePath}");
                 BatchFilePath = null;
             }
             TimerValue = config["nomad"]["time"].Value<Double>();
             if (!string.IsNullOrWhiteSpace(BatchFilePath) && TimerValue > 1)
             {
-                _timer = new Timer() { Enabled = true, Interval = TimerValue };
-                _timer.Elapsed += new ElapsedEventHandler((object sender, ElapsedEventArgs args) => { BuildNow().GetAwaiter().GetResult(); });
+                _timer = new Timer { Enabled = true, Interval = TimerValue };
+                _timer.Elapsed += (sender, args) => { BuildNow().GetAwaiter().GetResult(); };
             }
             else
-                GladosV3.Services.LoggingService.Log(Discord.LogSeverity.Error, "NomadCI", "Failed to load!");
+                LoggingService.Log(LogSeverity.Error, "NomadCI", "Failed to load!");
         }
 
         public static Task LoadCIChannel()
@@ -90,8 +89,8 @@ namespace GladosV3.Module.NomadCI
                         var array = text.Split(Environment.NewLine).Distinct();
                         foreach (var line in array)
                         {
-                            if (line.StartsWith("OUTDIR: "))
-                            { build = line.Remove(0, 8); break; }
+                            if (!line.StartsWith("OUTDIR: ")) continue;
+                            build = line.Remove(0, 8); break;
                         }
                     }
                     sw.BaseStream.Flush();
@@ -106,7 +105,7 @@ namespace GladosV3.Module.NomadCI
             }
             catch (Exception ex)
             {
-                GladosV3.Services.LoggingService.Log(Discord.LogSeverity.Error, "NomadCI", $"Exception happened during build!{Environment.NewLine}   {ex.Message}{Environment.NewLine}   Type: {ex.GetType()}{Environment.NewLine}{ex.StackTrace.ToString()}");
+                LoggingService.Log(LogSeverity.Error, "NomadCI", $"Exception happened during build!{Environment.NewLine}   {ex.Message}{Environment.NewLine}   Type: {ex.GetType()}{Environment.NewLine}{ex.StackTrace}");
                 textChannel.SendMessageAsync($"Exception happened during build! Details should be inside the console.").GetAwaiter().GetResult();
                 _timer.Interval = TimerValue;
                 _timer.Start();
@@ -137,7 +136,7 @@ namespace GladosV3.Module.NomadCI
             string version = $"{majorPart}.{minorPart}.{pPart}.{bPart}";
             config["nomad"]["nextVersion"] = version;
             File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "_configuration.json"), config.ToString());
-            foreach (var pattern in new string[] { "*.exe", "*.dll" })
+            foreach (var pattern in new[] { "*.exe", "*.dll" })
                 foreach (var file in Directory.GetFiles(output, pattern)) // , "*.exe|*.dll"
                 {
                     var response = VersionIncrement(file, version);
@@ -148,7 +147,7 @@ namespace GladosV3.Module.NomadCI
         internal void BuildJson(string output, Dictionary<string, NomadJsonObject> objects)
         {
             JArray array = new JArray();
-            foreach (var pattern in new string[] { "*.exe", "*.dll" })
+            foreach (var pattern in new[] { "*.exe", "*.dll" })
                 foreach (var file in Directory.GetFiles(output, pattern)) // , "*.exe|*.dll"
                 {
                     objects.TryGetValue(Path.GetFileName(file), out NomadJsonObject nomadJsonObject);
@@ -172,11 +171,11 @@ namespace GladosV3.Module.NomadCI
         }
         internal void CreateObjects(string output, Dictionary<string, NomadJsonObject> objects)
         {
-            foreach (string pattern in new string[] { "*.exe", "*.dll" })
+            foreach (string pattern in new[] { "*.exe", "*.dll" })
                 foreach (var file in Directory.GetFiles(output, pattern)) // , "*.exe|*.dll"
                 {
                     byte[] hash;
-                    using (var md5 = System.Security.Cryptography.MD5.Create())
+                    using (var md5 = MD5.Create())
                     {
                         hash = md5.ComputeHash(File.ReadAllBytes(file));
                     }
@@ -190,7 +189,7 @@ namespace GladosV3.Module.NomadCI
         public string Name;
         public byte[] MD5Hash;
         public long Size;
-        public bool Zipped = false;
+        public bool Zipped;
 
         public NomadJsonObject(string name, byte[] hash, long size)
         {
