@@ -16,7 +16,8 @@ namespace GladosV3.Module.Music
 {
     public class AudioService
     {
-        private readonly ConcurrentDictionary<ulong, MusicClass> _connectedChannels = new ConcurrentDictionary<ulong, MusicClass>();
+        public static AudioService service;
+        internal static readonly ConcurrentDictionary<ulong, MusicClass> ConnectedChannels = new ConcurrentDictionary<ulong, MusicClass>();
         public int type;
         public bool fail = true;
         public AudioService(IConfigurationRoot config)
@@ -32,14 +33,14 @@ namespace GladosV3.Module.Music
 
         public async Task<bool> JoinAudioAsync(IGuild guild, IVoiceChannel target)
         {
-            if (_connectedChannels.TryGetValue(guild.Id, out _)) return false;
+            if (ConnectedChannels.TryGetValue(guild.Id, out _)) return false;
             if (target?.Guild.Id != guild.Id) return false;
             var audioClient = await target.ConnectAsync();
-            return _connectedChannels.TryAdd(guild.Id, new MusicClass(audioClient));
+            return ConnectedChannels.TryAdd(guild.Id, new MusicClass(audioClient,target.Id));
         }
         public async Task LeaveAudioAsync(IGuild guild)
         {
-            if (_connectedChannels.TryRemove(guild.Id, out MusicClass mclass))
+            if (ConnectedChannels.TryRemove(guild.Id, out MusicClass mclass))
             {
                 mclass.process?.Kill();
                 await mclass.GetClient.StopAsync().ConfigureAwait(false);
@@ -49,11 +50,11 @@ namespace GladosV3.Module.Music
 
         public async Task SendAudioAsync(string path, ICommandContext context)
         {
-            if (!_connectedChannels.TryGetValue(context.Guild.Id, out MusicClass mclass))
+            if (!ConnectedChannels.TryGetValue(context.Guild.Id, out MusicClass mclass))
             {
                 if (!await JoinAudioAsync(context.Guild, ((IVoiceState)context.User).VoiceChannel))
                 { await context.Channel.SendMessageAsync("Please join VC first!"); return; }
-                _connectedChannels.TryGetValue(context.Guild.Id, out mclass);
+                ConnectedChannels.TryGetValue(context.Guild.Id, out mclass);
             }
             if (string.IsNullOrWhiteSpace(path))
             { await context.Channel.SendMessageAsync("We're sorry, something went wrong on our side."); return; }
@@ -72,7 +73,7 @@ namespace GladosV3.Module.Music
                         try
                         { await output.CopyToAsync(stream); await stream.FlushAsync(); }
                         catch (TaskCanceledException)
-                        { stream.Close(); await client.StopAsync(); if (!mclass.process.HasExited) mclass.process.Kill(); _connectedChannels.TryRemove(context.Guild.Id, out mclass); return; } // PANIC
+                        { stream.Close(); await client.StopAsync(); if (!mclass.process.HasExited) mclass.process.Kill(); ConnectedChannels.TryRemove(context.Guild.Id, out mclass); return; } // PANIC
                     }
                 else
                     using (var output = CmdYoutube(mclass))
@@ -80,7 +81,7 @@ namespace GladosV3.Module.Music
                         try
                         { await output.CopyToAsync(stream); await stream.FlushAsync(); }
                         catch (TaskCanceledException)
-                        { stream.Close(); await client.StopAsync(); if (!mclass.process.HasExited) mclass.process.Kill(); _connectedChannels.TryRemove(context.Guild.Id, out mclass); return; } // PANIC
+                        { stream.Close(); await client.StopAsync(); if (!mclass.process.HasExited) mclass.process.Kill(); ConnectedChannels.TryRemove(context.Guild.Id, out mclass); return; } // PANIC
                     }
                 mclass.GetQueue.Remove(mclass.GetQueue[0]);
                 if (mclass.GetQueue.Count >= 1)
@@ -90,7 +91,7 @@ namespace GladosV3.Module.Music
 
         public Task<string> QueueAsync(IGuild guild)
         {
-            if (!_connectedChannels.TryGetValue(guild.Id, out MusicClass mclass)) return Task.FromResult("");
+            if (!ConnectedChannels.TryGetValue(guild.Id, out MusicClass mclass)) return Task.FromResult("");
             List<string> queue = mclass.GetQueue;
             var output = "";
             for (var index = 0; index < queue.Count; index++)
@@ -146,12 +147,14 @@ namespace GladosV3.Module.Music
         public void ClearQueue() => Queue.Clear();
         public List<string> GetQueue => Queue;
         public bool IsPlaying => Queue.Count >= 1;
+        public ulong VCID;
         public IAudioClient GetClient => Client;
         public Process process;
 
-        public MusicClass(IAudioClient client)
+        public MusicClass(IAudioClient client, ulong vcid)
         {
             Client = client;
+            VCID = vcid;
         }
     }
 }
