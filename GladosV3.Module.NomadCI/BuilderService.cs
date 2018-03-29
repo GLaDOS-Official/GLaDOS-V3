@@ -18,6 +18,8 @@ namespace GladosV3.Module.NomadCI
 {
     public class BuilderService
     {
+        #region Variables
+        public static BuilderService Service;
         internal static JObject config;
         internal static bool IsBuilding;
         internal static double TimerValue;
@@ -29,6 +31,7 @@ namespace GladosV3.Module.NomadCI
         [DllImport("VersionIncrementer.dll", SetLastError = true, CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I4)]
         public static extern int VersionIncrement(string filename, string fileversion);
+        #endregion
         #endregion
 
         public BuilderService()

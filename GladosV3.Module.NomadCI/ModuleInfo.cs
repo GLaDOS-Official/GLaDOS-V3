@@ -16,16 +16,16 @@ namespace GladosV3.Module.NomadCI
 
         public string Author() => "BlackOfWorld#8125";
 
-        public Type[] Services => new[] { typeof(BuilderService) };
+        public Type[] Services => null;
 
         public void PreLoad(DiscordSocketClient discord, CommandService commands, IConfigurationRoot config, IServiceProvider provider)
         {
             BuilderService.config = Tools.GetConfigAsync(1).GetAwaiter().GetResult();
+            BuilderService.Service = new BuilderService();
         }
 
         public void PostLoad(DiscordSocketClient discord, CommandService commands, IConfigurationRoot config, IServiceProvider provider)
         {
-            provider.GetService(typeof(BuilderService));
             BuilderService.client = discord;
             BuilderService.client.Ready += BuilderService.LoadCIChannel;
         }
