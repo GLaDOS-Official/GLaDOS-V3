@@ -27,6 +27,7 @@ namespace GladosV3.Module.NomadCI
         internal string BatchFilePath;
         internal static DiscordSocketClient client;
         public static SocketTextChannel textChannel;
+        internal static DateTime nextBuildTime;
         #region IncremenentVersion pinvoke stuff
         [DllImport("VersionIncrementer.dll", SetLastError = true, CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I4)]
@@ -44,6 +45,7 @@ namespace GladosV3.Module.NomadCI
                 BatchFilePath = null;
             }
             TimerValue = config["nomad"]["time"].Value<Double>();
+            nextBuildTime = DateTime.Now.AddMilliseconds(TimerValue);
             if (!string.IsNullOrWhiteSpace(BatchFilePath) && TimerValue > 1)
             {
                 _timer = new Timer { Enabled = true, Interval = TimerValue };
@@ -116,10 +118,11 @@ namespace GladosV3.Module.NomadCI
                 return Task.CompletedTask;
             }
             _timer.Interval = TimerValue;
+            nextBuildTime = DateTime.Now.AddMilliseconds(TimerValue);
             _timer.Start();
             IsBuilding = false;
             string TryingToBeFunnyHereLol = string.IsNullOrWhiteSpace(config["nomad"]["logFile"].Value<string>()) ? "oh wait......" : null;
-            textChannel.SendMessageAsync($"Done! Should be compiled! Build command has been enabled. Also, log is available... you know where :^) {TryingToBeFunnyHereLol}").GetAwaiter().GetResult();
+            textChannel.SendMessageAsync($"Done! Should be compiled! Build command has been. Also, log is available... you know where :^) {TryingToBeFunnyHereLol}").GetAwaiter().GetResult();
             return Task.CompletedTask;
         }
         internal void IncrementVersionTask(string output)
