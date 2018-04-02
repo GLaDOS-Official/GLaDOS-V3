@@ -55,7 +55,7 @@ namespace GladosV3.Modules
             {
                 Color = new Color(rnd.Next(256), rnd.Next(256), rnd.Next(256))
             };
-            string prefix = _config["prefix"];;
+            string prefix = _config["prefix"]; ;
             if (command != null)
             {
                 var result = _service.Search(Context, command);
@@ -67,12 +67,12 @@ namespace GladosV3.Modules
                 }
 
                 builder.Description = $"Here are some commands like **{command}**";
-                
+
                 foreach (var match in result.Commands)
                 {
                     string text = (match.Command.Parameters.Count != 0) ? "Arguments: None\n" : $"Arguments: {string.Join(", ", match.Command.Parameters.Select(p => p.Name))}\n";
-                    text = string.Concat(text, !string.IsNullOrWhiteSpace(match.Command.Summary) ? "" :  $"Info: {match.Command.Summary}\n");
-                    text += string.Concat(text, !string.IsNullOrWhiteSpace(match.Command.Remarks) ? "" :  $"Example: {match.Command.Remarks}\n");
+                    text = string.Concat(text, !string.IsNullOrWhiteSpace(match.Command.Summary) ? "" : $"Info: {match.Command.Summary}\n");
+                    text += string.Concat(text, !string.IsNullOrWhiteSpace(match.Command.Remarks) ? "" : $"Example: {match.Command.Remarks}\n");
                     builder.AddField(x =>
                     {
                         x.Name = string.Join(", ", match.Command.Aliases);
@@ -87,7 +87,7 @@ namespace GladosV3.Modules
                 List<CommandInfo> list = new List<CommandInfo>();
                 if (_service != null)
                 {
-                    
+
                     var sorted = _service.Commands.OrderByDescending(x => x.Remarks.Length).FirstOrDefault().Remarks.Length;
 
 
@@ -99,29 +99,24 @@ namespace GladosV3.Modules
                         {
                             var result = await cmd.CheckPreconditionsAsync(Context);
                             if (!result.IsSuccess) continue;
-                            if(!array.Contains($"{prefix}{cmd.Remarks}\n"))
+                            if (!array.Contains($"{prefix}{cmd.Remarks}\n"))
                                 array.Add($"{prefix}{cmd.Remarks} {" ".PadLeft(sorted - cmd.Remarks.Length + 1)} :: {cmd.Summary}\n");
                         }
 
                         var description = array.Aggregate<string, string>(null, string.Concat);
                         if (string.IsNullOrWhiteSpace(description)) continue;
-                        /*builder.AddField(x =>
-                        {
-                            x.Name = module.Name;
-                            x.Value = description;
-                            x.IsInline = false;
-                        });*/
-                        list.Add(new CommandInfo(module.Name,description));
-                        
+                        list.Add(new CommandInfo(module.Name, description));
+
                     }
                 }
-                foreach(var msg in Tools.SplitMessage($"{list.Aggregate(string.Empty, (current, cmi) => string.Concat(current, $"\n= {cmi.GetModName()} =\n{cmi.GetDec()}\n"))}"))
+                foreach (var msg in Tools.SplitMessage($"{list.Aggregate(string.Empty, (current, cmi) => string.Concat(current, $"\n= {cmi.GetModName()} =\n{cmi.GetDec()}\n"))}"))
                     await dm.SendMessageAsync($"```asciidoc\n{msg}```");
-                await Context.Channel.SendMessageAsync("Check your DMs!");
+                if (Context.Guild != null)
+                    await Context.Channel.SendMessageAsync("Check your DMs!");
             }
         }
 
-       
+
     }
 
     public class CommandInfo
