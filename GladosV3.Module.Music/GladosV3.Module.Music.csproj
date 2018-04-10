@@ -26,7 +26,7 @@
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.0\Modules\"></Copy>
     <Copy SourceFiles="Binaries\ffmpeg.exe" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.0\Binaries\"></Copy>
     <Copy SourceFiles="Binaries\youtube-dl.exe" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.0\Binaries\"></Copy>
-    <Copy SourceFiles="Binaries\libsodium.dll" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.0\"></Copy>
-    <Copy SourceFiles="Binaries\opus.dll" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.0\"></Copy>
+    <Copy SourceFiles="Binaries\libsodium.dll" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.0\PInvoke"></Copy>
+    <Copy SourceFiles="Binaries\opus.dll" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.0\PInvoke"></Copy>
   </Target>
 </Project>

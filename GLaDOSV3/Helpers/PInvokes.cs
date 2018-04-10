@@ -50,4 +50,11 @@ namespace GladosV3.Helpers
         [DllImport("kernel32.dll", EntryPoint = "GetProcAddress",SetLastError = true)]
         private static extern IntPtr GetFunctionPtr(IntPtr hModule, string procedureName);
     }
+    public class PInvokes_DllImport
+    {
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetDllDirectory(string lpPathName);
+
+    }
 }

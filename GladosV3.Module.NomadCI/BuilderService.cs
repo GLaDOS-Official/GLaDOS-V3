@@ -37,7 +37,7 @@ namespace GladosV3.Module.NomadCI
 
         public BuilderService()
         {
-            if (!File.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "..\\Binaries\\StampVer.exe"))) { LoggingService.Log(LogSeverity.Error, "NomadCI", "StampVer.exe not found!"); return; }
+            if(!File.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "PInvoke\\VersionIncrementer.dll"))) { LoggingService.Log(LogSeverity.Error, "NomadCI", "VersionIncrementer not found in the PInvoke directory!"); return; }
             BatchFilePath = config["nomad"]["batPath"].Value<string>();
             if (!File.Exists(BatchFilePath))
             {

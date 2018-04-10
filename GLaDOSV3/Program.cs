@@ -22,6 +22,11 @@ namespace GladosV3
 
         public async Task StartAsync()
         {
+            var PInvokeDir = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "PInvoke\\");
+            if (!Directory.Exists(PInvokeDir))
+            { Console.WriteLine("PInvoke directory doesn't exist! Creating!"); Directory.CreateDirectory(PInvokeDir); }
+            if(!PInvokes_DllImport.SetDllDirectory(PInvokeDir))
+                Console.WriteLine($"Failed to call SetDllDirectory PInvoke! Last error code: {System.Runtime.InteropServices.Marshal.GetLastWin32Error()}");
             Tools.ReleaseMemory();
             LoggingService.Begin();
             if(!IsValidJson())
