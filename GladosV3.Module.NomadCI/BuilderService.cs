@@ -48,7 +48,8 @@ namespace GladosV3.Module.NomadCI
 
         public BuilderService()
         {
-            if(!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "PInvoke\\VersionIncrementer.dll"))) { LoggingService.Log(LogSeverity.Error, "NomadCI", "VersionIncrementer not found in the PInvoke directory!"); return; }
+            if (!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "PInvoke\\VersionIncrementer32.dll"))) { LoggingService.Log(LogSeverity.Error, "NomadCI", "VersionIncrementer32 not found in the PInvoke directory!"); return; }
+            if (!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "PInvoke\\VersionIncrementer64.dll"))) { LoggingService.Log(LogSeverity.Error, "NomadCI", "VersionIncrementer64 not found in the PInvoke directory!"); return; }
             BatchFilePath = config["nomad"]["batPath"].Value<string>();
             if (!File.Exists(BatchFilePath))
             {
