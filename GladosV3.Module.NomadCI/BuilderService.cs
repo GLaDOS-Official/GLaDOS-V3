@@ -29,10 +29,10 @@ namespace GladosV3.Module.NomadCI
         public static SocketTextChannel textChannel;
         internal static DateTime nextBuildTime;
         #region IncremenentVersion pinvoke stuff
-        [DllImport("VersionIncrementer_32.dll", EntryPoint = "VersionIncrement", SetLastError = true, CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("VersionIncrementer32.dll", EntryPoint = "VersionIncrement", SetLastError = true, CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I4)]
         internal static extern int VersionIncrement32(string filename, string fileversion);
-        [DllImport("VersionIncrementer_64.dll",EntryPoint = "VersionIncrement", SetLastError = true, CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("VersionIncrementer64.dll",EntryPoint = "VersionIncrement", SetLastError = true, CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I4)]
         internal static extern int VersionIncrement64(string filename, string fileversion);
         internal static int VersionIncrement(string filename, string fileversion)

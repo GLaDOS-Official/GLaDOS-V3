@@ -43,10 +43,10 @@
     <None Update="database.db">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="PInvoke\VersionIncrementer.dll">
+    <None Update="PInvoke\VersionIncrementer32.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="PInvoke\VersionIncrementer32.dll">
+    <None Update="PInvoke\VersionIncrementer64.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="_configuration.json">
