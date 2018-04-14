@@ -29,15 +29,26 @@ namespace GladosV3.Module.NomadCI
         public static SocketTextChannel textChannel;
         internal static DateTime nextBuildTime;
         #region IncremenentVersion pinvoke stuff
-        [DllImport("VersionIncrementer.dll", SetLastError = true, CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("VersionIncrementer_32.dll", EntryPoint = "VersionIncrement", SetLastError = true, CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I4)]
-        public static extern int VersionIncrement(string filename, string fileversion);
+        internal static extern int VersionIncrement32(string filename, string fileversion);
+        [DllImport("VersionIncrementer_64.dll",EntryPoint = "VersionIncrement", SetLastError = true, CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I4)]
+        internal static extern int VersionIncrement64(string filename, string fileversion);
+        internal static int VersionIncrement(string filename, string fileversion)
+        {
+            if (IntPtr.Size == 8)
+                return VersionIncrement64(filename, fileversion);
+            else if (IntPtr.Size == 4)
+                return VersionIncrement32(filename, fileversion);
+            return 0;
+        }
         #endregion
         #endregion
 
         public BuilderService()
         {
-            if(!File.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "PInvoke\\VersionIncrementer.dll"))) { LoggingService.Log(LogSeverity.Error, "NomadCI", "VersionIncrementer not found in the PInvoke directory!"); return; }
+            if(!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "PInvoke\\VersionIncrementer.dll"))) { LoggingService.Log(LogSeverity.Error, "NomadCI", "VersionIncrementer not found in the PInvoke directory!"); return; }
             BatchFilePath = config["nomad"]["batPath"].Value<string>();
             if (!File.Exists(BatchFilePath))
             {

@@ -23,7 +23,7 @@ namespace GladosV3.Module.NomadCI
                     if (!BuilderService._timer.Enabled)
                     { BuilderService._timer.Start(); ReplyAsync("Continuous build is now enabled!"); }
                     else
-                        ReplyAsync("Continuous build is already disabled!");
+                        ReplyAsync("Continuous build is already enabled!");
 
                     break;
                 case CommandArgument.Stop:

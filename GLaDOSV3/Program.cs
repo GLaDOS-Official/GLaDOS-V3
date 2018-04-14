@@ -22,7 +22,8 @@ namespace GladosV3
 
         public async Task StartAsync()
         {
-            var PInvokeDir = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "PInvoke\\");
+            Directory.SetCurrentDirectory(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)));
+            var PInvokeDir = Path.Combine(Directory.GetCurrentDirectory(), "PInvoke\\");
             if (!Directory.Exists(PInvokeDir))
             { Console.WriteLine("PInvoke directory doesn't exist! Creating!"); Directory.CreateDirectory(PInvokeDir); }
             if(!PInvokes_DllImport.SetDllDirectory(PInvokeDir))

@@ -22,8 +22,8 @@ namespace GladosV3.Module.Music
         public bool fail = true;
         public AudioService(IConfigurationRoot config)
         {
-            if (!File.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "..\\Binaries\\youtube-dl.exe"))) { LoggingService.Log(LogSeverity.Error, "AudioService", "youtube-dl.exe not found!"); return; }
-            if (!File.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "..\\Binaries\\ffmpeg.exe"))) { LoggingService.Log(LogSeverity.Error, "AudioService", "ffmpeg.exe not found!"); return; }
+            if (!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Binaries\\youtube-dl.exe"))) { LoggingService.Log(LogSeverity.Error, "AudioService", "youtube-dl.exe not found!"); return; }
+            if (!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Binaries\\ffmpeg.exe"))) { LoggingService.Log(LogSeverity.Error, "AudioService", "ffmpeg.exe not found!"); return; }
             type = Convert.ToInt32(config["MusicMethod"]);
             fail = false;
         }
@@ -107,7 +107,7 @@ namespace GladosV3.Module.Music
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardInput = true,
-                WorkingDirectory = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "..\\Binaries")
+                WorkingDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Binaries")
             });
             if (x.HasExited)
                 throw new Exception("youtube-dl or ffmpeg has exited immediately!");
@@ -126,7 +126,7 @@ namespace GladosV3.Module.Music
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardInput = true,
-                WorkingDirectory = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "..\\Binaries")
+                WorkingDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Binaries")
             });
             if (x.HasExited)
                 throw new Exception("ffmpeg has excited immediately!");

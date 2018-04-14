@@ -8,7 +8,7 @@ namespace GladosV3.Helpers
 {
     public static class SqLite
     {
-        public static string DirPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Database.db");
+        public static string DirPath = Path.Combine(Directory.GetCurrentDirectory(), "Database.db");
         public static SQLiteConnection Connection = new SQLiteConnection($"Data Source={DirPath}");
         /// <summary>
         ///  Returns a bool if a table exists.
