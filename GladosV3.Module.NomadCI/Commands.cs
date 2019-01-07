@@ -15,9 +15,22 @@ namespace GladosV3.Module.NomadCI
         [Summary("Triggers the build right now.")]
         public Task JoinCmd()
         {
+<<<<<<< HEAD
             BuilderService.Service.BuildNow().GetAwaiter().GetResult();
             return Task.CompletedTask;
         }
+=======
+            switch (c)
+            {
+                case CommandArgument.Now:
+                    BuilderService.Service.BuildNow().GetAwaiter().GetResult();
+                    break;
+                case CommandArgument.Start:
+                    if (!BuilderService._timer.Enabled)
+                    { BuilderService._timer.Start(); ReplyAsync("Continuous build is now enabled!"); }
+                    else
+                        ReplyAsync("Continuous build is already enabled!");
+>>>>>>> 15c8c1a0bfe431ef18b6d59b1b1b4a5255cbeb05
 
         [Command("build start", RunMode = RunMode.Async)]
         [Remarks("build start")]

@@ -29,16 +29,33 @@ namespace GladosV3.Module.NomadCI
         public static SocketTextChannel TextChannel;
         internal static DateTime NextBuildTime;
         #region IncremenentVersion pinvoke stuff
-        [DllImport("VersionIncrementer.dll", SetLastError = true, CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("VersionIncrementer32.dll", EntryPoint = "VersionIncrement", SetLastError = true, CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I4)]
-        public static extern int VersionIncrement(string filename, string fileversion);
+        internal static extern int VersionIncrement32(string filename, string fileversion);
+        [DllImport("VersionIncrementer64.dll",EntryPoint = "VersionIncrement", SetLastError = true, CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I4)]
+        internal static extern int VersionIncrement64(string filename, string fileversion);
+        internal static int VersionIncrement(string filename, string fileversion)
+        {
+            if (IntPtr.Size == 8)
+                return VersionIncrement64(filename, fileversion);
+            else if (IntPtr.Size == 4)
+                return VersionIncrement32(filename, fileversion);
+            return 0;
+        }
         #endregion
         #endregion
 
         public BuilderService()
         {
+<<<<<<< HEAD
             if(!File.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "PInvoke\\VersionIncrementer.dll"))) { LoggingService.Log(LogSeverity.Error, "NomadCI", "VersionIncrementer not found in the PInvoke directory!"); return; }
             BatchFilePath = Config["nomad"]["batPath"].Value<string>();
+=======
+            if (!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "PInvoke\\VersionIncrementer32.dll"))) { LoggingService.Log(LogSeverity.Error, "NomadCI", "VersionIncrementer32 not found in the PInvoke directory!"); return; }
+            if (!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "PInvoke\\VersionIncrementer64.dll"))) { LoggingService.Log(LogSeverity.Error, "NomadCI", "VersionIncrementer64 not found in the PInvoke directory!"); return; }
+            BatchFilePath = config["nomad"]["batPath"].Value<string>();
+>>>>>>> 15c8c1a0bfe431ef18b6d59b1b1b4a5255cbeb05
             if (!File.Exists(BatchFilePath))
             {
                 LoggingService.Log(LogSeverity.Error, "NomadCI", $"Batch file not found : {BatchFilePath}");

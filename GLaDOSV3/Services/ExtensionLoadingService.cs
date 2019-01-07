@@ -35,10 +35,10 @@ namespace GladosV3.Services
             _commands = commands;
             _config = config;
             _provider = provider;
-            if (!Directory.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Dependencies")))
-                Directory.CreateDirectory(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Dependencies"));
-            if (!Directory.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules")))
-                Directory.CreateDirectory(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules"));
+            if (!Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Dependencies")))
+                Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "Dependencies"));
+            if (!Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Modules")))
+                Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "Modules"));
         }
 
         public Task<Type[]> GetServices()
@@ -46,9 +46,7 @@ namespace GladosV3.Services
             List<Type> types = new List<Type>();
 
             {
-                foreach (var file in Directory.GetFiles(
-                    Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules"), "*.dll")
-                ) // Bad extension loading
+                foreach (var file in Directory.GetFiles(Path.Combine(Directory.GetCurrentDirectory(), "Modules"), "*.dll")) // Bad extension loading
                 {
                     try
                     {
@@ -63,7 +61,13 @@ namespace GladosV3.Services
                         if (item != null && item.Length > 0)
                             types.AddRange(item); // invoke services method
                     }
+<<<<<<< HEAD
                     catch (Exception) { /* ignored */ }
+=======
+                    catch (Exception)
+                    {
+                    }
+>>>>>>> 15c8c1a0bfe431ef18b6d59b1b1b4a5255cbeb05
                 }
             }
             return Task.FromResult(types.ToArray());
@@ -89,7 +93,7 @@ namespace GladosV3.Services
         //private List<GladosModuleStruct> extensions = new List<GladosModuleStruct>();
         public async Task Load()
         {
-            foreach (var file in Directory.GetFiles(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules"), "*.dll")) // Bad extension loading
+            foreach (var file in Directory.GetFiles(Path.Combine(Directory.GetCurrentDirectory(), "Modules"), "*.dll")) // Bad extension loading
             {
                 try
                 {
@@ -106,7 +110,7 @@ namespace GladosV3.Services
                 {
                 }
             }
-            foreach (var assemblyName in Directory.GetFiles(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Dependencies")))
+            foreach (var assemblyName in Directory.GetFiles(Path.Combine(Directory.GetCurrentDirectory(), "Dependencies")))
             {
                 if (!IsValidCLRFile(assemblyName)) continue;
                 var asm = Assembly.LoadFile(assemblyName);
@@ -163,7 +167,7 @@ namespace GladosV3.Services
         {
             try
             {
-                if (!asm.GetTypes().Any(t =>t.Namespace.Contains("GladosV3.Module"))) return false;
+                if (!asm.GetTypes().Any(t => t.Namespace.Contains("GladosV3.Module"))) return false;
                 if (!asm.GetTypes().Any(type => (type.IsClass && type.IsPublic && type.Name == "ModuleInfo"))) return false; //extension doesn't have ModuleInfo class
                 Type asmType = asm.GetTypes().Where(type => type.IsClass && type.Name == "ModuleInfo").Distinct().First(); //create type
                 if (asmType.GetInterfaces().Distinct().FirstOrDefault() != typeof(IGladosModule)) return false; // extension's moduleinfo is not extended

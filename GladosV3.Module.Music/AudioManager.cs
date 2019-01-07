@@ -24,10 +24,17 @@ namespace GladosV3.Module.Music
         public bool Fail = true;
         public AudioService(IConfigurationRoot config)
         {
+<<<<<<< HEAD
             if (!File.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "..\\Binaries\\youtube-dl.exe"))) { LoggingService.Log(LogSeverity.Error, "AudioService", "youtube-dl.exe not found!"); return; }
             if (!File.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "..\\Binaries\\ffmpeg.exe"))) { LoggingService.Log(LogSeverity.Error, "AudioService", "ffmpeg.exe not found!"); return; }
             Type = Convert.ToInt32(config["MusicMethod"]);
             Fail = false;
+=======
+            if (!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Binaries\\youtube-dl.exe"))) { LoggingService.Log(LogSeverity.Error, "AudioService", "youtube-dl.exe not found!"); return; }
+            if (!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Binaries\\ffmpeg.exe"))) { LoggingService.Log(LogSeverity.Error, "AudioService", "ffmpeg.exe not found!"); return; }
+            type = Convert.ToInt32(config["MusicMethod"]);
+            fail = false;
+>>>>>>> 15c8c1a0bfe431ef18b6d59b1b1b4a5255cbeb05
         }
 
         public async Task<bool> JoinAudioAsync(IGuild guild, IVoiceChannel target, ulong botId)
@@ -123,7 +130,7 @@ namespace GladosV3.Module.Music
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardInput = true,
-                WorkingDirectory = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "..\\Binaries")
+                WorkingDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Binaries")
             });
             if (x == null || x.HasExited)
                 throw new Exception("youtube-dl or ffmpeg has exited immediately!");
@@ -142,7 +149,7 @@ namespace GladosV3.Module.Music
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardInput = true,
-                WorkingDirectory = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "..\\Binaries")
+                WorkingDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Binaries")
             });
             if (x.HasExited)
                 throw new Exception("ffmpeg has excited immediately!");
