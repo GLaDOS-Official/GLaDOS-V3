@@ -38,7 +38,11 @@ namespace GladosV3.Module.Default
                     return (size / kb).ToString("0.## KB");
                 if (size < gb)
                     return (size / mb).ToString("0.## MB");
-                return size < tb ? (size / gb).ToString("0.## GB") : (size / tb).ToString("0.## TB");
+                // ReSharper disable once ConvertIfStatementToReturnStatement
+                if (size < tb)
+                    return (size / gb).ToString("0.## GB");
+                
+                    return (size / tb).ToString("0.## TB");
             }
             float GetCpuUsage()
             {
@@ -59,9 +63,8 @@ namespace GladosV3.Module.Default
                 $"- CPU usage: {GetCpuUsage():N1}%\n" +
                 $"- Heap Size: {ToFileSize2(GC.GetTotalMemory(true))}\n" +
                 $"- Owner of the bot: <@{IsOwner.GetOwner(Context).GetAwaiter().GetResult().ToString()}>\n" +
-                $"- Version: {FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion}\n" +
-                "- Author of the bot: <@419568355771416577>\n" +
-                "- Thanks to <@194151547846787072> for being overall helpful. He's developing WD2MP, if you like WD2, you should definitely check it out!\n\n" +
+                $"- Version: {FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion}\n" +
+                "- Author of the bot: <@419568355771416577>\n\n" +
 
                 $"{Format.Bold("Stats")}\n" +
                 $"- Servers: {Context.Client.Guilds.Count.ToString()}\n" +
@@ -76,6 +79,7 @@ namespace GladosV3.Module.Default
             message += $"- Channels: {Context.Client.Guilds.Sum(guild => guild.Channels.Count)} (total)\n" +
                        $"- Users: {Context.Client.Guilds.Sum(guild => guild.Users.Count)} (total)\n";
             await waitMessage.ModifyAsync(u => u.Content = message);
+            await DM.CloseAsync();
         }
 
         [Command("ping")]
@@ -87,10 +91,10 @@ namespace GladosV3.Module.Default
             var sw = Stopwatch.StartNew();
             var message = await ReplyAsync("Ping!").ConfigureAwait(false);
             sw.Stop();
-            var usual = (sw.ElapsedMilliseconds > 10000) ? "there could be something wrong." : "there's nothing wrong";
+            var usual = (sw.ElapsedMilliseconds > 2500 || Context.Client.Latency > 5000) ? "there could be something wrong." : "there should be nothing wrong.";
             await message.ModifyAsync(delegate (MessageProperties properties)
             {
-                properties.Content = $":ping_pong: Pong! {sw.ElapsedMilliseconds.ToString()}ms. It means that {usual}.";
+                properties.Content = $"🏓 Pong!\n👂 Response time: {sw.ElapsedMilliseconds.ToString()}ms.\n❤ Websocket heartbeat: {Context.Client.Latency}ms.\n This means that {usual}";
             });
         }
 
@@ -115,7 +119,8 @@ namespace GladosV3.Module.Default
                     $"[Click to Invite](https://discordapp.com/oauth2/authorize?client_id={Context.Client.CurrentUser.Id}&scope=bot&permissions=2146958591)"
             };
             IDMChannel dm = await Context.Message.Author.GetOrCreateDMChannelAsync();
-            await dm.SendMessageAsync("", false, eb);
+            await dm.SendMessageAsync("", false, eb.Build());
+            await dm.CloseAsync();
         }
 
         [Command("user")]
@@ -149,13 +154,13 @@ namespace GladosV3.Module.Default
                     x.IsInline = true;
                     x.Value = new[] { "Offline", "Online", "Idle", "AFK", "Do not disturb", "Invisible" }[(int)userInfo.Status];
                 });
-                if (userInfo.Game.HasValue)
+                if (!string.IsNullOrWhiteSpace(userInfo.Activity?.Name))
                 {
                     eb.AddField(x =>
                     {
                         x.Name = "Game";
                         x.IsInline = true;
-                        x.Value = $"{(userInfo.Game.Value.Name)}";
+                        x.Value = $"{(userInfo.Activity.Name)}";
                     });
                 }
 
@@ -197,8 +202,9 @@ namespace GladosV3.Module.Default
                     {
                         x.Name = "Joined Guild";
                         x.IsInline = true;
-                        x.Value =
-                            $"{socketUser?.JoinedAt.ToString().Remove(socketUser.JoinedAt.ToString().Length - 6)}\n({(int)DateTime.Now.ToUniversalTime().Subtract(((DateTimeOffset)socketUser?.JoinedAt).DateTime).TotalDays} days ago)";
+                        if (socketUser?.JoinedAt != null)
+                            x.Value =
+                                $"{socketUser?.JoinedAt.ToString().Remove(socketUser.JoinedAt.ToString().Length - 6)}\n({(int) DateTime.Now.ToUniversalTime().Subtract(((DateTimeOffset) socketUser?.JoinedAt).DateTime).TotalDays} days ago)";
                     });
                     string permissions = "";
                     int take = 0;
@@ -241,7 +247,7 @@ namespace GladosV3.Module.Default
                     });
                 }
 
-                await Context.Channel.SendMessageAsync("", false, eb);
+                await Context.Channel.SendMessageAsync("", false, eb.Build());
             }
             catch (Exception e)
             {
@@ -344,7 +350,7 @@ namespace GladosV3.Module.Default
                         x.Value = (string.IsNullOrWhiteSpace(val) ? "*none*" : val);
                     });
                 }
-                await Context.Channel.SendMessageAsync("", false, eb);
+                await Context.Channel.SendMessageAsync("", false, eb.Build());
             }
             catch (Exception e)
             {

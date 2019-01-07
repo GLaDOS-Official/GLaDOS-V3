@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using GladosV3.Attributes;
 using GladosV3.Helpers;
 using Microsoft.Extensions.Configuration;
 
@@ -49,13 +50,15 @@ namespace GladosV3.Modules
         [Summary("How 2 use ...?")]
         public async Task Help([Remainder]string command = null)
         {
+            // ((ITextChannel)Context.Channel).CreateWebhookAsync("GLaDOS V3");
+            
             IDMChannel dm = await Context.Message.Author.GetOrCreateDMChannelAsync();
             Random rnd = new Random();
             EmbedBuilder builder = new EmbedBuilder
             {
                 Color = new Color(rnd.Next(256), rnd.Next(256), rnd.Next(256))
             };
-            string prefix = _config["prefix"]; ;
+            string prefix = IsOwner.botSettingsHelper["prefix"];
             if (command != null)
             {
                 var result = _service.Search(Context, command);
@@ -109,8 +112,9 @@ namespace GladosV3.Modules
 
                     }
                 }
-                foreach (var msg in Tools.SplitMessage($"{list.Aggregate(string.Empty, (current, cmi) => string.Concat(current, $"\n= {cmi.GetModName()} =\n{cmi.GetDec()}\n"))}"))
+                foreach (var msg in Tools.SplitMessage($"{list.Aggregate(string.Empty, (current, cmi) => string.Concat(current, $"\n= {cmi.GetModName()} =\n{cmi.GetDec()}\n"))}",1985))
                     await dm.SendMessageAsync($"```asciidoc\n{msg}```");
+                await dm.CloseAsync();
                 if (Context.Guild != null)
                     await Context.Channel.SendMessageAsync("Check your DMs!");
             }
@@ -119,10 +123,10 @@ namespace GladosV3.Modules
 
     }
 
-    public class CommandInfo
+    internal class CommandInfo
     {
-        private string _module;
-        private string _description;
+        private readonly string _module;
+        private readonly string _description;
 
         internal CommandInfo(string module, string description)
         {

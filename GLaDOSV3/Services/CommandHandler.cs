@@ -1,10 +1,15 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Discord.Commands;
+﻿using Discord.Commands;
 using Discord.WebSocket;
 using GladosV3.Attributes;
+using GladosV3.Helpers;
 using Microsoft.Extensions.Configuration;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SQLite;
+using System.Linq;
+using System.Threading.Tasks;
+using Discord;
 
 namespace GladosV3.Services
 {
@@ -14,54 +19,150 @@ namespace GladosV3.Services
         private readonly CommandService _commands;
         private readonly IConfigurationRoot _config;
         private readonly IServiceProvider _provider;
+        public static List<ulong> BlacklistedIds = new List<ulong>();
+        public static string MaintenanceMode = "";
+        public static bool BotBusy = false;
+        private BotSettingsHelper<string> _botSettingsHelper;
+        public static Dictionary<ulong, string> Prefix = new Dictionary<ulong, string>();
 
+        private string fallbackPrefix = "";
         // DiscordSocketClient, CommandService, IConfigurationRoot, and IServiceProvider are injected automatically from the IServiceProvider
         public CommandHandler(
             DiscordSocketClient discord,
             CommandService commands,
             IConfigurationRoot config,
-            IServiceProvider provider)
+            IServiceProvider provider,
+            BotSettingsHelper<string> botSettingsHelper)
         {
             _discord = discord;
             _commands = commands;
             _config = config;
             _provider = provider;
             _discord.MessageReceived += OnMessageReceivedAsync;
+            _botSettingsHelper = botSettingsHelper;
+            MaintenanceMode = _botSettingsHelper["maintenance"];
+            fallbackPrefix = botSettingsHelper["prefix"];
+            using (DataTable dt = SqLite.Connection.GetValuesAsyncWithGuildIDFilter("BlacklistedUsers").GetAwaiter().GetResult())
+            {
+                for (int i = 0; i < dt.Rows.Count; i++)
+                {
+                    BlacklistedIds.Add(Convert.ToUInt64(dt.Rows[i]["UserId"]));
+                }
+            }
+            {
+              string sql = $"SELECT guildid,prefix FROM servers";
+              using (DataTable dt2 = new DataTable())
+              {
+
+                 using (SQLiteDataAdapter reader = new SQLiteDataAdapter(sql, SqLite.Connection))
+                        reader.Fill(dt2);
+                  dt2.TableName = "servers";
+                  for (int i = 0; i < dt2.Rows.Count; i++)
+                  {
+                      string pref = dt2.Rows[i]["prefix"].ToString();
+                      if (!string.IsNullOrWhiteSpace(pref))
+                          Prefix.Add(Convert.ToUInt64(dt2.Rows[i]["guildid"]), pref);
+                  }
+              }
+            }
         }
-        
+
+        private bool IsUserBlackListed(SocketUserMessage msg)
+        {
+            return BlacklistedIds.Contains(msg.Author.Id);
+        }
         private async Task OnMessageReceivedAsync(SocketMessage s)
         {
-            if (!(s is SocketUserMessage msg)) return; // Ensure the message is from a user/bot
-            if (msg.Author.Id == _discord.CurrentUser.Id) return;     // Ignore self when checking commands
-            if (msg.Author.IsBot) return; // Ignore other bots
-            if(msg.MentionedUsers.Count > 0)
-              await MentionBomb(msg);
+            if (BotBusy) return;
+            if (!(s is SocketUserMessage msg))
+            {
+                return; // Ensure the message is from a user/bot
+            }
+
+            if (msg.Author.Id == _discord.CurrentUser.Id)
+            {
+                return;     // Ignore self when checking commands
+            }
+
+            if (msg.Author.IsBot)
+            {
+                return; // Ignore other bots
+            }
+
+            if (msg.MentionedUsers.Count > 0)
+            {
+                await MentionBomb(msg);
+            }
+
             int argPos = 0; // Check if the message has a valid command prefix
-            if (!msg.HasStringPrefix(_config["prefix"], ref argPos) && !msg.HasMentionPrefix(_discord.CurrentUser, ref argPos))  return; // Ignore messages that aren't meant for the bot
-            var context = new SocketCommandContext(_discord, msg); // Create the command context
-            if (Boolean.Parse(_config["maintenance"]) && !(IsOwner.CheckPermission(context).GetAwaiter().GetResult())) { await context.Channel.SendMessageAsync("This bot is in maintenance mode! Please refrain from using it.").ConfigureAwait(false); ; return; } // Don't execute commands in maintenance mode 
-            var result = await _commands.ExecuteAsync(context, argPos, _provider); // Execute the command
+            string prefix = fallbackPrefix;
+            if((msg.Channel is IGuildChannel ok) && Prefix.TryGetValue(ok.Guild.Id, out string guildPrefix))
+                { prefix = guildPrefix; }
+            if (!msg.HasStringPrefix(prefix, ref argPos) && !msg.HasMentionPrefix(_discord.CurrentUser, ref argPos))
+            {
+                return; // Ignore messages that aren't meant for the bot
+            }
+
+            if (IsUserBlackListed(msg))
+            {
+                return; // We can't let blacklisted users ruin our bot!
+            }
+
+            SocketCommandContext context = new SocketCommandContext(_discord, msg); // Create the command context
+            if (!string.IsNullOrWhiteSpace(MaintenanceMode) && (IsOwner.CheckPermission(context).GetAwaiter().GetResult())) { await context.Channel.SendMessageAsync("Bot is in maintenance mode! Reason: "+MaintenanceMode).ConfigureAwait(false); ; return; } // Don't execute commands in maintenance mode 
+            IResult result = await _commands.ExecuteAsync(context, argPos, _provider); // Execute the command
             if (!result.IsSuccess && result.ErrorReason != "hidden" && result.ErrorReason != "Unknown command.")  // If not successful, reply with the error.
-              switch (result.ErrorReason) // "Custom" error
-              {
-                    case "Invalid context for command; accepted contexts: Guild":
-                        await context.Channel.SendMessageAsync("**Error:** This command must be used in a guild!").ConfigureAwait(false);
+            {
+                switch (result.Error)
+                {
+                    case CommandError.BadArgCount:
                         break;
-                    case "The input text has too few parameters.":
-                        await context.Channel.SendMessageAsync("**Error:** None or few arguments are being used.").ConfigureAwait(false);
+                    case CommandError.Exception:
                         break;
-                    case "User not found.":
-                        await context.Channel.SendMessageAsync("**Error:** No user mention detected.").ConfigureAwait(false);
+                    case CommandError.UnknownCommand:
+                        break;
+                    case CommandError.ParseFailed:
+                        break;
+                    case CommandError.ObjectNotFound:
+                        break;
+                    case CommandError.MultipleMatches:
+                        break;
+                    case CommandError.UnmetPrecondition:
+                        break;
+                    case CommandError.Unsuccessful:
+                        break;
+                    case null:
                         break;
                     default:
-                        await context.Channel.SendMessageAsync($@"**Error:** {result.ErrorReason}").ConfigureAwait(false);
+                        {
+                            switch (result.ErrorReason) // "Custom" error
+                            {
+                                case "Invalid context for command; accepted contexts: Guild":
+                                    await context.Channel.SendMessageAsync("**Error:** This command must be used in a guild!").ConfigureAwait(false);
+                                    break;
+                                case "The input text has too few parameters.":
+                                    await context.Channel.SendMessageAsync("**Error:** None or few arguments are being used.").ConfigureAwait(false);
+                                    break;
+                                case "User not found.":
+                                    await context.Channel.SendMessageAsync("**Error:** No user mention detected.").ConfigureAwait(false);
+                                    break;
+                                default:
+                                    await context.Channel.SendMessageAsync($@"**Error:** {result.ErrorReason}").ConfigureAwait(false);
+                                    break;
+                            }
+                        }
                         break;
-              }
+                }
+            }
         }
 
         private Task MentionBomb(SocketUserMessage msg)
         {
-            if (msg.MentionedUsers.Distinct().Count() < 5) return Task.CompletedTask;
+            if (msg.MentionedUsers.Distinct().Count() < 5)
+            {
+                return Task.CompletedTask;
+            }
+
             msg.DeleteAsync().GetAwaiter();
             msg.Channel.SendMessageAsync($"{msg.Author.Mention} Please don't mention bomb!").GetAwaiter();
             return Task.CompletedTask;

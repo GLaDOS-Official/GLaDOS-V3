@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GladosV3.Module.Music", "Gl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GladosV3.Module.ImageGenerator", "GladosV3.Module.ImageGenerator\GladosV3.Module.ImageGenerator.csproj", "{5E86001E-5AC6-46C7-B304-B61F0F7AE09E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GladosV3.Module.NomadCI", "GladosV3.Module.NomadCI\GladosV3.Module.NomadCI.csproj", "{921A1C2B-686B-4735-813C-B63C6C6B5E0A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GladosV3.Module.NomadCI", "GladosV3.Module.NomadCI\GladosV3.Module.NomadCI.csproj", "{921A1C2B-686B-4735-813C-B63C6C6B5E0A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -88,6 +88,11 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
+		BuildVersion_UseUniversalClock = True
+		BuildVersion_StartDate = 2000/1/1
+		BuildVersion_UpdateFileVersion = True
+		BuildVersion_UpdateAssemblyVersion = True
+		BuildVersion_BuildVersioningStyle = Increment.Increment.Increment.MonthAndDayStamp
 		SolutionGuid = {E32C8939-5B27-4E20-8E69-B21B4E1112C5}
 	EndGlobalSection
 EndGlobal

@@ -22,10 +22,10 @@ namespace GladosV3
 
         public async Task StartAsync()
         {
-            var PInvokeDir = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "PInvoke\\");
-            if (!Directory.Exists(PInvokeDir))
-            { Console.WriteLine("PInvoke directory doesn't exist! Creating!"); Directory.CreateDirectory(PInvokeDir); }
-            if(!PInvokes_DllImport.SetDllDirectory(PInvokeDir))
+            var pInvokeDir = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "PInvoke\\");
+            if (!Directory.Exists(pInvokeDir))
+            { Console.WriteLine("PInvoke directory doesn't exist! Creating!"); Directory.CreateDirectory(pInvokeDir); }
+            if(!PInvokes_DllImport.SetDllDirectory(pInvokeDir))
                 Console.WriteLine($"Failed to call SetDllDirectory PInvoke! Last error code: {System.Runtime.InteropServices.Marshal.GetLastWin32Error()}");
             Tools.ReleaseMemory();
             LoggingService.Begin();
@@ -52,20 +52,22 @@ namespace GladosV3
                 .AddSingleton<StartupService>()     // Do commands on startup
                 .AddSingleton<OnLogonService>()     // Execute commands after websocket connects
                 .AddSingleton<ClientEvents>()       // Discord client events
-                .AddSingleton<Tools>()
+                .AddSingleton<IPLoggerProtection>()       // IP logging service
+                .AddSingleton<BotSettingsHelper<string>>()
                 .AddSingleton(_config);
-            foreach(Type item in new ExtensionLoadingService().GetServices().GetAwaiter().GetResult())
+            foreach(var item in new ExtensionLoadingService().GetServices().GetAwaiter().GetResult())
             {
                 services.AddSingleton(item);
             }
             var provider = services.BuildServiceProvider();     // Create the service provider
 
             provider.GetRequiredService<LoggingService>();      // Initialize the logging service, client events, startup service, on discord log on service, command handler and system message
-            provider.GetRequiredService<Tools>();
             provider.GetRequiredService<ClientEvents>();
             provider.GetRequiredService<OnLogonService>();
             await provider.GetRequiredService<StartupService>().StartAsync();
             provider.GetRequiredService<CommandHandler>();
+            provider.GetRequiredService<IPLoggerProtection>();
+            MemoryHandlerService.Start();
             await Task.Delay(-1);     // Prevent the application from closing
         }
         internal bool IsValidJson()

@@ -14,8 +14,10 @@ namespace GladosV3.Module.Music
         [RequireContext(ContextType.Guild)]
         public Task JoinCmd()
         {
-            if (!AudioService.service.fail)
-                return AudioService.service.JoinAudioAsync(Context.Guild, ((IVoiceState)Context.User).VoiceChannel);
+            if (!AudioService.service.Fail)
+            {
+                return AudioService.service.JoinAudioAsync(Context.Guild, ((IVoiceState) Context.User).VoiceChannel,Context.Client.CurrentUser.Id);
+            }
             Context.Channel.SendMessageAsync("There was an error... Check the logs!").GetAwaiter(); return Task.CompletedTask;
         }
 
@@ -28,7 +30,7 @@ namespace GladosV3.Module.Music
         [RequireContext(ContextType.Guild)]
         public Task LeaveCmd()
         {
-            if (!AudioService.service.fail)
+            if (!AudioService.service.Fail)
                 return AudioService.service.LeaveAudioAsync(Context.Guild);
             Context.Channel.SendMessageAsync("There was an error... Check the logs!").GetAwaiter(); return Task.CompletedTask;
         }
@@ -39,8 +41,10 @@ namespace GladosV3.Module.Music
         [RequireContext(ContextType.Guild)]
         public Task PlayCmd([Remainder] string song)
         {
-            if (!AudioService.service.fail)
-                return AudioService.service.SendAudioAsync(song,Context);
+            if (!AudioService.service.Fail)
+            {
+                return AudioService.service.SendAudioAsync(song, Context);
+            }
             { Context.Channel.SendMessageAsync("There was an error... Check the logs!").GetAwaiter(); return Task.CompletedTask; }
         }
         [Command("queue", RunMode = RunMode.Async)]
@@ -49,7 +53,7 @@ namespace GladosV3.Module.Music
         [RequireContext(ContextType.Guild)]
         public Task QueueCmd()
         {
-            if (AudioService.service.fail)
+            if (AudioService.service.Fail)
             { Context.Channel.SendMessageAsync("There was an error... Check the logs!").GetAwaiter(); return Task.CompletedTask; }
             var result = AudioService.service.QueueAsync(Context.Guild).GetAwaiter().GetResult();
             return ReplyAsync(string.IsNullOrWhiteSpace(result) ? "Queue is empty!" : result);

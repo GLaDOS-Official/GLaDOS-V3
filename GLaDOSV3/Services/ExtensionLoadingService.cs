@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -11,6 +12,15 @@ using Microsoft.Extensions.Configuration;
 
 namespace GladosV3.Services
 {
+    class SimpleUnloadableAssemblyLoadContext : AssemblyLoadContext
+    {
+        public SimpleUnloadableAssemblyLoadContext()
+        {
+        }
+
+        protected override Assembly Load(AssemblyName assemblyName) => null;
+    }
+
     class ExtensionLoadingService
     {
         private readonly DiscordSocketClient _discord;
@@ -53,8 +63,7 @@ namespace GladosV3.Services
                         if (item != null && item.Length > 0)
                             types.AddRange(item); // invoke services method
                     }
-                    catch (Exception) {
-                    }
+                    catch (Exception) { /* ignored */ }
                 }
             }
             return Task.FromResult(types.ToArray());
@@ -68,12 +77,16 @@ namespace GladosV3.Services
             try
             {
                 if (!IsValidCLRFile(file)) return null; // file is not .NET assembly
-                asm = Assembly.LoadFrom(file);
-                if (!IsValidExtension(asm)) return null; // every extension must have ModuleInfo class
+                asm = Assembly.LoadFile(file);
+                if (!IsValidExtension(asm))
+                { return null; } // every extension must have ModuleInfo class
             }
             catch (Exception) { return null; }
+            
             return asm;
         }
+
+        //private List<GladosModuleStruct> extensions = new List<GladosModuleStruct>();
         public async Task Load()
         {
             foreach (var file in Directory.GetFiles(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Modules"), "*.dll")) // Bad extension loading
@@ -81,6 +94,7 @@ namespace GladosV3.Services
                 try
                 {
                     Assembly asm = ValidFile(file);
+                    //this.extensions.Add(asm);
                     if (asm == null) continue;
                     await LoadExtension(asm).ConfigureAwait(false); // load the extension
                     var modules = asm.GetTypes().Where(type => type.IsClass && !type.IsSpecialName && type.IsPublic)
@@ -99,6 +113,16 @@ namespace GladosV3.Services
                 dependencies.Add(asm.FullName, asm);
             }
         }
+        //public Task Unload(string extensionName)
+        //{
+        //    for (int i = 0; i < extensions.Count; i++)
+        //    {
+        //        if (extensions[i].moduleName != extensionName) continue;
+        //        extensions[i] = null;
+        //        return Task.CompletedTask;
+        //    }
+        //    return Task.CompletedTask;
+        //}
         private static IDictionary<string, Assembly> dependencies = new Dictionary<string, Assembly>();
         private Assembly CurrentDomainOnAssemblyResolve(object sender, ResolveEventArgs args)
         {
@@ -145,9 +169,12 @@ namespace GladosV3.Services
                 if (asmType.GetInterfaces().Distinct().FirstOrDefault() != typeof(IGladosModule)) return false; // extension's moduleinfo is not extended
                 ConstructorInfo asmConstructor = asmType.GetConstructor(Type.EmptyTypes); // get extension's constructor
                 object classO = asmConstructor.Invoke(new object[] { }); // create object of class
-                if (string.IsNullOrWhiteSpace(GetModuleInfo(asmType, classO, "Name").ToString())) return false; // class doesn't have Name string
-                if (string.IsNullOrWhiteSpace(GetModuleInfo(asmType, classO, "Version").ToString())) return false; // class doesn't have Version string
-                if (string.IsNullOrWhiteSpace(GetModuleInfo(asmType, classO, "Author").ToString())) return false; // class doesn't have Author string
+                string moduleName = GetModuleInfo(asmType, classO, "Name").ToString();
+                string moduleVersion = GetModuleInfo(asmType, classO, "Version").ToString();
+                string moduleAuthor = GetModuleInfo(asmType, classO, "Author").ToString();
+                if (string.IsNullOrWhiteSpace(moduleName)) return false; // class doesn't have Name string
+                if (string.IsNullOrWhiteSpace(moduleVersion)) return false; // class doesn't have Version string
+                if (string.IsNullOrWhiteSpace(moduleAuthor)) return false; // class doesn't have Author string
             }
             catch
             { return false; }
@@ -163,7 +190,7 @@ namespace GladosV3.Services
                 var memberInfo = asmType.GetMethod("PreLoad", BindingFlags.Instance | BindingFlags.Public); //get PreLoad method
                 if (memberInfo != null)  // does the extension have PreLoad?
                     memberInfo.Invoke(magicClassObject, new object[] { _discord, _commands, _config, _provider });// invoke PreLoad method
-                _commands.AddModulesAsync(asm).GetAwaiter(); // add the extension's commands
+                _commands.AddModulesAsync(asm, _provider).GetAwaiter(); // add the extension's commands
                 memberInfo = asmType.GetMethod("PostLoad", BindingFlags.Instance | BindingFlags.Public); //get PostLoad method
                 if (memberInfo != null)  // does the extension have PostLoad?
                     memberInfo.Invoke(magicClassObject, new object[] { _discord, _commands, _config, _provider });// invoke PostLoad method
@@ -178,4 +205,27 @@ namespace GladosV3.Services
             return memberInfo.Invoke(classO, new object[] { });
         }
     }
+
+    //class GladosModuleStruct
+    //{
+    //    public AppDomain appDomain;
+    //    public AssemblyName asmName;
+    //    public Assembly appAssembly;
+    //    public string moduleName;
+    //    public string moduleAuthor;
+    //    public string moduleVersion;
+    //    public GladosModuleStruct(string path,string moduleName,string moduleAuthor, string moduleVersion)
+    //    {
+    //        appDomain = AppDomain.CreateDomain(moduleName);
+    //        this.moduleName = moduleName;
+    //        this.moduleAuthor = moduleAuthor;
+    //        this.moduleVersion = moduleVersion;
+    //        asmName = new AssemblyName(moduleName) {CodeBase = path};
+    //        appAssembly = appDomain.Load(asmName);
+    //    }
+    //    ~GladosModuleStruct()
+    //    {
+    //        AppDomain.Unload(appDomain);
+    //    }
+    //}
 }

@@ -11,12 +11,12 @@ namespace GladosV3.Services
         public ClientEvents(
             DiscordSocketClient discord)
         {
-            discord.JoinedGuild += JoinedGuild;
+           discord.JoinedGuild += JoinedGuild;
             discord.LeftGuild += LeftGuild;
         }
         private Task JoinedGuild(SocketGuild arg)
         {
-            return SqLite.Connection.AddRecordAsync("servers","guildid",new []{ arg.Id.ToString()});
+            return SqLite.Connection.AddRecordAsync("servers", "guildid,nsfw,join_toggle,leave_toggle,join_msg,leave_msg", new []{ arg.Id.ToString(),"0","0","0", "Hey {mention}! Welcome to {sname}!", "Bye {uname}"});
         }
         private Task LeftGuild(SocketGuild arg)
         {

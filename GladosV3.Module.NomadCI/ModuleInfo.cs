@@ -20,14 +20,14 @@ namespace GladosV3.Module.NomadCI
 
         public void PreLoad(DiscordSocketClient discord, CommandService commands, IConfigurationRoot config, IServiceProvider provider)
         {
-            BuilderService.config = Tools.GetConfigAsync(1).GetAwaiter().GetResult();
+            BuilderService.Config = Tools.GetConfigAsync(1).GetAwaiter().GetResult();
             BuilderService.Service = new BuilderService();
         }
 
         public void PostLoad(DiscordSocketClient discord, CommandService commands, IConfigurationRoot config, IServiceProvider provider)
         {
-            BuilderService.client = discord;
-            BuilderService.client.Ready += BuilderService.LoadCIChannel;
+            BuilderService.Client = discord;
+            BuilderService.Client.Ready += BuilderService.LoadCiChannel;
         }
     }
 }

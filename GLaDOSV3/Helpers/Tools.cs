@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -54,7 +56,7 @@ namespace GladosV3.Helpers
         }
         public static async Task<dynamic> GetProxyAsync()
         {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(new Uri("http://gimmeproxy.com/api/getProxy?anonymityLevel=1&user-agent=true&protocol=http"));
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(new Uri("http://gimmeproxy.com/api/getProxy?anonymityLevel=1&user-agent=true&protocol=http&country=GB,CZ,DE,SK,FR&minSpeed=1024"));
             request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
             string json;
             using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())
@@ -77,17 +79,19 @@ namespace GladosV3.Helpers
         {
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
             GC.WaitForPendingFinalizers();
+            if(SqLite.Connection != null && SqLite.Connection.State != ConnectionState.Closed)
+                SqLite.Connection.ReleaseMemory();
         }
-        public static string[] SplitMessage(string message) // discord.js :D
+        public static string[] SplitMessage(string message, int len) // discord.js :D
         {
-            if (message.Length <= 2000) return new[] { message };
+            if (message.Length <= len) return new[] { message };
             var splitText = message.Split('\n');
             if (splitText.Length == 1) throw new Exception("SPLIT_MAX_LEN");
             List<string> messages = new List<string>();
             var msg = "";
             foreach (var chunk in splitText)
             {
-                if (($"{msg}\n{chunk}").Length > 2000)
+                if (($"{msg}\n{chunk}").Length > len)
                 {
                     messages.Add(msg);
                     msg = "";
@@ -98,6 +102,7 @@ namespace GladosV3.Helpers
 
             messages.Add(msg);
             return messages.ToArray();
+
         }
     }
 }

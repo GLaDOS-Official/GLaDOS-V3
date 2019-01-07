@@ -2,12 +2,23 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <RootNamespace>GladosV3</RootNamespace>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
   <PropertyGroup>
     <TransformOnBuild>true</TransformOnBuild>
+    <AssemblyVersion>1.0.165.6</AssemblyVersion>
+    <FileVersion>1.0.165.6</FileVersion>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <Version>1.0.0.0</Version>
+    <Product>GladosV3</Product>
+    <Authors>GladosV3</Authors>
+    <Company>GladosV3</Company>
+    <PackageId>GladosV3</PackageId>
+    <Description></Description>
+    <StartupObject>GladosV3.Program</StartupObject>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <Prefer32Bit>false</Prefer32Bit>
@@ -24,20 +35,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Discord.Net" Version="1.0.2" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.7.1" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Compilers" Version="2.7.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.7.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.1.0-preview1-final" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.0-preview1-final" />
+    <PackageReference Include="Discord.Net" Version="2.0.1" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.8.11" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Compilers" Version="2.11.0-beta1-final" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.11.0-beta1-final" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="3.0.0-preview.18572.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.0.0-preview.18572.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.0.0-preview.18572.1" />
     <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
     <PackageReference Include="SQLite.Native" Version="3.12.3" />
-    <PackageReference Include="System.Data.SQLite" Version="1.0.108" />
-    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.108" />
-    <PackageReference Include="System.Data.SQLite.Linq" Version="1.0.108" />
-    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="4.5.0-preview1-26216-02" />
+    <PackageReference Include="System.Data.SQLite" Version="1.0.109.2" />
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.109.2" />
+    <PackageReference Include="System.Data.SQLite.Linq" Version="1.0.109" />
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="4.6.0-preview.18571.3" />
   </ItemGroup>
-
 
   <ItemGroup>
     <None Update="database.db">

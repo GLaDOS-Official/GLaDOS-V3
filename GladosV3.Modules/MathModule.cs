@@ -19,6 +19,7 @@ namespace GladosV3.Module.Default
         {
             try
             {
+                math = math.Replace("PI", "pi");
                 var done = new Expression(math).calculate();
                 if (double.IsNaN(done))
                     throw new FormatException("idk");

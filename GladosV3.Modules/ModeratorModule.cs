@@ -1,10 +1,11 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using GladosV3.Attributes;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace GladosV3.Module.Default
 {
@@ -21,20 +22,24 @@ namespace GladosV3.Module.Default
         public async Task Purge(int count = 100)
         {
             if (count < 2)
+            {
                 await ReplyAsync("**ERROR: **Please Specify the amount of messages you want to clear");
+            }
             else if (count > 100)
+            {
                 await ReplyAsync("**Error: **I can only clear 100 Messages at a time!");
+            }
             else
             {
                 await Context.Message.DeleteAsync().ConfigureAwait(false);
-                var limit = count < 100 ? count : 100;
-                var enumerable = await Context.Channel.GetMessagesAsync(limit).Flatten().ConfigureAwait(false);
+                int limit = count < 100 ? count : 100;
+                var enumerable = Context.Channel.GetMessagesAsync(limit).Flatten();
                 try
                 {
-                    var enumerable1 = enumerable as IMessage[] ?? enumerable.ToArray();
-                    var messages = enumerable1.Where((something) => (something.Timestamp - DateTimeOffset.UtcNow).TotalDays > -13).OrderByDescending(msg => msg.Timestamp);
-                    await Context.Channel.DeleteMessagesAsync(messages);
-                    var warning = enumerable1.Count() - messages.Count() != 0 ? "Some messages failed to delete! This is not an error." : null;
+                    IMessage[] enumerable1 = await enumerable.ToArray();
+                    IOrderedEnumerable<IMessage> messages = enumerable1.Where((something) => (something.Timestamp - DateTimeOffset.UtcNow).TotalDays > -13).OrderByDescending(msg => msg.Timestamp);
+                    await ((ITextChannel)Context.Channel).DeleteMessagesAsync(messages);
+                    string warning = enumerable1.Count() - messages.Count() != 0 ? "Some messages failed to delete! This is not an error." : null;
                     await ReplyAsync($"Purged {messages.Count().ToString()} messages! {warning}");
                 }
                 catch (ArgumentOutOfRangeException)
@@ -53,22 +58,29 @@ namespace GladosV3.Module.Default
         public async Task Prune(IUser UserMention, int count = 100)
         {
             if (count < 2)
+            {
                 await ReplyAsync("**ERROR: **Please Specify the amount of messages you want to clear");
+            }
             else if (count > 100)
+            {
                 await ReplyAsync("**Error: **I can only clear 100 Messages at a time!");
+            }
+
             await Context.Message.DeleteAsync().ConfigureAwait(false);
-            var newlist = (await Context.Channel.GetMessagesAsync().Flatten().ConfigureAwait(false)).Where(x => x.Author == UserMention && (x.Timestamp - DateTimeOffset.UtcNow).TotalDays > -13).Take(count).ToArray();
+            IMessage[] newlist = await (Context.Channel.GetMessagesAsync().Flatten()).Where(x => x.Author == UserMention && (x.Timestamp - DateTimeOffset.UtcNow).TotalDays > -13).Take(count).ToArray();
             try
             {
-                await Context.Channel.DeleteMessagesAsync(newlist).ConfigureAwait(false);
+                await ((ITextChannel)Context.Channel).DeleteMessagesAsync(newlist).ConfigureAwait(false);
                 await ReplyAsync($"Purged {newlist.Count().ToString()} from <@{UserMention.Id}> messages!");
             }
             catch (ArgumentOutOfRangeException)
             {
                 await ReplyAsync("Some messages failed to delete! This is not a error and can not be fixed!");
-                return;
             }
-            await ReplyAsync($"Cleared **{UserMention.Username}'s** Messages (Count = {newlist.Length.ToString()})");
+            if (newlist.Length > 0)
+            {
+                await ReplyAsync($"Cleared **{UserMention.Username}'s** Messages (Count = {newlist.Length.ToString()})");
+            }
         }
         [Command("kick")]
         [Remarks("kick <user> [reason]")]
@@ -78,22 +90,52 @@ namespace GladosV3.Module.Default
         [RequireMFA]
         public async Task Kick(SocketGuildUser UserMention, [Remainder] string reason = "Unspecified.")
         {
+            bool silent = false;
+            if (reason.Contains("--s"))
+            {
+                await Context.Message.DeleteAsync();
+                reason = reason.Replace("--s", "");
+                silent = true;
+            }
             if (UserMention.Id == Context.User.Id)
-            { await ReplyAsync("Why would you kick yourself?"); return; }
+            {
+                if (!silent)
+                    await ReplyAsync("Why would you kick yourself?");
+                else
+                    await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync("Why would you kick yourself?").GetAwaiter().GetResult().Channel).CloseAsync();
+               return;
+            }
             SocketGuildUser moderator = Context.User as SocketGuildUser;
             if (UserMention.Hierarchy > moderator?.Hierarchy)
-            { await ReplyAsync($"Sorry, you can't kick {UserMention.Mention} as he's above you."); return; }
+            {
+                if (!silent)
+                    await ReplyAsync($"Sorry, you can't kick {UserMention.Mention} as he's above you.");
+                else
+                    await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync($"Sorry, you can't kick {UserMention.Mention} as he's above you.").GetAwaiter().GetResult().Channel).CloseAsync();
+                return;
+            }
 
             if (UserMention?.Hierarchy > Context.Guild.CurrentUser.Hierarchy)
-            { await ReplyAsync($"Sorry, I can't kick {UserMention.Mention} as he's above me."); return; }
+            {
+                if (!silent)
+                    await ReplyAsync($"Sorry, I can't kick {UserMention.Mention} as he's above me.");
+                else
+                    await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync($"Sorry, I can't kick {UserMention.Mention} as he's above me.").GetAwaiter().GetResult().Channel).CloseAsync();
+                return;
+            }
 
             if (UserMention?.Id == Context.Client.CurrentUser.Id)
             { await ReplyAsync($"Ok, bye!"); await Context.Guild.LeaveAsync(); return; }
             try
             {
+                await UserMention.SendMessageAsync($"You were kicked from {Context.Guild.Name} for \"{reason}\" by {Context.Client.CurrentUser.Username}#{Context.Client.CurrentUser.Discriminator}");
+
                 await UserMention.KickAsync(
-                    $"Kicked by {Context.Client.CurrentUser.Username}#{Context.Client.CurrentUser.Discriminator} Reason: {reason}");
-                await ReplyAsync($"Bai bai {UserMention.Mention}! :wave:");
+                    $"Kicked by {Context.Message.Author.Username}#{Context.Message.Author.Discriminator} Reason: {reason}");
+                if(!silent)
+                    await ReplyAsync($"Bai bai {UserMention.Mention}! :wave:");
+                else
+                    await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync($"Bai bai {UserMention.Mention}! :wave:").GetAwaiter().GetResult().Channel).CloseAsync();
             }
             catch
             {
@@ -106,42 +148,60 @@ namespace GladosV3.Module.Default
         [Attributes.RequireUserPermission(GuildPermission.BanMembers)]
         [RequireBotPermission(GuildPermission.BanMembers)]
         [RequireMFA]
-        public async Task Ban(SocketGuildUser UserMention, [Remainder] params string[] reasonArray)
+        public async Task Ban(SocketGuildUser UserMention, [Remainder] string reason = "Unspecified.")
         {
+            bool silent = false;
+            if (reason.Contains("--s"))
+            {
+                await Context.Message.DeleteAsync();
+                reason = reason.Replace("--s", "");
+                silent = true;
+            }
             if (UserMention.Id == Context.User.Id)
-            { await ReplyAsync("Why would you ban yourself?"); return; }
+            {
+                if (!silent)
+                    await ReplyAsync("Why would you ban yourself?");
+                else
+                    await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync("Why would you ban yourself?").GetAwaiter().GetResult().Channel).CloseAsync();
+                return;
+            }
             SocketGuildUser moderator = Context.User as SocketGuildUser;
-            if(moderator?.Hierarchy > UserMention.Hierarchy)
-            { await ReplyAsync($"Sorry, you can't ban {UserMention.Mention} as he's above you."); return;}
+            if (UserMention.Hierarchy > moderator?.Hierarchy)
+            {
+                if (!silent)
+                    await ReplyAsync($"Sorry, you can't ban {UserMention.Mention} as he's above you.");
+                else
+                    await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync($"Sorry, you can't ban {UserMention.Mention} as he's above you.").GetAwaiter().GetResult().Channel).CloseAsync();
+                return;
+            }
 
-            if(UserMention?.Hierarchy > Context.Guild.CurrentUser.Hierarchy)
-            { await ReplyAsync($"Sorry, I can't ban {UserMention.Mention} as he's above me."); return; }
+            if (UserMention?.Hierarchy > Context.Guild.CurrentUser.Hierarchy)
+            {
+                if (!silent)
+                    await ReplyAsync($"Sorry, I can't ban {UserMention.Mention} as he's above me.");
+                else
+                    await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync($"Sorry, I can't ban {UserMention.Mention} as he's above me.").GetAwaiter().GetResult().Channel).CloseAsync();
+                return;
+            }
 
-            if(UserMention?.Id == Context.Client.CurrentUser.Id)
-            { await ReplyAsync($"Ok, bye!"); await Context.Guild.LeaveAsync();  return; }
+            if (UserMention?.Id == Context.Client.CurrentUser.Id)
+            { await ReplyAsync($"Ok, bye!"); await Context.Guild.LeaveAsync(); return; }
             try
             {
-                
+                await UserMention.SendMessageAsync($"You were banned from {Context.Guild.Name} for \"{reason}\" by {Context.Client.CurrentUser.Username}#{Context.Client.CurrentUser.Discriminator}");
                 await Context.Guild.AddBanAsync(UserMention, 0,
-                    $"Banned by {Context.Message.Author.Username}#{Context.Message.Author.Discriminator} Reason: {string.Join(" ", reasonArray)}");
-                await ReplyAsync($"Begone {UserMention.Mention}!");
+                    $"Banned by {Context.Message.Author.Username}#{Context.Message.Author.Discriminator} Reason: {reason}");
+                if (!silent)
+                    await ReplyAsync($"Begone {UserMention.Mention}!");
+                else
+                    await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync($"Begone {UserMention.Mention}!").GetAwaiter().GetResult().Channel).CloseAsync();
+
             }
             catch
             {
                 await ReplyAsync($"How? I seem that I unable to ban {UserMention.Mention}!");
             }
         }
-
-        /*[Command("leave")]
-        [Remarks("leave")]
-        [Summary("Sad to see you go!")]
-        [Attributes.RequireUserPermission(GuildPermission.ManageGuild)]
-        public async Task Leave()
-        {
-            if (Context.Guild == null) { await ReplyAsync("This command can only be ran in a server."); return; }
-            await ReplyAsync("Bye! :wave:");
-            await Context.Guild.LeaveAsync();
-        }*/
 
         [Command("say"), Alias("s")]
         [Remarks("say <text>")]

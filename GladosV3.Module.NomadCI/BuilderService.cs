@@ -20,14 +20,14 @@ namespace GladosV3.Module.NomadCI
     {
         #region Variables
         public static BuilderService Service;
-        internal static JObject config;
+        internal static JObject Config;
         internal static bool IsBuilding;
         internal static double TimerValue;
-        internal static Timer _timer;
+        internal static Timer Timer;
         internal string BatchFilePath;
-        internal static DiscordSocketClient client;
-        public static SocketTextChannel textChannel;
-        internal static DateTime nextBuildTime;
+        internal static DiscordSocketClient Client;
+        public static SocketTextChannel TextChannel;
+        internal static DateTime NextBuildTime;
         #region IncremenentVersion pinvoke stuff
         [DllImport("VersionIncrementer.dll", SetLastError = true, CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I4)]
@@ -38,37 +38,37 @@ namespace GladosV3.Module.NomadCI
         public BuilderService()
         {
             if(!File.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "PInvoke\\VersionIncrementer.dll"))) { LoggingService.Log(LogSeverity.Error, "NomadCI", "VersionIncrementer not found in the PInvoke directory!"); return; }
-            BatchFilePath = config["nomad"]["batPath"].Value<string>();
+            BatchFilePath = Config["nomad"]["batPath"].Value<string>();
             if (!File.Exists(BatchFilePath))
             {
                 LoggingService.Log(LogSeverity.Error, "NomadCI", $"Batch file not found : {BatchFilePath}");
                 BatchFilePath = null;
             }
-            TimerValue = config["nomad"]["time"].Value<Double>();
-            nextBuildTime = DateTime.Now.AddMilliseconds(TimerValue);
+            TimerValue = Config["nomad"]["time"].Value<Double>();
+            NextBuildTime = DateTime.Now.AddMilliseconds(TimerValue);
             if (!string.IsNullOrWhiteSpace(BatchFilePath) && TimerValue > 1)
             {
-                _timer = new Timer { Enabled = true, Interval = TimerValue };
-                _timer.Elapsed += (sender, args) => { BuildNow().GetAwaiter().GetResult(); };
+                Timer = new Timer { Enabled = true, Interval = TimerValue };
+                Timer.Elapsed += (sender, args) => { BuildNow().GetAwaiter().GetResult(); };
             }
             else
                 LoggingService.Log(LogSeverity.Error, "NomadCI", "Failed to load!");
         }
 
-        public static Task LoadCIChannel()
+        public static Task LoadCiChannel()
         {
-            textChannel = client.GetChannel(config["nomad"]["CIChannel"].Value<ulong>()) as SocketTextChannel;
-            client.Ready -= LoadCIChannel;
+            TextChannel = Client.GetChannel(Config["nomad"]["CIChannel"].Value<ulong>()) as SocketTextChannel;
+            Client.Ready -= LoadCiChannel;
             return Task.CompletedTask;
         }
         public Task BuildNow()
         {
-            if (textChannel == null) return Task.CompletedTask;
-            if (string.IsNullOrWhiteSpace(BatchFilePath) || TimerValue < 1) { textChannel.SendMessageAsync("Failed to build! Check the config file!").GetAwaiter().GetResult(); return Task.CompletedTask; }
-            if (IsBuilding) { textChannel.SendMessageAsync("Sorry pal, it's currently building!").GetAwaiter().GetResult(); return Task.CompletedTask; }
+            if (TextChannel == null) return Task.CompletedTask;
+            if (string.IsNullOrWhiteSpace(BatchFilePath) || TimerValue < 1) { TextChannel.SendMessageAsync("Failed to build! Check the config file!").GetAwaiter().GetResult(); return Task.CompletedTask; }
+            if (IsBuilding) { TextChannel.SendMessageAsync("Sorry pal, it's currently building!").GetAwaiter().GetResult(); return Task.CompletedTask; }
             IsBuilding = true;
-            textChannel.SendMessageAsync("Build started! Build command has been disabled!").GetAwaiter().GetResult();
-            _timer.Stop();
+            TextChannel.SendMessageAsync("Build started! Build command has been disabled!").GetAwaiter().GetResult();
+            Timer.Stop();
             try
             {
                 string build = "";
@@ -79,12 +79,12 @@ namespace GladosV3.Module.NomadCI
                     WindowStyle = ProcessWindowStyle.Hidden,
                     RedirectStandardOutput = true
                 });
-                using (StreamReader sw = process.StandardOutput)
+                using (StreamReader sw = process?.StandardOutput)
                 {
                     string text = sw.ReadToEndAsync().GetAwaiter().GetResult();
-                    if (!string.IsNullOrWhiteSpace(config["nomad"]["logFile"].Value<string>()))
+                    if (!string.IsNullOrWhiteSpace(Config["nomad"]["logFile"].Value<string>()))
                     {
-                        var file = File.CreateText(config["nomad"]["logFile"].Value<string>());
+                        var file = File.CreateText(Config["nomad"]["logFile"].Value<string>());
                         file.WriteAsync(text).GetAwaiter().GetResult();
                         file.Flush();
                         file.Close();
@@ -101,7 +101,7 @@ namespace GladosV3.Module.NomadCI
                     sw.BaseStream.Flush();
                     sw.BaseStream.Close();
                 }
-                process.WaitForExit();
+                process?.WaitForExit();
                 Dictionary<string, NomadJsonObject> objects = new Dictionary<string, NomadJsonObject>();
                 CreateObjects(build, objects);
                 Compress(new DirectoryInfo(build), objects);
@@ -111,37 +111,36 @@ namespace GladosV3.Module.NomadCI
             catch (Exception ex)
             {
                 LoggingService.Log(LogSeverity.Error, "NomadCI", $"Exception happened during build!{Environment.NewLine}   {ex.Message}{Environment.NewLine}   Type: {ex.GetType()}{Environment.NewLine}{ex.StackTrace}");
-                textChannel.SendMessageAsync($"Exception happened during build! Details should be inside the console.").GetAwaiter().GetResult();
-                _timer.Interval = TimerValue;
-                _timer.Start();
+                TextChannel.SendMessageAsync($"Exception happened during build! Details should be inside the console.").GetAwaiter().GetResult();
+                Timer.Interval = TimerValue;
+                Timer.Start();
                 IsBuilding = false;
                 return Task.CompletedTask;
             }
-            _timer.Interval = TimerValue;
-            nextBuildTime = DateTime.Now.AddMilliseconds(TimerValue);
-            _timer.Start();
+            Timer.Interval = TimerValue;
+            NextBuildTime = DateTime.Now.AddMilliseconds(TimerValue);
+            Timer.Start();
             IsBuilding = false;
-            string TryingToBeFunnyHereLol = string.IsNullOrWhiteSpace(config["nomad"]["logFile"].Value<string>()) ? "oh wait......" : null;
-            textChannel.SendMessageAsync($"Done! Should be compiled! Build command has been. Also, log is available... you know where :^) {TryingToBeFunnyHereLol}").GetAwaiter().GetResult();
+            TextChannel.SendMessageAsync($"Done! Should be compiled! Build command has been. Also, log is available... you know where :^) {(string.IsNullOrWhiteSpace(Config["nomad"]["logFile"].Value<string>()) ? "oh wait......" : "")}").GetAwaiter().GetResult();
             return Task.CompletedTask;
         }
         internal void IncrementVersionTask(string output)
         {
-            List<int> array = config["nomad"]["nextVersion"].Value<string>().Split('.').ToList().ConvertAll(int.Parse);
+            List<int> array = Config["nomad"]["nextVersion"].Value<string>().Split('.').ToList().ConvertAll(int.Parse);
             int bPart = array[3]; // build number
             int pPart = array[2]; // revision number
             int minorPart = array[1]; // minor number
             int majorPart = array[0]; // major number
             bPart++;
-            if (bPart > config["nomad"]["bPart"].Value<Int32>() + 100)
-            { pPart++; config["nomad"]["bPart"] = bPart; }
+            if (bPart > Config["nomad"]["bPart"].Value<Int32>() + 100)
+            { pPart++; Config["nomad"]["bPart"] = bPart; }
             else if (pPart > 250)
             { minorPart++; pPart = 0; }
             else if (minorPart > 100)
             { majorPart++; minorPart = 0; }
             string version = $"{majorPart}.{minorPart}.{pPart}.{bPart}";
-            config["nomad"]["nextVersion"] = version;
-            File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "_configuration.json"), config.ToString());
+            Config["nomad"]["nextVersion"] = version;
+            File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "_configuration.json"), Config.ToString());
             foreach (var pattern in new[] { "*.exe", "*.dll" })
                 foreach (var file in Directory.GetFiles(output, pattern)) // , "*.exe|*.dll"
                 {
@@ -157,7 +156,7 @@ namespace GladosV3.Module.NomadCI
                 foreach (var file in Directory.GetFiles(output, pattern)) // , "*.exe|*.dll"
                 {
                     objects.TryGetValue(Path.GetFileName(file), out NomadJsonObject nomadJsonObject);
-                    JToken value = JValue.FromObject(nomadJsonObject);
+                    JToken value = JToken.FromObject(nomadJsonObject);
                     array.Add(value);
                 }
             if (array.Count <= 0)
@@ -193,14 +192,14 @@ namespace GladosV3.Module.NomadCI
     internal class NomadJsonObject
     {
         public string Name;
-        public byte[] MD5Hash;
+        public byte[] Md5Hash;
         public long Size;
         public bool Zipped;
 
         public NomadJsonObject(string name, byte[] hash, long size)
         {
             Name = name;
-            MD5Hash = hash;
+            Md5Hash = hash;
             Size = size;
         }
     }

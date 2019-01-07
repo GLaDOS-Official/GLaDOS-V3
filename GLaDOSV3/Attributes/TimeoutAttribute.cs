@@ -67,7 +67,7 @@ namespace GladosV3.Attributes
             _applyPerGuild = applyPerGuild;
         }
 
-        public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command,
+        public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command,
             IServiceProvider services)
         {
             if (!IsOwner.CheckPermission(context).GetAwaiter().GetResult()) // bypass for owner of the bot

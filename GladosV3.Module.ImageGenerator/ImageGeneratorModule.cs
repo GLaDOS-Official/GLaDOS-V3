@@ -24,7 +24,7 @@ namespace GladosV3.Module.ImageGeneration
                 await Context.Channel.SendMessageAsync("There was an error... Check the logs!");
         }
         [Command("shit", RunMode = RunMode.Async)]
-        [Remarks("shit")]
+        [Remarks("shit <who>")]
         [Summary("shit")]
         [Timeout(1,30, Measure.Seconds)]
         public async Task Shit([Remainder]string text)
@@ -34,6 +34,17 @@ namespace GladosV3.Module.ImageGeneration
             else
                 await Context.Channel.SendMessageAsync("There was an error... Check the logs!");
         }
-        
+        [Command("mc", RunMode = RunMode.Async)]
+        [Remarks("mc <name>")]
+        [Summary("Achivement get!")]
+        [Timeout(1,30,Measure.Seconds)]
+        public async Task Minecraft([Remainder]string text)
+        {
+            if (!_service.fail)
+                await Context.Channel.SendFileAsync(_service.MinecraftAchivementGet(text, Context).GetAwaiter().GetResult(), "minecraft_bullshit.jpg");
+            else
+                await Context.Channel.SendMessageAsync("There was an error... Check the logs!");
+        }
+
     }
 }

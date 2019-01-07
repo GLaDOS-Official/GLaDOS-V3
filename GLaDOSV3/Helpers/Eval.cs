@@ -1,17 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Discord.Commands;
+﻿using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Data.SQLite;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace GladosV3.Helpers
 {
-   public class Eval
-   {
+    public class Eval
+    {
         public class Globals
         {
             public SocketUserMessage Message => Context.Message;
@@ -22,6 +23,7 @@ namespace GladosV3.Helpers
             public DiscordSocketClient Client => Context.Client;
             public Tools Tools => new Tools();
             public SocketCommandContext Context { get; private set; }
+            public SQLiteConnection SQLConnection = SqLite.Connection;
 
             public Globals(SocketCommandContext ctx)
             {
@@ -33,17 +35,21 @@ namespace GladosV3.Helpers
             List<string> imports = new List<string>(16)
             {
                 "System", "System.Collections.Generic", "System.Reflection", "System.Text", "System.Threading.Tasks","System.Linq","System.Math",
-                "System.IO","Microsoft.Extensions.Configuration","System.Diagnostics","GladosV3.Helpers","Discord","Discord.Commands","Discord.WebSocket","Newtonsoft.Json"
+                "System.IO","Microsoft.Extensions.Configuration","System.Diagnostics","GladosV3.Helpers","Discord","Discord.Commands","Discord.WebSocket","Newtonsoft.Json",
+                "System.Data.SQLite"
             };
             try
-                {
+            {
                 ScriptOptions options = ScriptOptions.Default.WithReferences(AppDomain.CurrentDomain.GetAssemblies().Where(asm => !asm.IsDynamic && !string.IsNullOrWhiteSpace(asm.Location))).WithImports(imports).WithEmitDebugInformation(true);
                 Script result = CSharpScript.Create(cScode, options, typeof(Globals));
-                var returnVal = result.RunAsync(new Globals(ctx)).GetAwaiter().GetResult().ReturnValue?.ToString();
+                string returnVal = result.RunAsync(new Globals(ctx)).GetAwaiter().GetResult().ReturnValue?.ToString();
                 if (!string.IsNullOrWhiteSpace(returnVal) && returnVal?.Contains(Tools.GetConfigAsync(0).GetAwaiter().GetResult()["tokens:discord"]))
-                   returnVal = returnVal?.Replace(Tools.GetConfigAsync(0).GetAwaiter().GetResult()["tokens:discord"].ToString(),
+                {
+                    returnVal = returnVal?.Replace(Tools.GetConfigAsync(0).GetAwaiter().GetResult()["tokens:discord"].ToString(),
                         "Nah, no token leak 4 u.");
-                return !string.IsNullOrWhiteSpace(returnVal) ? await Task.FromResult( $"**Executed!**{Environment.NewLine}Output: ```{string.Join(Environment.NewLine, returnVal)}```").ConfigureAwait(true) : await Task.FromResult("**Executed!** *No output.*");
+                }
+
+                return !string.IsNullOrWhiteSpace(returnVal) ? await Task.FromResult($"**Executed!**{Environment.NewLine}Output: ```{string.Join(Environment.NewLine, returnVal)}```").ConfigureAwait(true) : await Task.FromResult("**Executed!** *No output.*");
             }
             catch (CompilationErrorException e)
             {
@@ -54,5 +60,5 @@ namespace GladosV3.Helpers
                 return await Task.FromResult($"**Exception!**{e.Message}\n{e.StackTrace}");
             }
         }
-   }
+    }
 }

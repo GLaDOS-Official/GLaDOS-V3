@@ -1,15 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <AssemblyVersion>1.0.54.6</AssemblyVersion>
+    <FileVersion>1.0.54.6</FileVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath></OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath></OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GLaDOSV3\GladosV3.csproj" />
+    <Folder Include="Binaries\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Binaries\" />
+    <ProjectReference Include="..\GLaDOSV3\GladosV3.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,9 +34,9 @@
     </None>
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.0\Modules\"></Copy>
-    <Copy SourceFiles="Binaries\wkhtmltoimage.exe" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.0\Binaries\"></Copy>
-    <Copy SourceFiles="Images\shit.html" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.0\Images\"></Copy>
-    <Copy SourceFiles="Images\delete.html" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.0\Images\"></Copy>
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.1\Modules\"></Copy>
+    <Copy SourceFiles="Binaries\wkhtmltoimage.exe" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.1\Binaries\"></Copy>
+    <Copy SourceFiles="Images\shit.html" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.1\Images\"></Copy>
+    <Copy SourceFiles="Images\delete.html" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.1\Images\"></Copy>
   </Target>
 </Project>

@@ -32,6 +32,7 @@ namespace GladosV3.Helpers
         /// <summary>
         /// Creates a table with a name and parameters..
         /// </summary>
+       
         public static Task CreateTableAsync(this SQLiteConnection connection, string tableName,string parameters)
         {
             string sql = $"CREATE TABLE `{tableName}` ({parameters});";
@@ -42,9 +43,9 @@ namespace GladosV3.Helpers
         /// <summary>
         /// Sets/updates a value in a table.
         /// </summary>
-        public static Task SetValueAsync<T>(this SQLiteConnection connection, string tableName, string parameter,T value, string guildid = "")
+        public static Task SetValueAsyncWithGuildFiltering<T>(this SQLiteConnection connection, string tableName, string parameter,T value, string guildid = "")
         {
-            string sql = $"UPDATE {tableName} SET {parameter}='{value.ToString()}'";
+            string sql = $"UPDATE {tableName} SET {parameter}='{value}'";
             if (guildid != "")
                 sql += $" WHERE guildid={guildid}";
             using (SQLiteCommand command = new SQLiteCommand(sql, connection))
@@ -52,14 +53,64 @@ namespace GladosV3.Helpers
             return Task.CompletedTask;
         }
         /// <summary>
+        /// Sets/updates a value to null in a table.
+        /// </summary>
+        public static Task SetValueToNullAsyncWithGuildFiltering(this SQLiteConnection connection, string tableName, string parameter, string guildid = "")
+        {
+            string sql = $"UPDATE {tableName} SET {parameter}=null";
+            if (guildid != "")
+                sql += $" WHERE guildid={guildid}";
+            using (SQLiteCommand command = new SQLiteCommand(sql, connection))
+                command.ExecuteNonQuery();
+            return Task.CompletedTask;
+        }
+        /// <summary>
+        /// Sets/updates a value in a table.
+        /// </summary>
+        public static Task SetValueAsync<T>(this SQLiteConnection connection, string tableName, string parameter, T value, string filter = "")
+        {
+            string sql = $"UPDATE {tableName} SET {parameter}='{value.ToString()}'";
+            if (filter != "")
+                sql += $" {filter}";
+            using (SQLiteCommand command = new SQLiteCommand(sql, connection))
+                command.ExecuteNonQuery();
+            return Task.CompletedTask;
+        }
+        /// <summary>
+        /// Sets/updates a value to null in a table.
+        /// </summary>
+        public static Task SetValueToNullAsync(this SQLiteConnection connection, string tableName, string parameter, string filter = "")
+        {
+            string sql = $"UPDATE {tableName} SET {parameter}=null";
+            if (filter != "")
+                sql += $" {filter}";
+            using (SQLiteCommand command = new SQLiteCommand(sql, connection))
+                command.ExecuteNonQuery();
+            return Task.CompletedTask;
+        }
+        /// <summary>
         /// Returns a DataTable.
         /// </summary>
-        public static Task<DataTable> GetValuesAsync(this SQLiteConnection connection, string tableName,string guildid="")
+        public static Task<DataTable> GetValuesAsyncWithGuildIDFilter(this SQLiteConnection connection, string tableName, string guildid="")
         {
             string sql = $"SELECT * FROM {tableName}";
             DataTable dt = new DataTable();
             if (guildid != "")
                 sql += $" WHERE guildid='{guildid}'";
+            using (SQLiteDataAdapter reader = new SQLiteDataAdapter(sql, connection))
+                reader.Fill(dt);
+            dt.TableName = tableName;
+            return Task.FromResult(dt);
+        }
+        /// <summary>
+        /// Returns a DataTable.
+        /// </summary>
+        public static Task<DataTable> GetValuesAsync(this SQLiteConnection connection, string tableName, string filter = "")
+        {
+            string sql = $"SELECT * FROM {tableName}";
+            DataTable dt = new DataTable();
+            if (filter != "")
+                sql += $" {filter}";
             using (SQLiteDataAdapter reader = new SQLiteDataAdapter(sql, connection))
                 reader.Fill(dt);
             dt.TableName = tableName;
@@ -73,10 +124,15 @@ namespace GladosV3.Helpers
             if (!File.Exists(DirPath))
                 SQLiteConnection.CreateFile(DirPath);
             Connection.Open();
-            if(!Connection.TableExistsAsync("servers").GetAwaiter().GetResult())
-                Connection.CreateTableAsync("servers", "`guildid` INTEGER,`nsfw` INTEGER DEFAULT \'false\',`joinleave_cid` INTEGER,`join_msg` TEXT DEFAULT \'Hey {mention}! Welcome to {sname}!\',`join_toggle` INTEGER DEFAULT 0,`leave_msg` TEXT DEFAULT \'Bye {uname}!\',`leave_toggle` INTEGER DEFAULT 0");
+            //CREATE TABLE "servers" ( `guildid` INTEGER, `nsfw` INTEGER, `joinleave_cid` INTEGER, `join_msg` TEXT, `join_toggle` INTEGER, `leave_msg` TEXT, `leave_toggle` INTEGER, `prefix` TEXT )
+            if (!Connection.TableExistsAsync("servers").GetAwaiter().GetResult())
+                Connection.CreateTableAsync("servers", "`guildid` INTEGER, `nsfw` INTEGER, `joinleave_cid` INTEGER, `join_msg` TEXT, `join_toggle` INTEGER, `leave_msg` TEXT, `leave_toggle` INTEGER, `prefix` TEXT");
             if (!Connection.TableExistsAsync("BlacklistedUsers").GetAwaiter().GetResult())
                 Connection.CreateTableAsync("BlacklistedUsers", "`UserId` INTEGER,`Reason` TEXT DEFAULT \'Unspecified.\', `Date` INTEGER");
+            if (!Connection.TableExistsAsync("BotSettings").GetAwaiter().GetResult())
+                Connection.CreateTableAsync("BotSettings", "`ID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, `name` TEXT, `value` TEXT");
+            if(!Connection.TableExistsAsync("BlacklistedServers").GetAwaiter().GetResult())
+                Connection.CreateTableAsync("BlacklistedServers", "`guildid` INTEGER, `date` TEXT, `reason` TEXT");
         }
         /// <summary>
         /// Adds a new row into a table.
@@ -109,6 +165,17 @@ namespace GladosV3.Helpers
             string sql = $"DELETE FROM {tablename} WHERE {filter}";
             using (SQLiteCommand command = new SQLiteCommand(sql, Connection))
                 command.ExecuteNonQuery();
+            return Task.CompletedTask;
+        }
+        /// <summary>
+        ///  Executes SQL command
+        /// </summary>
+        public static Task ExecuteSQL(this SQLiteConnection connection, string command)
+        {
+            if (string.IsNullOrWhiteSpace(command))
+                return Task.FromException(new SQLiteException("Command mustn't be empty!!"));
+            using (SQLiteCommand sqlCommand = new SQLiteCommand(command, Connection))
+                sqlCommand.ExecuteNonQuery();
             return Task.CompletedTask;
         }
     }

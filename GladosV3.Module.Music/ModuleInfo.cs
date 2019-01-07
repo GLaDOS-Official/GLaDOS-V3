@@ -33,7 +33,7 @@ namespace GladosV3.Module.Music
                     return Task.CompletedTask;
                 if (!AudioService.ConnectedChannels.TryGetValue(old.VoiceChannel.Guild.Id, out MusicClass mclass))
                     return Task.CompletedTask;
-                if (old.VoiceChannel.Id == mclass.VCID && old.VoiceChannel.Users.Count <= 1)
+                if (old.VoiceChannel.Id == mclass.VoiceChannelID && old.VoiceChannel.Users.Count <= 1)
                     AudioService.service.LeaveAudioAsync(old.VoiceChannel.Guild).GetAwaiter();
                 return Task.CompletedTask;
             };
