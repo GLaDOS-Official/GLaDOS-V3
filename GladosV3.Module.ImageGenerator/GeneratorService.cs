@@ -52,18 +52,13 @@ namespace GladosV3.Module.ImageGeneration
         public async Task<byte[]> Exec(string html, int width = 0, int height = 0) // Custom wrapper!!!
         {
             var e = Process.Start(new ProcessStartInfo
-<<<<<<< HEAD
             {
                 Arguments = $"-q --width {width} --height {height} -f jpeg  - -",
-                FileName = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+                FileName = Path.Combine(Directory.GetCurrentDirectory(),
                     "..\\Binaries\\wkhtmltoimage.exe"),
                 RedirectStandardOutput = true,
                 RedirectStandardInput = true
             });
-=======
-            {Arguments = $"-q --width {width} --height {height} -f jpeg  - -", FileName = Path.Combine(Directory.GetCurrentDirectory(),
-                "..\\Binaries\\wkhtmltoimage.exe"), RedirectStandardOutput = true, RedirectStandardInput = true });
->>>>>>> 15c8c1a0bfe431ef18b6d59b1b1b4a5255cbeb05
             using (StreamWriter stream = e.StandardInput)
             {
                 byte[] htmlcontent = Encoding.UTF8.GetBytes(html);

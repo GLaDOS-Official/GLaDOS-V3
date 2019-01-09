@@ -7,8 +7,8 @@
     <AssemblyName>GladosV3.Module.Default</AssemblyName>
     <SignAssembly>false</SignAssembly>
     <RootNamespace>GladosV3.Module.Default</RootNamespace>
-    <AssemblyVersion>1.0.111.6</AssemblyVersion>
-    <FileVersion>1.0.111.6</FileVersion>
+    <AssemblyVersion>1.0.112.8</AssemblyVersion>
+    <FileVersion>1.0.112.8</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

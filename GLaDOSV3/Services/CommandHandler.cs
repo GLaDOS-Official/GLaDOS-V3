@@ -19,7 +19,8 @@ namespace GladosV3.Services
         private readonly CommandService _commands;
         private readonly IConfigurationRoot _config;
         private readonly IServiceProvider _provider;
-        public static List<ulong> BlacklistedIds = new List<ulong>();
+        public static List<ulong> BlacklistedUsers = new List<ulong>();
+        public static List<ulong> BlacklistedServers = new List<ulong>();
         public static string MaintenanceMode = "";
         public static bool BotBusy = false;
         private BotSettingsHelper<string> _botSettingsHelper;
@@ -46,7 +47,7 @@ namespace GladosV3.Services
             {
                 for (int i = 0; i < dt.Rows.Count; i++)
                 {
-                    BlacklistedIds.Add(Convert.ToUInt64(dt.Rows[i]["UserId"]));
+                    BlacklistedUsers.Add(Convert.ToUInt64(dt.Rows[i]["UserId"]));
                 }
             }
             {
@@ -69,7 +70,7 @@ namespace GladosV3.Services
 
         private bool IsUserBlackListed(SocketUserMessage msg)
         {
-            return BlacklistedIds.Contains(msg.Author.Id);
+            return BlacklistedUsers.Contains(msg.Author.Id);
         }
         private async Task OnMessageReceivedAsync(SocketMessage s)
         {

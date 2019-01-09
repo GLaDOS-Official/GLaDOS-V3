@@ -61,13 +61,7 @@ namespace GladosV3.Services
                         if (item != null && item.Length > 0)
                             types.AddRange(item); // invoke services method
                     }
-<<<<<<< HEAD
                     catch (Exception) { /* ignored */ }
-=======
-                    catch (Exception)
-                    {
-                    }
->>>>>>> 15c8c1a0bfe431ef18b6d59b1b1b4a5255cbeb05
                 }
             }
             return Task.FromResult(types.ToArray());

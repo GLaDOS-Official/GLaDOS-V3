@@ -116,7 +116,7 @@ namespace GladosV3.Module.Default
                     $"Just uncheck some of the permissions you don't like, this might break {Context.Client.CurrentUser.Username} though. At least give me these permissions:\n" +
                     "Read/Send Messages, Embed Links, Attach Files, Send Embeds, Add Reactions, Read Message History\n" +
                     "For Mod usage higher perms are needed!\n" +
-                    $"[Click to Invite](https://discordapp.com/oauth2/authorize?client_id={Context.Client.CurrentUser.Id}&scope=bot&permissions=2146958591)"
+                    $"[Click to Invite](https://discordapp.com/oauth2/authorize?client_id={Context.Client.CurrentUser.Id}&scope=bot&permissions={GuildPermissions.All.RawValue})"
             };
             IDMChannel dm = await Context.Message.Author.GetOrCreateDMChannelAsync();
             await dm.SendMessageAsync("", false, eb.Build());

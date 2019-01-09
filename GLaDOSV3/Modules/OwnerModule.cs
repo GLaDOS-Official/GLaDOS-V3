@@ -202,7 +202,7 @@ namespace GladosV3.Modules
             public async Task BlacklistUserAdd(ulong userid, [Remainder] string reason = "Unspecified")
             {
                 await SqLite.Connection.AddRecordAsync("BlacklistedUsers", "UserId,Date,Reason", new[] { userid.ToString(), DateTime.Now.ToString(), reason }).ConfigureAwait(true);
-                Services.CommandHandler.BlacklistedIds.Add(userid);
+                Services.CommandHandler.BlacklistedUsers.Add(userid);
                 await ReplyAsync("Ok!");
             }
             [Command("blacklist user")]
@@ -234,17 +234,27 @@ namespace GladosV3.Modules
             public async Task BlacklistUserRemove(ulong userid)
             {
                 await SqLite.Connection.RemoveRecordAsync("BlacklistedUsers", $"UserID={userid.ToString()}").ConfigureAwait(true);
-                Services.CommandHandler.BlacklistedIds.Remove(userid);
+                Services.CommandHandler.BlacklistedUsers.Remove(userid);
                 await ReplyAsync("Ok!");
             }
             [Command("blacklist guild add")]
-            [Remarks("bot blacklist server add <guildid> [Reason]")]
+            [Remarks("bot blacklist guild add <guildid> [Reason]")]
             [Summary("Blacklists a guild from using the bot")]
             [Attributes.RequireOwner]
-            public async Task BlacklistServerAdd(ulong userid, [Remainder] string reason = "Unspecified")
+            public async Task BlacklistServerAdd(ulong guildid, [Remainder] string reason = "Unspecified")
             {
-                await SqLite.Connection.AddRecordAsync("BlacklistedServers", "guild,date,reason", new[] { userid.ToString(), DateTime.Now.ToString(), reason }).ConfigureAwait(true);
-                Services.CommandHandler.BlacklistedIds.Add(userid);
+                await SqLite.Connection.AddRecordAsync("BlacklistedServers", "guildid,date,reason", new[] { guildid.ToString(), DateTime.Now.ToString(), reason }).ConfigureAwait(true);
+                Services.CommandHandler.BlacklistedServers.Add(guildid);
+                for (int i = 0; i < Context.Client.Guilds.Count; i++)
+                {
+                    var guild = Context.Client.Guilds.ElementAt(i);
+                    if (guild.Id != guildid) continue;
+                    await guild.DefaultChannel.SendMessageAsync(
+                        $"Hello! This server has been blacklisted from using {Context.Client.CurrentUser.Mention}! I will no leave. Have fun without me!");
+                    await guild.LeaveAsync();
+                    break;
+                }
+                await SqLite.Connection.RemoveRecordAsync("servers", $"guildid={guildid.ToString()}");
                 await ReplyAsync("Ok!");
             }
             [Command("blacklist guilds")]
@@ -273,10 +283,10 @@ namespace GladosV3.Modules
             [Remarks("bot blacklist guild remove <guildid>")]
             [Summary("Blacklists a user from using the bot")]
             [Attributes.RequireOwner]
-            public async Task BlacklistServerRemove(ulong userid)
+            public async Task BlacklistServerRemove(ulong guildid)
             {
-                await SqLite.Connection.RemoveRecordAsync("BlacklistedUsers", $"guildid={userid.ToString()}").ConfigureAwait(true);
-                Services.CommandHandler.BlacklistedIds.Remove(userid);
+                await SqLite.Connection.RemoveRecordAsync("BlacklistedServers", $"guildid={guildid.ToString()}").ConfigureAwait(true);
+                Services.CommandHandler.BlacklistedServers.Remove(guildid);
                 await ReplyAsync("Ok!");
             }
             [Command("release")]
