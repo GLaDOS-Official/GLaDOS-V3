@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using GladosV3.Helpers;
+using System;
 using System.Threading;
-using System.Threading.Tasks;
-using GladosV3.Helpers;
 
 namespace GladosV3.Services
 {
@@ -12,7 +9,7 @@ namespace GladosV3.Services
         public static void Start()
         {
             Tools.WriteColorLine(ConsoleColor.Cyan, "[MemoryHandler] Creating thread");
-            Thread thread = new Thread(new ThreadStart(MemoryThread)) {Name = "Memory releasing thread"};
+            Thread thread = new Thread(new ThreadStart(MemoryThread)) { Name = "Memory releasing thread" };
             Tools.WriteColorLine(ConsoleColor.Cyan, "[MemoryHandler] Starting thread");
             thread.Start();
             Tools.WriteColorLine(ConsoleColor.Cyan, "[MemoryHandler] Thread started");

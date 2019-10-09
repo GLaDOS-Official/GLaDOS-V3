@@ -1,12 +1,12 @@
-﻿using System;
+﻿using Discord;
+using Discord.Commands;
+using GladosV3.Attributes;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Discord;
-using Discord.Commands;
-using GladosV3.Attributes;
-using Newtonsoft.Json.Linq;
 
 namespace GladosV3.Module.Default
 {

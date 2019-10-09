@@ -1,18 +1,15 @@
-﻿using System;
+﻿using Discord;
+using Discord.Audio;
+using Discord.Commands;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
-using System.Net.WebSockets;
-using System.Reflection;
 using System.Threading.Tasks;
-using Discord;
-using Discord.Audio;
-using Discord.Commands;
+using GladosV3.Helpers;
 using GladosV3.Services;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
-using Microsoft.Extensions.Configuration;
 
 namespace GladosV3.Module.Music
 {
@@ -22,11 +19,11 @@ namespace GladosV3.Module.Music
         internal static readonly ConcurrentDictionary<ulong, MusicClass> ConnectedChannels = new ConcurrentDictionary<ulong, MusicClass>();
         public int Type;
         public bool Fail = true;
-        public AudioService(IConfigurationRoot config)
+        public AudioService(BotSettingsHelper<string> config)
         {
             if (!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Binaries\\youtube-dl.exe"))) { LoggingService.Log(LogSeverity.Error, "AudioService", "youtube-dl.exe not found!"); return; }
             if (!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Binaries\\ffmpeg.exe"))) { LoggingService.Log(LogSeverity.Error, "AudioService", "ffmpeg.exe not found!"); return; }
-            Type = Convert.ToInt32(config["MusicMethod"]);
+            Type = 0;
             Fail = false;
         }
 
@@ -35,7 +32,7 @@ namespace GladosV3.Module.Music
             if (ConnectedChannels.TryGetValue(guild.Id, out _)) return false;
             if (target?.Guild.Id != guild.Id) return false;
             var audioClient = await target.ConnectAsync();
-            return ConnectedChannels.TryAdd(guild.Id, new MusicClass(audioClient,target.Id));
+            return ConnectedChannels.TryAdd(guild.Id, new MusicClass(audioClient, target.Id));
         }
         public async Task LeaveAudioAsync(IGuild guild)
         {
@@ -65,40 +62,41 @@ namespace GladosV3.Module.Music
             mclass.AddToQueue(path);
             if (mclass.GetQueue.Count >= 2)
                 return;
-            using (var client = mclass.GetClient)
-            using (var stream = client.CreatePCMStream(AudioApplication.Music))
+            using var client = mclass.GetClient;
+            await using var stream = client.CreatePCMStream(AudioApplication.Music);
+            mclass.ClientAudioStream = stream;
+            while (mclass.GetQueue.Count >= 1)
             {
-                mclass.ClientAudioStream = stream;
-                while (mclass.GetQueue.Count >= 1)
-                {
-                    if (Type == 1 && DateTime.UtcNow.Hour != 3 && DateTime.UtcNow.Hour != 4)
-                        using (var output = StreamAPI(mclass))
+                if (Type == 1 && DateTime.UtcNow.Hour != 3 && DateTime.UtcNow.Hour != 4)
+                    using (var output = StreamAPI(mclass))
+                    {
+                        try
+                        { await output.CopyToAsync(stream); await stream.FlushAsync(); }
+                        catch (TaskCanceledException)
                         {
-                            try
-                            {  await output.CopyToAsync(stream); await stream.FlushAsync(); }
-                            catch (TaskCanceledException)
-                            {
-                                stream.Close();
-                                await client.StopAsync();
-                                if (!mclass.Process.HasExited) mclass.Process.Kill();
-                                ConnectedChannels.TryRemove(context.Guild.Id, out mclass);
-                                return;
-                            } // PANIC
-                        }
-                    else using (var output = CmdYoutube(mclass)) {
-                            try
-                            { await output.CopyToAsync(stream); await stream.FlushAsync(); }
-                            catch (TaskCanceledException)
-                            {
-                                stream.Close();
-                                await client.StopAsync();
-                                if (!mclass.Process.HasExited) mclass.Process.Kill();
-                                ConnectedChannels.TryRemove(context.Guild.Id, out mclass);
-                                return;
-                            } // PANIC
-                        }
-                    mclass.GetQueue.Remove(mclass.GetQueue[0]);
+                            stream.Close();
+                            await client.StopAsync();
+                            if (!mclass.Process.HasExited) mclass.Process.Kill();
+                            ConnectedChannels.TryRemove(context.Guild.Id, out mclass);
+                            return;
+                        } // PANIC
+                    }
+                else
+                {
+                    await using var output = CmdYoutube(mclass);
+                    try
+                    { await output.CopyToAsync(stream); await stream.FlushAsync(); }
+                    catch (TaskCanceledException)
+                    {
+                        stream.Close();
+                        await client.StopAsync();
+                        if (!mclass.Process.HasExited) mclass.Process.Kill();
+                        ConnectedChannels.TryRemove(context.Guild.Id, out mclass);
+                        return;
+                    } // PANIC
                 }
+
+                mclass.GetQueue.Remove(mclass.GetQueue[0]);
             }
         }
 
@@ -127,7 +125,7 @@ namespace GladosV3.Module.Music
             });
             if (x == null || x.HasExited)
                 throw new Exception("youtube-dl or ffmpeg has exited immediately!");
-             mclass.Process = x;
+            mclass.Process = x;
             x.StandardInput.WriteLine(""); // don't ask me why, without this, it wouldn't work
             return x.StandardOutput.BaseStream;
         }

@@ -1,14 +1,14 @@
-﻿using System;
-using System.Data;
-using System.Net;
-using System.Reflection;
-using System.Threading.Tasks;
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 using Discord.Net;
 using Discord.WebSocket;
 using GladosV3.Helpers;
-using Microsoft.Extensions.Configuration;
+using System;
+using System.Data;
+using System.Linq;
+using System.Net;
+using System.Reflection;
+using System.Threading.Tasks;
 
 namespace GladosV3.Services
 {
@@ -16,18 +16,15 @@ namespace GladosV3.Services
     {
         private readonly DiscordSocketClient _discord;
         private readonly CommandService _commands;
-        private readonly IConfigurationRoot _config;
         private readonly IServiceProvider _provider;
-        private BotSettingsHelper<string> _botSettingsHelper;
+        private readonly BotSettingsHelper<string> _botSettingsHelper;
         // IServiceProvider, DiscordSocketClient, CommandService, and IConfigurationRoot are injected automatically from the IServiceProvider
         public StartupService(
             DiscordSocketClient discord,
             CommandService commands,
-            IConfigurationRoot config,
             IServiceProvider provider,
             BotSettingsHelper<string> botSettingsHelper)
         {
-            _config = config;
             _discord = discord;
             _commands = commands;
             _provider = provider;
@@ -46,16 +43,17 @@ namespace GladosV3.Services
             }
             return Task.FromResult(input);
         }
-        public async Task FirstStartup()
+        public async Task FirstStartup(bool reset)
         {
             using (DataTable dt = await SqLite.Connection.GetValuesAsync("BotSettings", "WHERE value IS NOT NULL"))
-                if (dt.Rows.Count == 8)
+                if (dt.Rows.Count == 8 && !reset)
                     return;
-            //`prefix` TEXT, `name` INTEGER, `maintenance` TEXT, `ownerID` INTEGER, `co-owners` TEXT, `discord_game` TEXT, `discord_status` TEXT, `tokens_discord` TEXT"
+            await SqLite.Connection.ExecuteSQL("DROP TABLE IF EXISTS BotSettings");
+            await SqLite.Connection.CreateTableAsync("BotSettings", "`ID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, `name` TEXT, `value` TEXT");
             Console.WriteLine("Hello user! Looks like your starting this bot for the first time! You'll need to enter some values to start this bot.");
             Console.Write("Please enter your default bot prefix: ");
             string input = await AskNotNull("Please enter your default bot prefix: ");
-            await SqLite.Connection.AddRecordAsync("BotSettings","name,value",new [] {"prefix", input});
+            await SqLite.Connection.AddRecordAsync("BotSettings", "name,value", new[] { "prefix", input });
             input = await AskNotNull("Perfect. Now please enter the name of the bot: ");
             await SqLite.Connection.AddRecordAsync("BotSettings", "name,value", new[] { "name", input });
             await SqLite.Connection.AddRecordAsync("BotSettings", "name,value", new[] { "maintenance", "" });
@@ -71,10 +69,11 @@ namespace GladosV3.Services
             input = await AskNotNull("Ok! Now the final thing! Enter your bot token: ");
             await SqLite.Connection.AddRecordAsync("BotSettings", "name,value", new[] { "tokens_discord", input });
         }
-        public async Task StartAsync()
+        public async Task StartAsync(string[] args)
         {
             SqLite.Start();
-            await FirstStartup();
+
+            await FirstStartup(args.Contains("--resetdb"));
             Console.Title = _botSettingsHelper["name"];
             Console.Clear();
             Console.SetWindowSize(150, 35);
@@ -101,7 +100,7 @@ namespace GladosV3.Services
             }
 
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), _provider);     // Load commands and modules into the command service
-            await new ExtensionLoadingService(_discord, _commands, _config, _provider).Load().ConfigureAwait(false);
+            await new ExtensionLoadingService(_discord, _commands, (BotSettingsHelper<string>)_botSettingsHelper, _provider).Load().ConfigureAwait(false);
         }
     }
 }

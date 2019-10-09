@@ -3,7 +3,6 @@ using Discord.Commands;
 using Discord.WebSocket;
 using GladosV3.Attributes;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -65,7 +64,6 @@ namespace GladosV3.Module.Default
             {
                 await ReplyAsync("**Error: **I can only clear 100 Messages at a time!");
             }
-
             await Context.Message.DeleteAsync().ConfigureAwait(false);
             IMessage[] newlist = await (Context.Channel.GetMessagesAsync().Flatten()).Where(x => x.Author == UserMention && (x.Timestamp - DateTimeOffset.UtcNow).TotalDays > -13).Take(count).ToArray();
             try
@@ -103,7 +101,7 @@ namespace GladosV3.Module.Default
                     await ReplyAsync("Why would you kick yourself?");
                 else
                     await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync("Why would you kick yourself?").GetAwaiter().GetResult().Channel).CloseAsync();
-               return;
+                return;
             }
             SocketGuildUser moderator = Context.User as SocketGuildUser;
             if (UserMention.Hierarchy > moderator?.Hierarchy)
@@ -132,7 +130,7 @@ namespace GladosV3.Module.Default
 
                 await UserMention.KickAsync(
                     $"Kicked by {Context.Message.Author.Username}#{Context.Message.Author.Discriminator} Reason: {reason}");
-                if(!silent)
+                if (!silent)
                     await ReplyAsync($"Bai bai {UserMention.Mention}! :wave:");
                 else
                     await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync($"Bai bai {UserMention.Mention}! :wave:").GetAwaiter().GetResult().Channel).CloseAsync();

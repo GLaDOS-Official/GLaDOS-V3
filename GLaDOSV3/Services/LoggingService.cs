@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Threading.Tasks;
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using GladosV3.Helpers;
+using System;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace GladosV3.Services
 {
@@ -40,7 +40,8 @@ namespace GladosV3.Services
                 File.Create(_logFile).Dispose();
             string logText = $"{DateTime.UtcNow:hh:mm:ss} [{msg.Severity}] {msg.Source}: {msg.Exception?.ToString() ?? msg.Message}";
             logs.Add(logText);
-            if (logs.Count >= 60) {
+            if (logs.Count >= 60)
+            {
                 File.AppendAllText(_logFile, string.Join(Environment.NewLine, logs));  // Write the log text to a file
                 logs.Clear();
             }

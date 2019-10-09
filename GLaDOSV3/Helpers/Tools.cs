@@ -1,14 +1,13 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json.Linq;
 
 namespace GladosV3.Helpers
 {
@@ -23,7 +22,7 @@ namespace GladosV3.Helpers
             var fcolor = Console.ForegroundColor;
             var bcolor = Console.BackgroundColor;
             Console.BackgroundColor = color;
-            Console.ForegroundColor = ConsoleColor.DarkGray;    
+            Console.ForegroundColor = ConsoleColor.DarkGray;
             Console.Out.WriteLine(message);
             Console.ForegroundColor = fcolor;
             Console.BackgroundColor = bcolor;
@@ -67,19 +66,12 @@ namespace GladosV3.Helpers
             var Object = JObject.Parse(json);
             return await Task.FromResult(new WebProxy { Address = new Uri($"http://{Object["ipPort"]}") });
         }
-        public static async Task<dynamic> GetConfigAsync(int type = 0) // 
-        {
-            if(type == 0)
-            return await Task.FromResult(Builder.Build()); // default reading
-                return await Task.FromResult(JObject.Parse(File
-                    .ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json")).GetAwaiter()
-                    .GetResult())); // alternative reading
-        }
         internal static void ReleaseMemory()
         {
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
             GC.WaitForPendingFinalizers();
-            if(SqLite.Connection != null && SqLite.Connection.State != ConnectionState.Closed)
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
+            if (SqLite.Connection != null && SqLite.Connection.State != ConnectionState.Closed)
                 SqLite.Connection.ReleaseMemory();
         }
         public static string[] SplitMessage(string message, int len) // discord.js :D
@@ -102,7 +94,28 @@ namespace GladosV3.Helpers
 
             messages.Add(msg);
             return messages.ToArray();
+        }
 
+        public static void WriteToReadOnlyValue(Type type, object obj)
+        {
+            foreach (PropertyInfo info in type.GetProperties())
+            {
+                if (info.Name == "Content")
+                {
+                    info.SetValue(obj, "your mom");
+                }
+            }
+        }
+        public static bool WriteToReadOnlyValue(Type type, object obj, string element, object value)
+        {
+            foreach (PropertyInfo info in type.GetProperties())
+            {
+                if (info.Name != element) continue;
+                if (!info.CanWrite) return false;
+                info.SetValue(obj, value);
+                return true;
+            }
+            return false;
         }
     }
 }

@@ -1,15 +1,15 @@
-﻿using System;
+﻿using Discord;
+using Discord.Commands;
+using Discord.WebSocket;
+using GladosV3.Attributes;
+using Microsoft.Extensions.PlatformAbstractions;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
-using GladosV3.Attributes;
-using Microsoft.Extensions.PlatformAbstractions;
 
 namespace GladosV3.Module.Default
 {
@@ -41,8 +41,8 @@ namespace GladosV3.Module.Default
                 // ReSharper disable once ConvertIfStatementToReturnStatement
                 if (size < tb)
                     return (size / gb).ToString("0.## GB");
-                
-                    return (size / tb).ToString("0.## TB");
+
+                return (size / tb).ToString("0.## TB");
             }
             float GetCpuUsage()
             {
@@ -204,7 +204,7 @@ namespace GladosV3.Module.Default
                         x.IsInline = true;
                         if (socketUser?.JoinedAt != null)
                             x.Value =
-                                $"{socketUser?.JoinedAt.ToString().Remove(socketUser.JoinedAt.ToString().Length - 6)}\n({(int) DateTime.Now.ToUniversalTime().Subtract(((DateTimeOffset) socketUser?.JoinedAt).DateTime).TotalDays} days ago)";
+                                $"{socketUser?.JoinedAt.ToString().Remove(socketUser.JoinedAt.ToString().Length - 6)}\n({(int)DateTime.Now.ToUniversalTime().Subtract(((DateTimeOffset)socketUser?.JoinedAt).DateTime).TotalDays} days ago)";
                     });
                     string permissions = "";
                     int take = 0;
@@ -230,8 +230,8 @@ namespace GladosV3.Module.Default
 
                         if (socketUser != null && socketUser.Roles.Count > 1)
                         {
-                            if(socketUser.Roles.Count == 2)
-                                roles = socketUser.Roles.ToArray()[1].Name; 
+                            if (socketUser.Roles.Count == 2)
+                                roles = socketUser.Roles.ToArray()[1].Name;
                             else
                                 foreach (var role in socketUser.Roles)
                                 {
@@ -263,6 +263,7 @@ namespace GladosV3.Module.Default
         [Timeout(3, 1, Measure.Minutes)]
         public async Task ServerInfo()
         {
+            Context.Guild.GetUser(Context.Client.CurrentUser.Id).GuildPermissions.ToList();
             try
             {
                 var avatarURL = Context.Guild.IconUrl ?? "http://ravegames.net/ow_userfiles/themes/theme_image_22.jpg";

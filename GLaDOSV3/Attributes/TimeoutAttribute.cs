@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Discord;
+using Discord.Commands;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Discord;
-using Discord.Commands;
 
 namespace GladosV3.Attributes
 {
@@ -15,7 +15,7 @@ namespace GladosV3.Attributes
         private readonly bool _applyPerGuild;
         private readonly TimeSpan _invokeLimitPeriod;
 
-        private readonly Dictionary<(ulong, ulong?), CommandTimeout> _tracker =  new Dictionary<(ulong, ulong?), CommandTimeout>();
+        private readonly Dictionary<(ulong, ulong?), CommandTimeout> _tracker = new Dictionary<(ulong, ulong?), CommandTimeout>();
 
         /// <summary> Sets how often a user is allowed to use this command. </summary>
         /// <param name="times">The number of times a user may use the command within a certain period.</param>
@@ -106,11 +106,11 @@ namespace GladosV3.Attributes
         }
     }
 
-   public enum Measure
-   {
+    public enum Measure
+    {
         Days,
         Hours,
         Minutes,
         Seconds
-   }
+    }
 }

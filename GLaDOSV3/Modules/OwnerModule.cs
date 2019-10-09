@@ -3,15 +3,12 @@ using Discord.Commands;
 using Discord.WebSocket;
 using GladosV3.Attributes;
 using GladosV3.Helpers;
+using GladosV3.Services;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Data;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using GladosV3.Services;
 
 namespace GladosV3.Modules
 {
@@ -19,15 +16,13 @@ namespace GladosV3.Modules
     public class OwnerModule : ModuleBase<SocketCommandContext>
     {
         public readonly CommandService _service;
-        public readonly IConfigurationRoot _config;
         public readonly IServiceProvider _provider;
         public static MemoryCache mCache;
 
         // CommandService, IConfigurationRoot, and IServiceProvider are injected automatically from the IServiceProvider;
-        public OwnerModule(CommandService service, IConfigurationRoot config, IServiceProvider provider)
+        public OwnerModule(CommandService service, IServiceProvider provider)
         {
             _service = service;
-            _config = config;
             _provider = provider;
             mCache = new MemoryCache(new MemoryCacheOptions());
         }
@@ -41,14 +36,14 @@ namespace GladosV3.Modules
             [Command("maintenance")]
             [Remarks("bot maintenance [reason]")]
             [Summary("Toggles maintenance mode on or off")]
-            public async Task Maintenance(string reason)
+            public async Task Maintenance([Remainder]string reason = "")
             {
                 /*JObject clasO = Tools.GetConfigAsync(1).GetAwaiter().GetResult();
                 clasO["maintenance"] = reason;*/
                 CommandHandler.MaintenanceMode = reason;
                 //await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json"), clasO.ToString());
                 IsOwner.botSettingsHelper["maintenance"] = reason;
-                await ReplyAsync($"{(string.IsNullOrWhiteSpace(reason) ? "Enabled" : "Disabled")} maintenance reason{(string.IsNullOrWhiteSpace(reason) ? "" : " to:")}{(string.IsNullOrWhiteSpace(reason) ? "" : reason)}!");
+                await ReplyAsync($"{(string.IsNullOrWhiteSpace(reason) ? "Disabled" : "Enabled")} maintenance reason{(string.IsNullOrWhiteSpace(reason) ? "" : " to: ")}{(string.IsNullOrWhiteSpace(reason) ? "" : reason)}!");
             }
             [Command("restart")]
             [Remarks("bot restart")]
@@ -211,7 +206,7 @@ namespace GladosV3.Modules
             [Attributes.RequireOwner]
             public async Task BlacklistUsers()
             {
-                using (DataTable dt = await SqLite.Connection.GetValuesAsyncWithGuildIDFilter("BlacklistedUsers"))
+                using (DataTable dt = await SqLite.Connection.GetValuesAsync("BlacklistedUsers"))
                 {
                     if (dt.Rows.Count <= 0)
                     {
@@ -249,8 +244,13 @@ namespace GladosV3.Modules
                 {
                     var guild = Context.Client.Guilds.ElementAt(i);
                     if (guild.Id != guildid) continue;
-                    await guild.DefaultChannel.SendMessageAsync(
-                        $"Hello! This server has been blacklisted from using {Context.Client.CurrentUser.Mention}! I will no leave. Have fun without me!");
+                    try
+                    {
+                        await guild.DefaultChannel.SendMessageAsync(
+                            $"Hello! This server has been blacklisted from using {Context.Client.CurrentUser.Mention}! I will no leave. Have fun without me!");
+                    }
+                    catch {/* ignored*/}
+
                     await guild.LeaveAsync();
                     break;
                 }
@@ -263,7 +263,7 @@ namespace GladosV3.Modules
             [Attributes.RequireOwner]
             public async Task BlacklistServers()
             {
-                using (DataTable dt = await SqLite.Connection.GetValuesAsyncWithGuildIDFilter("BlacklistedServers"))
+                using (DataTable dt = await SqLite.Connection.GetValuesAsync("BlacklistedServers"))
                 {
                     if (dt.Rows.Count <= 0)
                     {
@@ -332,22 +332,27 @@ namespace GladosV3.Modules
                     return;
                 }
                 if (!mCache.TryGetValue("rebuildDB_All", out string entry))
-                { await ReplyAsync("Key expired or not created!"); return;}
+                { await ReplyAsync("Key expired or not created!"); return; }
                 if (entry != key)
                 { await ReplyAsync("Incorrect key!"); return; }
                 mCache.Remove("rebuildDB_All");
-                await ReplyAsync("Bot will be unavailable for a while. Rebuilding the database.....\nRefactoring server table...");
-                CommandHandler.BotBusy = true;
-                await SqLite.Connection.ExecuteSQL("DELETE FROM servers");
-                await SqLite.Connection.ExecuteSQL("DELETE FROM BlacklistedUsers");
-                await SqLite.Connection.ExecuteSQL("DELETE FROM BlacklistedServers");
+                await SqLite.Connection.ExecuteSQL("DROP TABLE servers");
+                await SqLite.Connection.ExecuteSQL("DROP TABLE BlacklistedUsers");
+                await SqLite.Connection.ExecuteSQL("DROP TABLE BlacklistedServers");
+                SqLite.Connection.Close();
+                SqLite.Start();
+                var message = await ReplyAsync("Bot will be unavailable for a while. Rebuilding the database.....\nRefactoring server table...");
+                CommandHandler.BotBusy = true; ;
                 for (int i = 0; i < Context.Client.Guilds.Count; i++)
                 {
                     var guild = Context.Client.Guilds.ElementAt(i);
                     await SqLite.Connection.AddRecordAsync("servers", "guildid,nsfw,join_toggle,leave_toggle,join_msg,leave_msg", new[] { guild.Id.ToString(), "0", "0", "0", "Hey {mention}! Welcome to {sname}!", "Bye {uname}" });
                 }
+
+                await message.ModifyAsync((r) => r.Content = "Refreshing prefixes!");
+                CommandHandler.RefreshPrefix();
                 CommandHandler.BotBusy = false;
-                await ReplyAsync("Database rebuild! Bot now available and listening for all commands!");
+                await message.ModifyAsync((r) => r.Content = "Database rebuild! Bot now available and listening for all commands!");
             }
             [Command("rebuild servers")]
             [Remarks("bot rebuild servers")]
@@ -359,7 +364,7 @@ namespace GladosV3.Modules
                 {
                     string random = Convert.ToBase64String(Guid.NewGuid().ToByteArray()).Substring(0, 19);
                     mCache.Set("rebuildDB_ServerAll", random, TimeSpan.FromSeconds(45));
-                    await ReplyAsync($"This is a dangerous operation! All server settings will be lost! Type the \"{random}\" to rebuild it! This key will expire in 45 seconds!");
+                    await ReplyAsync($"This is a dangerous operation! All server settings will be lost! Type \"{random}\" to rebuild it! This key will expire in 45 seconds!");
                     return;
                 }
                 if (!mCache.TryGetValue("rebuildDB_ServerAll", out string entry))
@@ -367,7 +372,7 @@ namespace GladosV3.Modules
                 if (entry != key)
                 { await ReplyAsync("Incorrect key!"); return; }
                 mCache.Remove("rebuildDB_ServerAll");
-                await ReplyAsync("Bot will be unavailable for a while. Rebuilding the database.....\nRefactoring server table...");
+                var msg = await ReplyAsync("Bot will be unavailable for a while. Rebuilding the database.....\nRefactoring server table...");
                 CommandHandler.BotBusy = true;
                 await SqLite.Connection.ExecuteSQL("DELETE FROM servers");
                 for (int i = 0; i < Context.Client.Guilds.Count; i++)
@@ -375,8 +380,10 @@ namespace GladosV3.Modules
                     var guild = Context.Client.Guilds.ElementAt(i);
                     await SqLite.Connection.AddRecordAsync("servers", "guildid,nsfw,join_toggle,leave_toggle,join_msg,leave_msg", new[] { guild.Id.ToString(), "0", "0", "0", "Hey {mention}! Welcome to {sname}!", "Bye {uname}" });
                 }
+                await msg.ModifyAsync((r) => r.Content = "Refreshing prefixes!");
+                CommandHandler.RefreshPrefix();
                 CommandHandler.BotBusy = false;
-                await ReplyAsync("Database rebuild! Bot now available and listening for all commands!");
+                await msg.ModifyAsync((r) => r.Content = "Database rebuild! Bot now available and listening for all commands!");
             }
             [Command("rebuild server")]
             [Remarks("bot rebuild server")]
@@ -389,7 +396,7 @@ namespace GladosV3.Modules
                 {
                     string random = Convert.ToBase64String(Guid.NewGuid().ToByteArray()).Substring(0, 19);
                     mCache.Set("rebuildDB_ServerThis", random, TimeSpan.FromSeconds(45));
-                    await ReplyAsync($"This is a dangerous operation! This server settings will be lost! Type the \"{random}\" to rebuild it! This key will expire in 45 seconds!");
+                    await ReplyAsync($"This is a dangerous operation! This server settings will be lost! Type \"{random}\" to rebuild it! This key will expire in 45 seconds!");
                     return;
                 }
                 if (!mCache.TryGetValue("rebuildDB_ServerThis", out string entry))
@@ -397,10 +404,11 @@ namespace GladosV3.Modules
                 if (entry != key)
                 { await ReplyAsync("Incorrect key!"); return; }
                 mCache.Remove("rebuildDB_ServerThis");
-                await ReplyAsync("Rebuilding the database....");
+                var msg = await ReplyAsync("Rebuilding the database....");
                 await SqLite.Connection.RemoveRecordAsync("servers", $"guildid={Context.Guild.Id.ToString()}");
                 await SqLite.Connection.AddRecordAsync("servers", "guildid,nsfw,join_toggle,leave_toggle,join_msg,leave_msg", new[] { Context.Guild.Id.ToString(), "0", "0", "0", "Hey {mention}! Welcome to {sname}!", "Bye {uname}" });
-                await ReplyAsync("Done!");
+                CommandHandler.Prefix.Remove(Context.Guild.Id);
+                await msg.ModifyAsync((r) => r.Content = "Done!");
             }
         }
     }

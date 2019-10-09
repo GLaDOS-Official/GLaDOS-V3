@@ -1,9 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
-    <AssemblyVersion>1.0.55.8</AssemblyVersion>
-    <FileVersion>1.0.55.8</FileVersion>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <AssemblyVersion>1.0.76.8</AssemblyVersion>
+    <FileVersion>1.0.76.8</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -13,6 +13,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <OutputPath></OutputPath>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="ImageGeneratorModule.cs~RF283580b.TMP" />
+  </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Binaries\" />
@@ -34,9 +38,9 @@
     </None>
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.1\Modules\"></Copy>
-    <Copy SourceFiles="Binaries\wkhtmltoimage.exe" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.1\Binaries\"></Copy>
-    <Copy SourceFiles="Images\shit.html" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.1\Images\"></Copy>
-    <Copy SourceFiles="Images\delete.html" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.1\Images\"></Copy>
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp3.0\Modules\"></Copy>
+    <Copy SourceFiles="Binaries\wkhtmltoimage.exe" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp3.0\Binaries\"></Copy>
+    <Copy SourceFiles="Images\shit.html" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp3.0\Images\"></Copy>
+    <Copy SourceFiles="Images\delete.html" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp3.0\Images\"></Copy>
   </Target>
 </Project>

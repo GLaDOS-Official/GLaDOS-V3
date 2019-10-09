@@ -1,5 +1,5 @@
-﻿using System.Threading.Tasks;
-using Discord.Commands;
+﻿using Discord.Commands;
+using System.Threading.Tasks;
 using GladosV3.Attributes;
 
 namespace GladosV3.Module.ImageGeneration
@@ -26,7 +26,7 @@ namespace GladosV3.Module.ImageGeneration
         [Command("shit", RunMode = RunMode.Async)]
         [Remarks("shit <who>")]
         [Summary("shit")]
-        [Timeout(1,30, Measure.Seconds)]
+        [Timeout(1, 30, Measure.Seconds)]
         public async Task Shit([Remainder]string text)
         {
             if (!_service.fail)
@@ -37,7 +37,7 @@ namespace GladosV3.Module.ImageGeneration
         [Command("mc", RunMode = RunMode.Async)]
         [Remarks("mc <name>")]
         [Summary("Achivement get!")]
-        [Timeout(1,30,Measure.Seconds)]
+        [Timeout(1, 30, Measure.Seconds)]
         public async Task Minecraft([Remainder]string text)
         {
             if (!_service.fail)

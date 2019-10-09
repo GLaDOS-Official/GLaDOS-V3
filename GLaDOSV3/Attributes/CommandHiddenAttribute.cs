@@ -1,8 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
-using Discord;
+﻿using Discord;
 using Discord.Commands;
-using GladosV3.Helpers;
+using System;
+using System.Threading.Tasks;
 
 namespace GladosV3.Attributes
 {
@@ -11,7 +10,6 @@ namespace GladosV3.Attributes
     {
         public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
-            var config = Tools.GetConfigAsync().GetAwaiter().GetResult();
             switch (context.Client.TokenType)
             {
                 case TokenType.Bot:

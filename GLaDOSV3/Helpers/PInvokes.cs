@@ -44,10 +44,10 @@ namespace GladosV3.Helpers
             return Marshal.GetDelegateForFunctionPointer(ptr, typeof(T));
         }
 
-        [DllImport("kernel32.dll", EntryPoint = "LoadLibrary", SetLastError =  true)]
+        [DllImport("kernel32.dll", EntryPoint = "LoadLibrary", SetLastError = true)]
         private static extern IntPtr GetModulePtr(string libraryFile);
 
-        [DllImport("kernel32.dll", EntryPoint = "GetProcAddress",SetLastError = true)]
+        [DllImport("kernel32.dll", EntryPoint = "GetProcAddress", SetLastError = true)]
         private static extern IntPtr GetFunctionPtr(IntPtr hModule, string procedureName);
     }
     public class PInvokes_DllImport

@@ -1,9 +1,9 @@
-﻿using System;
-using System.Globalization;
-using System.Threading.Tasks;
-using Discord.Commands;
+﻿using Discord.Commands;
 using GladosV3.Attributes;
 using org.mariuszgromada.math.mxparser;
+using System;
+using System.Globalization;
+using System.Threading.Tasks;
 
 namespace GladosV3.Module.Default
 {
@@ -24,7 +24,7 @@ namespace GladosV3.Module.Default
                 if (double.IsNaN(done))
                     throw new FormatException("idk");
                 await ReplyAsync(
-                    $"Math is solved! The output is: {Double.Parse(done.ToString(String.Empty), NumberStyles.Float).ToString("N2", CultureInfo.CreateSpecificCulture("en-US"))}");
+                    $"Math is solved! The output is: {Double.Parse(done.ToString(String.Empty), NumberStyles.Float).ToString("N3", CultureInfo.CreateSpecificCulture("en-US"))}");
             }
             catch (FormatException)
             {

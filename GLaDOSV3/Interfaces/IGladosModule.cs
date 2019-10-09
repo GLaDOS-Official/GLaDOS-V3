@@ -1,7 +1,7 @@
-﻿using System;
-using Discord.Commands;
+﻿using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.Extensions.Configuration;
+using GladosV3.Helpers;
+using System;
 
 namespace GladosV3
 {
@@ -13,7 +13,9 @@ namespace GladosV3
         string Author();
         Type[] Services { get; }
 
-        void PreLoad(DiscordSocketClient discord, CommandService commands, IConfigurationRoot config, IServiceProvider provider);
-        void PostLoad(DiscordSocketClient discord, CommandService commands, IConfigurationRoot config, IServiceProvider provider);
+        void PreLoad(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider);
+        void PostLoad(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider);
+        void Reload(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider);
+        void Unload(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider);
     }
 }

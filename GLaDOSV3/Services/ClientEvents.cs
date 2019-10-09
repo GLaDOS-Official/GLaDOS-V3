@@ -1,6 +1,6 @@
-﻿using System.Threading.Tasks;
-using Discord.WebSocket;
+﻿using Discord.WebSocket;
 using GladosV3.Helpers;
+using System.Threading.Tasks;
 
 namespace GladosV3.Services
 {
@@ -12,8 +12,8 @@ namespace GladosV3.Services
             DiscordSocketClient discord)
         {
             _discord = discord;
-           discord.JoinedGuild += JoinedGuild;
-           discord.LeftGuild += LeftGuild;
+            discord.JoinedGuild += JoinedGuild;
+            discord.LeftGuild += LeftGuild;
         }
         private Task JoinedGuild(SocketGuild arg)
         {
@@ -24,13 +24,13 @@ namespace GladosV3.Services
                 arg.LeaveAsync();
                 return Task.CompletedTask;
             }
-             Task status = SqLite.Connection.AddRecordAsync("servers", "guildid,nsfw,join_toggle,leave_toggle,join_msg,leave_msg", new []{ arg.Id.ToString(),"0","0","0", "Hey {mention}! Welcome to {sname}!", "Bye {uname}"});
-             return status;
+            Task status = SqLite.Connection.AddRecordAsync("servers", "guildid,nsfw,join_toggle,leave_toggle,join_msg,leave_msg", new[] { arg.Id.ToString(), "0", "0", "0", "Hey {mention}! Welcome to {sname}!", "Bye {uname}" });
+            return status;
         }
         private Task LeftGuild(SocketGuild arg)
         {
             if (CommandHandler.BlacklistedServers.Contains(arg.Id)) return Task.CompletedTask;
-            return SqLite.Connection.RemoveRecordAsync("servers",$"guildid={arg.Id.ToString()}");
+            return SqLite.Connection.RemoveRecordAsync("servers", $"guildid={arg.Id.ToString()}");
         }
     }
 }

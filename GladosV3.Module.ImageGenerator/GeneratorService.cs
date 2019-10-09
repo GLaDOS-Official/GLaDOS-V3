@@ -1,14 +1,12 @@
-﻿using System;
+﻿using Discord;
+using Discord.Commands;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Reflection;
-using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
-using Discord;
-using Discord.Commands;
 using GladosV3.Services;
 
 namespace GladosV3.Module.ImageGeneration
@@ -26,16 +24,16 @@ namespace GladosV3.Module.ImageGeneration
             typing = context.Channel.EnterTypingState();
             string item = items.Aggregate(string.Empty, (current, type) => current + type + ", ");
             string html = File.ReadAllTextAsync(Path.Combine(Directory.GetCurrentDirectory(),
-                "..\\images\\shit.html")).GetAwaiter().GetResult().Replace("REPLACEWITHITEM", item.Remove(item.Length - 2)).Replace("REPLACECORRECTPLURAL",items.Length > 1 ? "are" : "is");
+                "images\\shit.html")).GetAwaiter().GetResult().Replace("REPLACEWITHITEM", item.Remove(item.Length - 2)).Replace("REPLACECORRECTPLURAL", items.Length > 1 ? "are" : "is");
             var jpgBytes = Exec(html).GetAwaiter().GetResult();
             typing.Dispose();
-            return Task.FromResult(new MemoryStream(jpgBytes)); 
+            return Task.FromResult(new MemoryStream(jpgBytes));
         }
         public Task<MemoryStream> Delete(string item, ICommandContext context)
         {
             typing = context.Channel.EnterTypingState();
             string html = File.ReadAllTextAsync(Path.Combine(Directory.GetCurrentDirectory(),
-                "..\\images\\delete.html")).GetAwaiter().GetResult().Replace("REPLACEWITHITEM", item);
+                "images\\delete.html")).GetAwaiter().GetResult().Replace("REPLACEWITHITEM", item);
             var jpgBytes = Exec(html).GetAwaiter().GetResult();
             typing.Dispose();
             return Task.FromResult(new MemoryStream(jpgBytes));
@@ -43,7 +41,7 @@ namespace GladosV3.Module.ImageGeneration
         public Task<MemoryStream> MinecraftAchivementGet(string text, ICommandContext context)
         {
             typing = context.Channel.EnterTypingState();
-            var randoms = new[] {29,20,1,21,13,18,17,9,31,22,23,2,11,19,24,25,14,12,33,34,32,3,35,37,38,7,10,39,4,5,30,8,16,28 };
+            var randoms = new[] { 29, 20, 1, 21, 13, 18, 17, 9, 31, 22, 23, 2, 11, 19, 24, 25, 14, 12, 33, 34, 32, 3, 35, 37, 38, 7, 10, 39, 4, 5, 30, 8, 16, 28 };
             HttpClient hc = new HttpClient();
             byte[] jpgBytes = hc.GetByteArrayAsync($"https://www.minecraftskinstealer.com/achievement/a.php?i={randoms[new Random().Next(randoms.Length)]}&h=Achievement+Get%21&t={text}").GetAwaiter().GetResult();
             typing.Dispose();
@@ -55,7 +53,7 @@ namespace GladosV3.Module.ImageGeneration
             {
                 Arguments = $"-q --width {width} --height {height} -f jpeg  - -",
                 FileName = Path.Combine(Directory.GetCurrentDirectory(),
-                    "..\\Binaries\\wkhtmltoimage.exe"),
+                    "Binaries\\wkhtmltoimage.exe"),
                 RedirectStandardOutput = true,
                 RedirectStandardInput = true
             });

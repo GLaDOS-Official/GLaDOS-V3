@@ -1,6 +1,6 @@
-﻿using System.Threading.Tasks;
-using Discord;
+﻿using Discord;
 using Discord.Commands;
+using System.Threading.Tasks;
 
 namespace GladosV3.Module.Music
 {
@@ -16,7 +16,7 @@ namespace GladosV3.Module.Music
         {
             if (!AudioService.service.Fail)
             {
-                return AudioService.service.JoinAudioAsync(Context.Guild, ((IVoiceState) Context.User).VoiceChannel,Context.Client.CurrentUser.Id);
+                return AudioService.service.JoinAudioAsync(Context.Guild, ((IVoiceState)Context.User).VoiceChannel, Context.Client.CurrentUser.Id);
             }
             Context.Channel.SendMessageAsync("There was an error... Check the logs!").GetAwaiter(); return Task.CompletedTask;
         }

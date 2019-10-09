@@ -2,7 +2,6 @@
 using Discord.WebSocket;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
@@ -19,7 +18,7 @@ namespace GladosV3.Helpers
             public ISocketMessageChannel Channel => Context.Message.Channel;
             public SocketGuild Guild => Context.Guild;
             public SocketUser User => Context.Message.Author;
-            public JObject Config => Tools.GetConfigAsync(1).GetAwaiter().GetResult();
+            public BotSettingsHelper<string> Config => new BotSettingsHelper<string>();
             public DiscordSocketClient Client => Context.Client;
             public Tools Tools => new Tools();
             public SocketCommandContext Context { get; private set; }
@@ -43,9 +42,11 @@ namespace GladosV3.Helpers
                 ScriptOptions options = ScriptOptions.Default.WithReferences(AppDomain.CurrentDomain.GetAssemblies().Where(asm => !asm.IsDynamic && !string.IsNullOrWhiteSpace(asm.Location))).WithImports(imports).WithEmitDebugInformation(true);
                 Script result = CSharpScript.Create(cScode, options, typeof(Globals));
                 string returnVal = result.RunAsync(new Globals(ctx)).GetAwaiter().GetResult().ReturnValue?.ToString();
-                if (!string.IsNullOrWhiteSpace(returnVal) && returnVal?.Contains(Tools.GetConfigAsync(0).GetAwaiter().GetResult()["tokens:discord"]))
+                BotSettingsHelper<string> r = new BotSettingsHelper<string>();
+                string token = r["tokens_discord"].ToString();
+                if (!string.IsNullOrWhiteSpace(returnVal) && returnVal.Contains(token))
                 {
-                    returnVal = returnVal?.Replace(Tools.GetConfigAsync(0).GetAwaiter().GetResult()["tokens:discord"].ToString(),
+                    returnVal = returnVal?.Replace(token,
                         "Nah, no token leak 4 u.");
                 }
 

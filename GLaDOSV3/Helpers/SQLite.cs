@@ -1,7 +1,6 @@
 ﻿using System.Data;
 using System.Data.SQLite;
 using System.IO;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace GladosV3.Helpers
@@ -32,34 +31,9 @@ namespace GladosV3.Helpers
         /// <summary>
         /// Creates a table with a name and parameters..
         /// </summary>
-       
-        public static Task CreateTableAsync(this SQLiteConnection connection, string tableName,string parameters)
+        public static Task CreateTableAsync(this SQLiteConnection connection, string tableName, string parameters)
         {
             string sql = $"CREATE TABLE `{tableName}` ({parameters});";
-            using (SQLiteCommand command = new SQLiteCommand(sql, connection))
-                command.ExecuteNonQuery();
-            return Task.CompletedTask;
-        }
-        /// <summary>
-        /// Sets/updates a value in a table.
-        /// </summary>
-        public static Task SetValueAsyncWithGuildFiltering<T>(this SQLiteConnection connection, string tableName, string parameter,T value, string guildid = "")
-        {
-            string sql = $"UPDATE {tableName} SET {parameter}='{value}'";
-            if (guildid != "")
-                sql += $" WHERE guildid={guildid}";
-            using (SQLiteCommand command = new SQLiteCommand(sql, connection))
-                command.ExecuteNonQuery();
-            return Task.CompletedTask;
-        }
-        /// <summary>
-        /// Sets/updates a value to null in a table.
-        /// </summary>
-        public static Task SetValueToNullAsyncWithGuildFiltering(this SQLiteConnection connection, string tableName, string parameter, string guildid = "")
-        {
-            string sql = $"UPDATE {tableName} SET {parameter}=null";
-            if (guildid != "")
-                sql += $" WHERE guildid={guildid}";
             using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                 command.ExecuteNonQuery();
             return Task.CompletedTask;
@@ -75,32 +49,6 @@ namespace GladosV3.Helpers
             using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                 command.ExecuteNonQuery();
             return Task.CompletedTask;
-        }
-        /// <summary>
-        /// Sets/updates a value to null in a table.
-        /// </summary>
-        public static Task SetValueToNullAsync(this SQLiteConnection connection, string tableName, string parameter, string filter = "")
-        {
-            string sql = $"UPDATE {tableName} SET {parameter}=null";
-            if (filter != "")
-                sql += $" {filter}";
-            using (SQLiteCommand command = new SQLiteCommand(sql, connection))
-                command.ExecuteNonQuery();
-            return Task.CompletedTask;
-        }
-        /// <summary>
-        /// Returns a DataTable.
-        /// </summary>
-        public static Task<DataTable> GetValuesAsyncWithGuildIDFilter(this SQLiteConnection connection, string tableName, string guildid="")
-        {
-            string sql = $"SELECT * FROM {tableName}";
-            DataTable dt = new DataTable();
-            if (guildid != "")
-                sql += $" WHERE guildid='{guildid}'";
-            using (SQLiteDataAdapter reader = new SQLiteDataAdapter(sql, connection))
-                reader.Fill(dt);
-            dt.TableName = tableName;
-            return Task.FromResult(dt);
         }
         /// <summary>
         /// Returns a DataTable.
@@ -131,13 +79,13 @@ namespace GladosV3.Helpers
                 Connection.CreateTableAsync("BlacklistedUsers", "`UserId` INTEGER,`Reason` TEXT DEFAULT \'Unspecified.\', `Date` INTEGER");
             if (!Connection.TableExistsAsync("BotSettings").GetAwaiter().GetResult())
                 Connection.CreateTableAsync("BotSettings", "`ID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, `name` TEXT, `value` TEXT");
-            if(!Connection.TableExistsAsync("BlacklistedServers").GetAwaiter().GetResult())
+            if (!Connection.TableExistsAsync("BlacklistedServers").GetAwaiter().GetResult())
                 Connection.CreateTableAsync("BlacklistedServers", "`guildid` INTEGER, `date` TEXT, `reason` TEXT");
         }
         /// <summary>
         /// Adds a new row into a table.
         /// </summary>
-        public static Task AddRecordAsync<T>(this SQLiteConnection connection, string tablename, string values, T[] items,string filter="")
+        public static Task AddRecordAsync<T>(this SQLiteConnection connection, string tablename, string values, T[] items, string filter = "")
         {
             string result = "";
             for (int i = 1; i <= items.Length; i++)
@@ -158,7 +106,7 @@ namespace GladosV3.Helpers
         /// <summary>
         /// Removes a row from the selected table.
         /// </summary>
-        public static Task RemoveRecordAsync(this SQLiteConnection connection, string tablename,string filter)
+        public static Task RemoveRecordAsync(this SQLiteConnection connection, string tablename, string filter)
         {
             if (string.IsNullOrWhiteSpace(filter))
                 return Task.FromException(new SQLiteException("Filter mustn't be empty!"));

@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 using GladosV3.Attributes;
 using GladosV3.Helpers;
-using Microsoft.Extensions.Configuration;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace GladosV3.Modules
 {
@@ -14,12 +13,10 @@ namespace GladosV3.Modules
     public class HelpModule : ModuleBase<SocketCommandContext>
     {
         private readonly CommandService _service;
-        private readonly IConfigurationRoot _config;
 
-        public HelpModule(CommandService service, IConfigurationRoot config)
+        public HelpModule(CommandService service)
         {
             _service = service;
-            _config = config;
         }
 
         [Command("modules")]
@@ -51,7 +48,7 @@ namespace GladosV3.Modules
         public async Task Help([Remainder]string command = null)
         {
             // ((ITextChannel)Context.Channel).CreateWebhookAsync("GLaDOS V3");
-            
+
             IDMChannel dm = await Context.Message.Author.GetOrCreateDMChannelAsync();
             Random rnd = new Random();
             EmbedBuilder builder = new EmbedBuilder
@@ -112,7 +109,7 @@ namespace GladosV3.Modules
 
                     }
                 }
-                foreach (var msg in Tools.SplitMessage($"{list.Aggregate(string.Empty, (current, cmi) => string.Concat(current, $"\n= {cmi.GetModName()} =\n{cmi.GetDec()}\n"))}",1985))
+                foreach (var msg in Tools.SplitMessage($"{list.Aggregate(string.Empty, (current, cmi) => string.Concat(current, $"\n= {cmi.GetModName()} =\n{cmi.GetDec()}\n"))}", 1985))
                     await dm.SendMessageAsync($"```asciidoc\n{msg}```");
                 await dm.CloseAsync();
                 if (Context.Guild != null)

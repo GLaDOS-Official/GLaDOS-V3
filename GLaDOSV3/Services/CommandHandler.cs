@@ -1,15 +1,14 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using GladosV3.Attributes;
 using GladosV3.Helpers;
-using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 using System.Linq;
 using System.Threading.Tasks;
-using Discord;
 
 namespace GladosV3.Services
 {
@@ -17,57 +16,55 @@ namespace GladosV3.Services
     {
         private readonly DiscordSocketClient _discord;
         private readonly CommandService _commands;
-        private readonly IConfigurationRoot _config;
         private readonly IServiceProvider _provider;
         public static List<ulong> BlacklistedUsers = new List<ulong>();
         public static List<ulong> BlacklistedServers = new List<ulong>();
         public static string MaintenanceMode = "";
         public static bool BotBusy = false;
-        private BotSettingsHelper<string> _botSettingsHelper;
         public static Dictionary<ulong, string> Prefix = new Dictionary<ulong, string>();
 
-        private string fallbackPrefix = "";
+        private readonly string fallbackPrefix = "";
         // DiscordSocketClient, CommandService, IConfigurationRoot, and IServiceProvider are injected automatically from the IServiceProvider
         public CommandHandler(
             DiscordSocketClient discord,
             CommandService commands,
-            IConfigurationRoot config,
             IServiceProvider provider,
             BotSettingsHelper<string> botSettingsHelper)
         {
             _discord = discord;
             _commands = commands;
-            _config = config;
             _provider = provider;
             _discord.MessageReceived += OnMessageReceivedAsync;
-            _botSettingsHelper = botSettingsHelper;
-            MaintenanceMode = _botSettingsHelper["maintenance"];
+            MaintenanceMode = botSettingsHelper["maintenance"];
             fallbackPrefix = botSettingsHelper["prefix"];
-            using (DataTable dt = SqLite.Connection.GetValuesAsyncWithGuildIDFilter("BlacklistedUsers").GetAwaiter().GetResult())
+            using (DataTable dt = SqLite.Connection.GetValuesAsync("BlacklistedUsers").GetAwaiter().GetResult())
             {
                 for (int i = 0; i < dt.Rows.Count; i++)
                 {
                     BlacklistedUsers.Add(Convert.ToUInt64(dt.Rows[i]["UserId"]));
                 }
             }
-            {
-              string sql = $"SELECT guildid,prefix FROM servers";
-              using (DataTable dt2 = new DataTable())
-              {
 
-                 using (SQLiteDataAdapter reader = new SQLiteDataAdapter(sql, SqLite.Connection))
-                        reader.Fill(dt2);
-                  dt2.TableName = "servers";
-                  for (int i = 0; i < dt2.Rows.Count; i++)
-                  {
-                      string pref = dt2.Rows[i]["prefix"].ToString();
-                      if (!string.IsNullOrWhiteSpace(pref))
-                          Prefix.Add(Convert.ToUInt64(dt2.Rows[i]["guildid"]), pref);
-                  }
-              }
-            }
+            RefreshPrefix();
         }
 
+        internal static void RefreshPrefix()
+        {
+            string sql = $"SELECT guildid,prefix FROM servers";
+            using (DataTable dt2 = new DataTable())
+            {
+
+                using (SQLiteDataAdapter reader = new SQLiteDataAdapter(sql, SqLite.Connection))
+                    reader.Fill(dt2);
+                dt2.TableName = "servers";
+                for (int i = 0; i < dt2.Rows.Count; i++)
+                {
+                    string pref = dt2.Rows[i]["prefix"].ToString();
+                    if (!string.IsNullOrWhiteSpace(pref))
+                        Prefix.Add(Convert.ToUInt64(dt2.Rows[i]["guildid"]), pref);
+                }
+            }
+        }
         private bool IsUserBlackListed(SocketUserMessage msg)
         {
             return BlacklistedUsers.Contains(msg.Author.Id);
@@ -97,8 +94,8 @@ namespace GladosV3.Services
 
             int argPos = 0; // Check if the message has a valid command prefix
             string prefix = fallbackPrefix;
-            if((msg.Channel is IGuildChannel ok) && Prefix.TryGetValue(ok.Guild.Id, out string guildPrefix))
-                { prefix = guildPrefix; }
+            if ((msg.Channel is IGuildChannel ok) && Prefix.TryGetValue(ok.Guild.Id, out string guildPrefix))
+            { prefix = guildPrefix; }
             if (!msg.HasStringPrefix(prefix, ref argPos) && !msg.HasMentionPrefix(_discord.CurrentUser, ref argPos))
             {
                 return; // Ignore messages that aren't meant for the bot
@@ -110,7 +107,7 @@ namespace GladosV3.Services
             }
 
             SocketCommandContext context = new SocketCommandContext(_discord, msg); // Create the command context
-            if (!string.IsNullOrWhiteSpace(MaintenanceMode) && (IsOwner.CheckPermission(context).GetAwaiter().GetResult())) { await context.Channel.SendMessageAsync("Bot is in maintenance mode! Reason: "+MaintenanceMode).ConfigureAwait(false); ; return; } // Don't execute commands in maintenance mode 
+            if (!string.IsNullOrWhiteSpace(MaintenanceMode) && (IsOwner.CheckPermission(context).GetAwaiter().GetResult())) { await context.Channel.SendMessageAsync("Bot is in maintenance mode! Reason: " + MaintenanceMode).ConfigureAwait(false); ; return; } // Don't execute commands in maintenance mode 
             IResult result = await _commands.ExecuteAsync(context, argPos, _provider); // Execute the command
             if (!result.IsSuccess && result.ErrorReason != "hidden" && result.ErrorReason != "Unknown command.")  // If not successful, reply with the error.
             {
@@ -165,7 +162,7 @@ namespace GladosV3.Services
             }
 
             msg.DeleteAsync().GetAwaiter();
-            msg.Channel.SendMessageAsync($"{msg.Author.Mention} Please don't mention bomb!").GetAwaiter();
+            msg.Channel.SendMessageAsync($"{msg.Author.Mention} Please don't mention that many users!").GetAwaiter();
             return Task.CompletedTask;
         }
     }

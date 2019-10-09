@@ -1,12 +1,12 @@
-﻿using System;
-using System.Threading.Tasks;
-using Discord.Commands;
+﻿using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.Extensions.Configuration;
+using System;
+using System.Threading.Tasks;
+using GladosV3.Helpers;
 
 namespace GladosV3.Module.Music
 {
-    public class ModuleInfo : IGladosModule
+    public class ModuleInfo : GladosV3.IGladosModule
     {
         public string Name() => "Music";
 
@@ -17,15 +17,11 @@ namespace GladosV3.Module.Music
         public string Author() => "BlackOfWorld#8125";
 
         public Type[] Services => null;
-
-        public void PreLoad(DiscordSocketClient discord, CommandService commands, IConfigurationRoot config,
-            IServiceProvider provider)
+        public void PreLoad(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider)
         {
             AudioService.service = new AudioService(config);
         }
-
-        public void PostLoad(DiscordSocketClient discord, CommandService commands, IConfigurationRoot config,
-            IServiceProvider provider)
+        public void PostLoad(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider)
         {
             discord.UserVoiceStateUpdated += (user, old, _new) =>
             {
@@ -38,5 +34,11 @@ namespace GladosV3.Module.Music
                 return Task.CompletedTask;
             };
         }
+
+        public void Reload(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider)
+        { }
+
+        public void Unload(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider)
+        { }
     }
 }

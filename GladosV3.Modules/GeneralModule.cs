@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 using GladosV3.Attributes;
 using GladosV3.Helpers;
 using GladosV3.Services;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Data;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace GladosV3.Module.Default
 {
@@ -26,7 +25,7 @@ namespace GladosV3.Module.Default
             [Attributes.RequireUserPermission(GuildPermission.ManageGuild)]
             public async Task FarewellMessage(string value)
             {
-                await SqLite.Connection.SetValueAsyncWithGuildFiltering("servers", "leave_msg", value, Context.Guild.Id.ToString()).ConfigureAwait(false);
+                await SqLite.Connection.SetValueAsync("servers", "leave_msg", value, $"WHERE guildid={Context.Guild.Id.ToString()}").ConfigureAwait(false);
                 await ReplyAsync("Done!");
             }
             [Command("guild farewell channel")]
@@ -36,7 +35,7 @@ namespace GladosV3.Module.Default
             public async Task FarewellChannel(string value)
             {
                 if (Context.Guild.GetChannel(Convert.ToUInt64(value)) != null)
-                    await SqLite.Connection.SetValueAsyncWithGuildFiltering("servers", "joinleave_cid", value, Context.Guild.Id.ToString()).ConfigureAwait(false);
+                    await SqLite.Connection.SetValueAsync("servers", "joinleave_cid", value, $"WHERE guildid={Context.Guild.Id.ToString()}").ConfigureAwait(false);
                 else
                     throw new Exception("Channel ID is invalid!");
 
@@ -49,7 +48,7 @@ namespace GladosV3.Module.Default
             public async Task FarewellStatus(string value)
             {
                 if (value == "1" || value == "0")
-                    await SqLite.Connection.SetValueAsyncWithGuildFiltering("servers", "leave_toggle", value, Context.Guild.Id.ToString()).ConfigureAwait(false);
+                    await SqLite.Connection.SetValueAsync("servers", "leave_toggle", value, $"WHERE guildid={Context.Guild.Id.ToString()}").ConfigureAwait(false);
                 else
                     throw new Exception("Only 0 or 1 is accepted!");
                 await ReplyAsync("Done!");
@@ -60,7 +59,7 @@ namespace GladosV3.Module.Default
             [Attributes.RequireUserPermission(GuildPermission.ManageGuild)]
             public async Task JoinMessage(string value)
             {
-                await SqLite.Connection.SetValueAsyncWithGuildFiltering("servers", "join_msg", value, Context.Guild.Id.ToString()).ConfigureAwait(false);
+                await SqLite.Connection.SetValueAsync("servers", "join_msg", value, $"WHERE guildid={Context.Guild.Id.ToString()}").ConfigureAwait(false);
                 await ReplyAsync("Done!");
             }
             [Command("guild join channel")]
@@ -70,7 +69,7 @@ namespace GladosV3.Module.Default
             public async Task JoinChannel(string value)
             {
                 if (Context.Guild.GetChannel(Convert.ToUInt64(value)) != null)
-                    await SqLite.Connection.SetValueAsyncWithGuildFiltering("servers", "joinleave_cid", value, Context.Guild.Id.ToString()).ConfigureAwait(false);
+                    await SqLite.Connection.SetValueAsync("servers", "joinleave_cid", value, $"WHERE guildid={Context.Guild.Id.ToString()}").ConfigureAwait(false);
                 else
                     throw new Exception("Channel ID is invalid!");
 
@@ -83,7 +82,7 @@ namespace GladosV3.Module.Default
             public async Task JoinStatus(string value)
             {
                 if (value == "1" || value == "0")
-                    await SqLite.Connection.SetValueAsyncWithGuildFiltering("servers", "join_toggle", value, Context.Guild.Id.ToString()).ConfigureAwait(false);
+                    await SqLite.Connection.SetValueAsync("servers", "join_toggle", value, $"WHERE guildid={Context.Guild.Id.ToString()}").ConfigureAwait(false);
                 else
                     throw new Exception("Only 0 or 1 is accepted!");
                 await ReplyAsync("Done!");
@@ -94,32 +93,32 @@ namespace GladosV3.Module.Default
             [Attributes.RequireUserPermission(GuildPermission.ManageGuild)]
             public async Task GuildPrefix(string value = null)
             {
-                if (string.IsNullOrWhiteSpace(value))
-                    await SqLite.Connection.SetValueToNullAsyncWithGuildFiltering("servers", "prefix",Context.Guild.Id.ToString());
-                else
-                    await SqLite.Connection.SetValueAsyncWithGuildFiltering("servers", "prefix", value, Context.Guild.Id.ToString()).ConfigureAwait(false);
+                await SqLite.Connection.SetValueAsync("servers", "prefix", value, $"WHERE guildid={Context.Guild.Id.ToString()}").ConfigureAwait(false);
                 if (CommandHandler.Prefix.ContainsKey(Context.Guild.Id))
                     CommandHandler.Prefix.Remove(Context.Guild.Id);
-                if(!string.IsNullOrWhiteSpace(value))
-                    CommandHandler.Prefix.Add(Context.Guild.Id,value);
+                if (!string.IsNullOrWhiteSpace(value))
+                    CommandHandler.Prefix.Add(Context.Guild.Id, value);
                 await ReplyAsync($"Done! Changed the prefix to: {(string.IsNullOrWhiteSpace(value) ? IsOwner.botSettingsHelper["prefix"] : value)}");
             }
             [Command("guild configuration")]
             [Summary("Lists the current settings of the Guild module")]
             [Remarks("guild configuration")]
+            [Alias("guild config")]
             [Attributes.RequireUserPermission(GuildPermission.ManageGuild)]
             public async Task GuildConfig()
             {
                 var msg = await ReplyAsync("Please wait...");
                 string finalMsg = "";
-                DataTable dt = await SqLite.Connection.GetValuesAsyncWithGuildIDFilter("servers", Context.Guild.Id.ToString());
+                DataTable dt = await SqLite.Connection.GetValuesAsync("servers", $"WHERE guildid='{Context.Guild.Id.ToString()}'");
                 var row = dt.Rows[0];
-                finalMsg  = $"NSFW module status: {(row?[1] == "0" ? "Enabled" : "Disabled")}\n";
+#pragma warning disable CS0252 // Possible unintended reference comparison; left hand side needs cast
+                finalMsg = $"NSFW module status: {(row?[1] == "0" ? "Enabled" : "Disabled")}\n";
                 finalMsg += $"Join and leave announcement channel: {(string.IsNullOrWhiteSpace(row?[2].ToString()) ? "Not set" : $"<#{row?[2]}>")}\n";
                 finalMsg += $"Join message: {row?[3]}\n";
                 finalMsg += $"Join announcement status: {(row?[4] == "0" ? "Enabled" : "Disabled")}\n";
                 finalMsg += $"Leave message: {row?[5]}\n";
                 finalMsg += $"Leave announcement status: {(row?[6] == "0" ? "Enabled" : "Disabled")}\n";
+#pragma warning restore CS0252 // Possible unintended reference comparison; left hand side needs cast
                 finalMsg += $"Guild prefix: {(string.IsNullOrWhiteSpace(row?[7].ToString()) ? IsOwner.botSettingsHelper["prefix"] : row?[7])}";
                 await msg.ModifyAsync((a) => a.Content = finalMsg);
             }
@@ -138,7 +137,7 @@ namespace GladosV3.Module.Default
         [Command("emojisay")]
         [Summary("Get's the emoji from a server (nitro is gay)")]
         [Remarks("emojisay <serverid> <emoji name> [--notext] [--s]")]
-        public async Task EmojiSay(ulong serverid,[Remainder]string emojiname)
+        public async Task EmojiSay(ulong serverid, [Remainder]string emojiname)
         {
             string emojiName = emojiname;
             bool noText = false;
@@ -150,7 +149,7 @@ namespace GladosV3.Module.Default
             if (emojiName.Contains(" --s"))
             {
                 emojiName = emojiName.Replace(" --s", "");
-                if(Context.Guild.CurrentUser.GuildPermissions.ManageMessages)
+                if (Context.Guild.CurrentUser.GuildPermissions.ManageMessages)
                     await Context.Message.DeleteAsync();
             }
             var guild = Context.Client.GetGuild(serverid);
@@ -190,7 +189,7 @@ namespace GladosV3.Module.Default
 
             using (var http = new HttpClient())
             {
-                JObject classO = new JObject(new JProperty("title", array.First()),new JProperty("options", new JArray(options)), new JProperty("multi", false),new JProperty("captcha",true));
+                JObject classO = new JObject(new JProperty("title", array.First()), new JProperty("options", new JArray(options)), new JProperty("multi", false), new JProperty("captcha", true));
                 http.DefaultRequestHeaders.Add("User-Agent",
                     "Mozilla/5.0 (Linux; Android 5.0; SM-G920A) AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)"); // we are GoogleBot
                 var httpResult = await http

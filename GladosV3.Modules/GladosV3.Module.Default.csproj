@@ -1,14 +1,14 @@
-<Project Sdk="Microsoft.NET.Sdk" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <StartupObject></StartupObject>
     <ApplicationIcon />
     <AssemblyName>GladosV3.Module.Default</AssemblyName>
     <SignAssembly>false</SignAssembly>
     <RootNamespace>GladosV3.Module.Default</RootNamespace>
-    <AssemblyVersion>1.0.112.8</AssemblyVersion>
-    <FileVersion>1.0.112.8</FileVersion>
+    <AssemblyVersion>1.0.133.8</AssemblyVersion>
+    <FileVersion>1.0.133.8</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -32,11 +32,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MathParser.org-mXparser" Version="4.2.2" />
+    <PackageReference Include="MathParser.org-mXparser" Version="4.3.3" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.1\Modules\"></Copy>
-    <Copy SourceFiles="Dependencies\MathParser.org-mXparser.Core11.dll" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp2.1\Dependencies\"></Copy>
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp3.0\Modules\"></Copy>
+    <Copy SourceFiles="Dependencies\MathParser.org-mXparser.dll" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp3.0\Dependencies\"></Copy>
   </Target>
 </Project>

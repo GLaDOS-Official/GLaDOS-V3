@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
-using GladosV3.Helpers;
 using HtmlAgilityPack;
-using Microsoft.Extensions.Configuration;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace GladosV3.Services
 {
@@ -22,19 +18,16 @@ namespace GladosV3.Services
     {
         private readonly DiscordSocketClient _discord;
         private readonly CommandService _commands;
-        private readonly IConfigurationRoot _config;
         private readonly IServiceProvider _provider;
-        private readonly List<ulong> serverIds = new List<ulong>() {472402015679414293, 503145318372868117, 516296348367192074 };
+        private readonly List<ulong> serverIds = new List<ulong>() { 259776446942150656, 472402015679414293, 503145318372868117, 516296348367192074, 611503265313718282 };
         // DiscordSocketClient, CommandService, IConfigurationRoot, and IServiceProvider are injected automatically from the IServiceProvider
         public IPLoggerProtection(
             DiscordSocketClient discord,
             CommandService commands,
-            IConfigurationRoot config,
             IServiceProvider provider)
         {
             _discord = discord;
             _commands = commands;
-            _config = config;
             _provider = provider;
             _discord.MessageReceived += OnMessageReceivedAsync;
         }
@@ -42,7 +35,7 @@ namespace GladosV3.Services
 
         private async Task DeleteMessage(SocketUserMessage msg)
         {
-            if(((SocketGuildChannel)msg.Channel).Guild.GetUser(_discord.CurrentUser.Id).GuildPermissions.ManageMessages)
+            if (((SocketGuildChannel)msg.Channel).Guild.GetUser(_discord.CurrentUser.Id).GuildPermissions.ManageMessages)
                 await msg.DeleteAsync();
         }
 
@@ -78,17 +71,17 @@ namespace GladosV3.Services
                 urlScanned.Add(shortUrl);
                 using (HttpClient hc = new HttpClient())
                 {
-                    var message = await msg.Channel.SendMessageAsync($"[{i+1}]Verifying URL from {msg.Author.Username}#{msg.Author.Discriminator}...");
+                    var message = await msg.Channel.SendMessageAsync($"[{i + 1}]Verifying URL from {msg.Author.Username}#{msg.Author.Discriminator}...");
                     hc.DefaultRequestHeaders.CacheControl = CacheControlHeaderValue.Parse("no-cache");
                     hc.DefaultRequestHeaders.Add("DNT", "1");
                     hc.DefaultRequestHeaders.Add("Save-Data", "on");
-                    hc.DefaultRequestHeaders.Add("Origin", "http://redirectdetective.com");
-                    hc.DefaultRequestHeaders.Referrer = new Uri("http://redirectdetective.com/");
-                    hc.DefaultRequestHeaders.Add("User-Agent","Mozilla/5.0 (Linux; Android 5.0; SM-G920A) AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)"); // we are GoogleBot
+                    hc.DefaultRequestHeaders.Add("Origin", "https://redirectdetective.com");
+                    hc.DefaultRequestHeaders.Referrer = new Uri("https://redirectdetective.com/");
+                    hc.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G920A) AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)"); // we are GoogleBot
                     shortUrl = shortUrl.Replace(":", "%3A");
                     HttpContent content = new StringContent("w=" + shortUrl);
                     content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/x-www-form-urlencoded");
-                    var response = await hc.PostAsync("http://redirectdetective.com/linkdetect.px", content).GetAwaiter().GetResult().Content.ReadAsStringAsync();
+                    var response = await hc.PostAsync("https://redirectdetective.com/linkdetect.px", content).GetAwaiter().GetResult().Content.ReadAsStringAsync();
                     shortUrl = shortUrl.Replace("%3A", ":");
                     EmbedBuilder builder = new EmbedBuilder()
                     {
@@ -99,7 +92,7 @@ namespace GladosV3.Services
                         }
                     };
                     if (knownIpLoggers.Any(var1 => shortUrl.Contains(var1)))
-                    { isIpLogger = true;  await DeleteMessage(msg); }
+                    { isIpLogger = true; await DeleteMessage(msg); }
                     if (isIpLogger)
                         shortUrl = shortUrl.Replace("htt", "hxx");
                     if (response == "<h4>No redirects found</h4>")

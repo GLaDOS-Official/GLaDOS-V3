@@ -1,7 +1,7 @@
-﻿using System;
-using Discord.Commands;
+﻿using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.Extensions.Configuration;
+using GladosV3.Helpers;
+using System;
 
 namespace GladosV3.Module.Default
 {
@@ -15,12 +15,18 @@ namespace GladosV3.Module.Default
 
         public string Author() => "BlackOfWorld#8125";
 
+        public void PreLoad(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider)
+        { }
+
+        public void PostLoad(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider)
+        { }
+
+        public void Reload(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider)
+        { }
+
+        public void Unload(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider)
+        { }
+
         public Type[] Services => null;
-
-        public void PreLoad(DiscordSocketClient discord, CommandService commands, IConfigurationRoot config, IServiceProvider provider)
-        {}
-
-        public void PostLoad(DiscordSocketClient discord, CommandService commands, IConfigurationRoot config, IServiceProvider provider)
-        {}
     }
 }

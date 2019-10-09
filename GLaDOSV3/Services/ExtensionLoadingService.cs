@@ -1,33 +1,24 @@
-﻿using System;
+﻿using Discord;
+using Discord.Commands;
+using Discord.WebSocket;
+using GladosV3.Helpers;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Loader;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
-using Microsoft.Extensions.Configuration;
 
 namespace GladosV3.Services
 {
-    class SimpleUnloadableAssemblyLoadContext : AssemblyLoadContext
-    {
-        public SimpleUnloadableAssemblyLoadContext()
-        {
-        }
-
-        protected override Assembly Load(AssemblyName assemblyName) => null;
-    }
-
     class ExtensionLoadingService
     {
         private readonly DiscordSocketClient _discord;
         private readonly CommandService _commands;
-        private readonly IConfigurationRoot _config;
+        private readonly BotSettingsHelper<string> _config;
         private readonly IServiceProvider _provider;
-        public ExtensionLoadingService(DiscordSocketClient discord = null, CommandService commands = null, IConfigurationRoot config = null, IServiceProvider provider = null)
+        public ExtensionLoadingService(DiscordSocketClient discord = null, CommandService commands = null, BotSettingsHelper<string> config = null, IServiceProvider provider = null)
         {
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainOnAssemblyResolve;
             AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += CurrentDomainOnAssemblyResolve;
@@ -39,8 +30,36 @@ namespace GladosV3.Services
                 Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "Dependencies"));
             if (!Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Modules")))
                 Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "Modules"));
+            if (discord != null) return;
+            foreach (var assemblyName in Directory.GetFiles(Path.Combine(Directory.GetCurrentDirectory(), "Dependencies")))
+            {
+                if (!IsValidCLRFile(assemblyName)) continue;
+                var asm = Assembly.LoadFile(assemblyName);
+                dependencies.Add(asm.FullName, asm);
+            }
         }
 
+        public Assembly TryLoadFromNuget(ResolveEventArgs args)
+        {
+            try
+            {
+                Assembly load = Assembly.LoadFile(args.Name);
+                return load; // no error
+            }
+            catch { }
+            string name = args.Name;
+            name = name.Substring(0, name.IndexOf(',')).ToLower();
+            char slash = '/';
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                slash = '\\';
+            string path =
+                $"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}{slash}.nuget{slash}packages{slash}{name}";
+            path = Directory.GetDirectories(path)[0];
+            path += $"{slash}lib";
+            path += Directory.GetDirectories(path, "netcoreapp*")[0];
+            path += Directory.GetFiles(path, "*.dll")[0];
+            return Assembly.LoadFile(path);
+        }
         public Task<Type[]> GetServices()
         {
             List<Type> types = new List<Type>();
@@ -80,7 +99,7 @@ namespace GladosV3.Services
                 { return null; } // every extension must have ModuleInfo class
             }
             catch (Exception) { return null; }
-            
+
             return asm;
         }
 
@@ -101,14 +120,11 @@ namespace GladosV3.Services
                         $"Loaded modules: {modules.Remove(modules.Length - 2)} from {Path.GetFileNameWithoutExtension(file)}");
                 }
                 catch (BadImageFormatException)
+                { }
+                catch (Exception ex)
                 {
+                    await LoggingService.Log(LogSeverity.Critical, "Module", $"Exception happened when loading \"{Path.GetFileNameWithoutExtension(file)}\"!\nMessage: {ex.Message}\nCallstack:\n{ex.StackTrace}\nTo prevent any errors or crashes, this module has not been loaded!");
                 }
-            }
-            foreach (var assemblyName in Directory.GetFiles(Path.Combine(Directory.GetCurrentDirectory(), "Dependencies")))
-            {
-                if (!IsValidCLRFile(assemblyName)) continue;
-                var asm = Assembly.LoadFile(assemblyName);
-                dependencies.Add(asm.FullName, asm);
             }
         }
         //public Task Unload(string extensionName)
@@ -124,7 +140,7 @@ namespace GladosV3.Services
         private static IDictionary<string, Assembly> dependencies = new Dictionary<string, Assembly>();
         private Assembly CurrentDomainOnAssemblyResolve(object sender, ResolveEventArgs args)
         {
-            return dependencies.TryGetValue(args.Name, out var res) ? res : Assembly.LoadFile(args.Name);
+            return dependencies.TryGetValue(args.Name, out var res) ? res : TryLoadFromNuget(args);
         }
         private bool IsValidCLRFile(string file) // based on PE headers
         {

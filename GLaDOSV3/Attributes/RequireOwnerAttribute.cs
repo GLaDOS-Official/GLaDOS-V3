@@ -1,10 +1,9 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 using GladosV3.Helpers;
-using Microsoft.Extensions.Configuration;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace GladosV3.Attributes
 {
@@ -13,12 +12,11 @@ namespace GladosV3.Attributes
     {
         public override async Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
-            var config = await Tools.GetConfigAsync();
             switch (context.Client.TokenType)
             {
                 case TokenType.Bot:
                     var application = await context.Client.GetApplicationInfoAsync();
-                    return (context.User.Id != application.Owner.Id && ulong.Parse(IsOwner.botSettingsHelper["ownerID"]) != context.User.Id && !IsOwner.IsCoOwner(config, context.User.Id)) ? PreconditionResult.FromError("Command can only be run by the owner of the bot") : PreconditionResult.FromSuccess(); //&& (IConfigurationRoot)config["co-owners"].ToString().Split(',').Any(t => t == context.User.Id))
+                    return (context.User.Id != application.Owner.Id && ulong.Parse(IsOwner.botSettingsHelper["ownerID"]) != context.User.Id && !IsOwner.IsCoOwner(context.User.Id)) ? PreconditionResult.FromError("Command can only be run by the owner of the bot") : PreconditionResult.FromSuccess(); //&& (IConfigurationRoot)config["co-owners"].ToString().Split(',').Any(t => t == context.User.Id))
                 /*case TokenType.User:
                     return (context.User.Id != context.Client.CurrentUser.Id) ? PreconditionResult.FromError("Command can only be run by the owner of the bot") : PreconditionResult.FromSuccess();*/
                 default:
@@ -30,7 +28,7 @@ namespace GladosV3.Attributes
     public class IsOwner
     {
         public static BotSettingsHelper<string> botSettingsHelper = new BotSettingsHelper<string>();
-        public static bool IsCoOwner(IConfigurationRoot _config, ulong ID)
+        public static bool IsCoOwner(ulong ID)
         {
             string ok = botSettingsHelper["co-owners"];
             if (string.IsNullOrWhiteSpace(ok))
@@ -39,30 +37,28 @@ namespace GladosV3.Attributes
             bool fail = coOwners.All(t => t != ID.ToString());
             return !fail;
         }
-        public static async Task<bool> CheckPermission(ICommandContext context)
+        public static Task<bool> CheckPermission(ICommandContext context)
         {
-            var config = await Tools.GetConfigAsync();
             switch (context.Client.TokenType)
             {
                 case TokenType.Bot:
-                        return (ulong.Parse(config["ownerID"]) != context.User.Id && context.User.Id != context.Client.GetApplicationInfoAsync().GetAwaiter().GetResult().Owner.Id && !IsCoOwner(config, context.User.Id));
+                    return Task.FromResult(ulong.Parse(botSettingsHelper["ownerID"]) != context.User.Id && context.User.Id != context.Client.GetApplicationInfoAsync().GetAwaiter().GetResult().Owner.Id && !IsCoOwner(context.User.Id));
                 /*case TokenType.User:
                         return (context.User.Id != context.Client.CurrentUser.Id);*/
                 default:
-                    return false;
+                    return Task.FromResult(false);
             }
         }
-        public static async Task<ulong> GetOwner(ICommandContext context)
+        public static Task<ulong> GetOwner(ICommandContext context)
         {
-            var config = await Tools.GetConfigAsync();
             switch (context.Client.TokenType)
             {
                 case TokenType.Bot:
-                        return context.Client.GetApplicationInfoAsync().GetAwaiter().GetResult().Owner.Id;
+                    return Task.FromResult(context.Client.GetApplicationInfoAsync().GetAwaiter().GetResult().Owner.Id);
                 /*case TokenType.User:
                         return ulong.Parse(config["ownerID"]);*/
                 default:
-                    return 0L;
+                    return Task.FromResult(0UL);
             }
         }
     }
