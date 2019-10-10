@@ -32,23 +32,14 @@ namespace GladosV3.Attributes
             _noLimitForAdmins = noLimitForAdmins;
             _applyPerGuild = applyPerGuild;
 
-            switch (measure)
+            _invokeLimitPeriod = measure switch
             {
-                case Measure.Days:
-                    _invokeLimitPeriod = TimeSpan.FromDays(period);
-                    break;
-                case Measure.Hours:
-                    _invokeLimitPeriod = TimeSpan.FromHours(period);
-                    break;
-                case Measure.Minutes:
-                    _invokeLimitPeriod = TimeSpan.FromMinutes(period);
-                    break;
-                case Measure.Seconds:
-                    _invokeLimitPeriod = TimeSpan.FromSeconds(period);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(measure), measure, null);
-            }
+                Measure.Days => TimeSpan.FromDays(period),
+                Measure.Hours => TimeSpan.FromHours(period),
+                Measure.Minutes => TimeSpan.FromMinutes(period),
+                Measure.Seconds => TimeSpan.FromSeconds(period),
+                _ => throw new ArgumentOutOfRangeException(nameof(measure), measure, null)
+            };
         }
 
         /// <summary> Sets how often a user is allowed to use this command. </summary>

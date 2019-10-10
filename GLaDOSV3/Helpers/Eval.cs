@@ -34,8 +34,8 @@ namespace GladosV3.Helpers
             List<string> imports = new List<string>(16)
             {
                 "System", "System.Collections.Generic", "System.Reflection", "System.Text", "System.Threading.Tasks","System.Linq","System.Math",
-                "System.IO","Microsoft.Extensions.Configuration","System.Diagnostics","GladosV3.Helpers","Discord","Discord.Commands","Discord.WebSocket","Newtonsoft.Json",
-                "System.Data.SQLite"
+                "System.IO","System.Diagnostics","GladosV3.Helpers","Discord","Discord.Commands","Discord.WebSocket","Newtonsoft.Json",
+                "System.Data.SQLite", "Microsoft.Extensions"
             };
             try
             {

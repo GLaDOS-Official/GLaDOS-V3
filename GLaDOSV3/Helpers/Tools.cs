@@ -13,9 +13,6 @@ namespace GladosV3.Helpers
 {
     public class Tools
     {
-        private static readonly IConfigurationBuilder Builder = new ConfigurationBuilder()    // Begin building the configuration file
-            .SetBasePath(AppContext.BaseDirectory)  // Specify the location of the config
-            .AddJsonFile("_configuration.json");
 
         public static void WriteColorLine(ConsoleColor color, string message)
         {
@@ -96,16 +93,6 @@ namespace GladosV3.Helpers
             return messages.ToArray();
         }
 
-        public static void WriteToReadOnlyValue(Type type, object obj)
-        {
-            foreach (PropertyInfo info in type.GetProperties())
-            {
-                if (info.Name == "Content")
-                {
-                    info.SetValue(obj, "your mom");
-                }
-            }
-        }
         public static bool WriteToReadOnlyValue(Type type, object obj, string element, object value)
         {
             foreach (PropertyInfo info in type.GetProperties())

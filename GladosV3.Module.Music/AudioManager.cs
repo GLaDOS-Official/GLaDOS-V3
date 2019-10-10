@@ -10,164 +10,153 @@ using System.Net;
 using System.Threading.Tasks;
 using GladosV3.Helpers;
 using GladosV3.Services;
+using Victoria;
+using Discord.WebSocket;
+using Victoria.Entities;
+using System.Linq;
 
 namespace GladosV3.Module.Music
 {
     public class AudioService
     {
         public static AudioService service;
-        internal static readonly ConcurrentDictionary<ulong, MusicClass> ConnectedChannels = new ConcurrentDictionary<ulong, MusicClass>();
-        public int Type;
-        public bool Fail = true;
-        public AudioService(BotSettingsHelper<string> config)
+        private readonly LavaSocketClient _lavaClient;
+        private readonly DiscordSocketClient _socketClient;
+        private readonly LavaRestClient _lavaRestClient;
+        public AudioService(LavaRestClient lavaRestClient,LavaSocketClient lavaSocketClient, DiscordSocketClient socketClient)
         {
-            if (!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Binaries\\youtube-dl.exe"))) { LoggingService.Log(LogSeverity.Error, "AudioService", "youtube-dl.exe not found!"); return; }
-            if (!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Binaries\\ffmpeg.exe"))) { LoggingService.Log(LogSeverity.Error, "AudioService", "ffmpeg.exe not found!"); return; }
-            Type = 0;
-            Fail = false;
+            _lavaClient = lavaSocketClient;
+            _socketClient = socketClient;
+            _lavaRestClient = lavaRestClient;
+            lavaSocketClient.OnTrackFinished += LavaSocketClient_OnTrackFinished;
+            socketClient.Ready += SocketClient_Ready;
         }
+        public async Task ConnectAsync(SocketVoiceChannel voiceChannel, ITextChannel textChannel)
+            => await _lavaClient.ConnectAsync(voiceChannel, textChannel);
 
-        public async Task<bool> JoinAudioAsync(IGuild guild, IVoiceChannel target, ulong botId)
+        public async Task LeaveAsync(SocketVoiceChannel voiceChannel)
+            => await _lavaClient.DisconnectAsync(voiceChannel);
+        public async Task<string> PlayAsync(string query, ulong guildId)
         {
-            if (ConnectedChannels.TryGetValue(guild.Id, out _)) return false;
-            if (target?.Guild.Id != guild.Id) return false;
-            var audioClient = await target.ConnectAsync();
-            return ConnectedChannels.TryAdd(guild.Id, new MusicClass(audioClient, target.Id));
-        }
-        public async Task LeaveAudioAsync(IGuild guild)
-        {
-            if (ConnectedChannels.TryRemove(guild.Id, out MusicClass mclass))
+            var _player = _lavaClient.GetPlayer(guildId);
+            var results = await _lavaRestClient.SearchYouTubeAsync(query);
+            if (results.LoadType == LoadType.NoMatches || results.LoadType == LoadType.LoadFailed)
             {
-                mclass.Process?.Kill();
-                mclass.ClearQueue();
-                //mclass.ClientAudioStream.Close();
-                //mclass.ClientAudioStream.Dispose();
-                await mclass.GetClient.StopAsync();
-                mclass.GetClient.Dispose();
+                return "No video found on YT.";
+            }
+
+            var track = results.Tracks.FirstOrDefault();
+            if (_player.Queue.Count > 35) return "Queue is full!";
+            if (_player.IsPlaying)
+            {
+                _player.Queue.Enqueue(track);
+                return $"{track.Title} has been added to the queue.";
+            }
+            else
+            {
+                await _player.PlayAsync(track);
+                return $"Now Playing: {track.Title}";
             }
         }
 
-        public async Task SendAudioAsync(string path, ICommandContext context)
+        public async Task<string> StopAsync(ulong guildId)
         {
-            if (!ConnectedChannels.TryGetValue(context.Guild.Id, out MusicClass mclass))
+            var _player = _lavaClient.GetPlayer(guildId);
+            if (_player is null)
+                return "Error with player. Please contact the bot owner.";
+            await _player.StopAsync();
+            return "Music Playback Stopped.";
+        }
+
+        public async Task<string> SkipAsync(ulong guildId)
+        {
+            var _player = _lavaClient.GetPlayer(guildId);
+            if (_player is null || _player.Queue.Items.Count() is 0)
+                return "Queue is empty!";
+
+            var oldTrack = _player.CurrentTrack;
+            await _player.SkipAsync();
+            return $"Skiped: {oldTrack.Title} \nNow Playing: {_player.CurrentTrack.Title}";
+        }
+
+        public async Task<string> SetVolumeAsync(int vol, ulong guildId)
+        {
+            var _player = _lavaClient.GetPlayer(guildId);
+            if (_player is null)
+                return "Player isn't playing.";
+
+            if (vol > 150 || vol <= 2)
             {
-                if (!await JoinAudioAsync(context.Guild, ((IVoiceState)context.User).VoiceChannel, context.Client.CurrentUser.Id))
-                { await context.Channel.SendMessageAsync("Please join VC first!"); return; }
-                ConnectedChannels.TryGetValue(context.Guild.Id, out mclass);
+                return "Please use a number between 2 - 150";
             }
-            if (string.IsNullOrWhiteSpace(path))
-            { await context.Channel.SendMessageAsync("We're sorry, something went wrong on our side."); return; }
-            if (!path.StartsWith("http")) // i guess we search it on youtube?
-                path = $"ytsearch:{Uri.EscapeUriString(path)}";
-            mclass.AddToQueue(path);
-            if (mclass.GetQueue.Count >= 2)
+
+            await _player.SetVolumeAsync(vol);
+            return $"Volume set to: {vol}";
+        }
+
+        public async Task<string> PauseOrResumeAsync(ulong guildId)
+        {
+            var _player = _lavaClient.GetPlayer(guildId);
+            if (_player is null)
+                return "Player isn't playing.";
+
+            if (!_player.IsPaused)
+            {
+                await _player.PauseAsync();
+                return "Player paused.";
+            }
+            else
+            {
+                await _player.ResumeAsync();
+                return "Playback resumed.";
+            }
+        }
+
+        public async Task<string> ResumeAsync(ulong guildId)
+        {
+            var _player = _lavaClient.GetPlayer(guildId);
+            if (_player is null)
+                return "Player isn't playing.";
+
+            if (_player.IsPaused)
+            {
+                await _player.ResumeAsync();
+                return "Playback resumed.";
+            }
+
+            return "Player is not paused.";
+        }
+        private async Task LavaSocketClient_OnTrackFinished(LavaPlayer player, LavaTrack track, TrackEndReason reason)
+        {
+            if (!reason.ShouldPlayNext())
                 return;
-            using var client = mclass.GetClient;
-            await using var stream = client.CreatePCMStream(AudioApplication.Music);
-            mclass.ClientAudioStream = stream;
-            while (mclass.GetQueue.Count >= 1)
-            {
-                if (Type == 1 && DateTime.UtcNow.Hour != 3 && DateTime.UtcNow.Hour != 4)
-                    using (var output = StreamAPI(mclass))
-                    {
-                        try
-                        { await output.CopyToAsync(stream); await stream.FlushAsync(); }
-                        catch (TaskCanceledException)
-                        {
-                            stream.Close();
-                            await client.StopAsync();
-                            if (!mclass.Process.HasExited) mclass.Process.Kill();
-                            ConnectedChannels.TryRemove(context.Guild.Id, out mclass);
-                            return;
-                        } // PANIC
-                    }
-                else
-                {
-                    await using var output = CmdYoutube(mclass);
-                    try
-                    { await output.CopyToAsync(stream); await stream.FlushAsync(); }
-                    catch (TaskCanceledException)
-                    {
-                        stream.Close();
-                        await client.StopAsync();
-                        if (!mclass.Process.HasExited) mclass.Process.Kill();
-                        ConnectedChannels.TryRemove(context.Guild.Id, out mclass);
-                        return;
-                    } // PANIC
-                }
 
-                mclass.GetQueue.Remove(mclass.GetQueue[0]);
+            if (!player.Queue.TryDequeue(out var item) || !(item is LavaTrack nextTrack))
+            {
+                await player.TextChannel.SendMessageAsync("There are no more tracks in the queue.");
+                return;
             }
+
+            await player.PlayAsync(nextTrack);
         }
 
-        public Task<string> QueueAsync(IGuild guild)
+        private async Task SocketClient_Ready()
         {
-            if (!ConnectedChannels.TryGetValue(guild.Id, out MusicClass mclass)) return Task.FromResult("");
-            List<string> queue = mclass.GetQueue;
-            var output = "";
-            for (var index = 0; index < queue.Count; index++)
+            await _lavaClient.StartAsync(_socketClient);
+        }
+
+        private async Task TrackFinished(LavaPlayer player, LavaTrack track, TrackEndReason reason)
+        {
+            if (!reason.ShouldPlayNext())
+                return;
+
+            if (!player.Queue.TryDequeue(out var item) || !(item is LavaTrack nextTrack))
             {
-                output += $"{index}. <{queue[index].Replace("ytsearch:", "https://youtube.com/results?search_query=")}>\n";
-                if (index == 0) output = $"{output.Remove(output.Length - 1)} <-- playing\n";
+                await player.TextChannel.SendMessageAsync("There are no more tracks in the queue.");
+                return;
             }
-            return Task.FromResult(output);
-        }
-        private Stream CmdYoutube(MusicClass mclass) // around 3s-5s delay 
-        {
-            Process x = Process.Start(new ProcessStartInfo
-            {
-                FileName = "cmd.exe",
-                Arguments = $"/C youtube-dl.exe \"{mclass.GetQueue[0]}\" -f \"bestaudio[filesize<=30M]/worstaudio\" -r 192K --geo-bypass --no-mark-watched --no-playlist -o - | ffmpeg.exe -hide_banner -loglevel panic -i pipe:0 -ac 2 -f s16le -ar 48000 -filter:a \"volume=1\" pipe:1", // -filter:a \"volume=1.25\"
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardInput = true,
-                WorkingDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Binaries")
-            });
-            if (x == null || x.HasExited)
-                throw new Exception("youtube-dl or ffmpeg has exited immediately!");
-            mclass.Process = x;
-            x.StandardInput.WriteLine(""); // don't ask me why, without this, it wouldn't work
-            return x.StandardOutput.BaseStream;
-        }
-        private Stream StreamAPI(MusicClass mclass)
-        {
-            WebClient webClient = new WebClient();
-            webClient.QueryString.Add("url_bitch", mclass.GetQueue[0]);
-            Process x = Process.Start(new ProcessStartInfo
-            {
-                FileName = "ffmpeg.exe",
-                Arguments = "-hide_banner -loglevel panic -i pipe:0 -ac 2 -f s16le -ar 48000 -filter:a \"volume=1.25\" pipe:1",
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardInput = true,
-                WorkingDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Binaries")
-            });
-            if (x.HasExited)
-                throw new Exception("ffmpeg has excited immediately!");
-            mclass.Process = x;
-            webClient.OpenRead("https://otherwise-grams.000webhostapp.com/stream.php")?.CopyToAsync(x.StandardInput.BaseStream).GetAwaiter();
-            return x.StandardOutput.BaseStream;
-        }
-    }
 
-    public class MusicClass
-    {
-        private List<string> Queue { get; } = new List<string>(15); // limit so memory usage won't go **bam boom**
-        private IAudioClient Client { get; }
-        public void AddToQueue(string url) => Queue.Add(url);
-        public void ClearQueue() => Queue.Clear();
-        public List<string> GetQueue => Queue;
-        public bool IsPlaying => Queue.Count >= 1;
-        public AudioStream ClientAudioStream;
-        public ulong VoiceChannelID;
-        public IAudioClient GetClient => Client;
-        public Process Process;
-
-
-        public MusicClass(IAudioClient client, ulong vcid)
-        {
-            Client = client;
-            VoiceChannelID = vcid;
+            await player.PlayAsync(nextTrack);
         }
     }
 }

@@ -1,62 +1,94 @@
 ﻿using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using System.Threading.Tasks;
 
 namespace GladosV3.Module.Music
 {
-    public class AudioModule : ModuleBase<ICommandContext>
+    public class MusicModule : ModuleBase<ICommandContext>
     {
-        // You *MUST* mark these commands with 'RunMode.Async'
-        // otherwise the bot will not respond until the Task times out.
+        private AudioService _musicService;
+
+        public MusicModule(AudioService musicService)
+        {
+            _musicService = musicService;
+        }
         [Command("join", RunMode = RunMode.Async)]
         [Remarks("join")]
         [Summary("Bot connect to the VC!")]
         [RequireContext(ContextType.Guild)]
-        public Task JoinCmd()
+        public async Task JoinCmd()
         {
-            if (!AudioService.service.Fail)
+            var user = Context.User as SocketGuildUser;
+            if (user.VoiceChannel is null)
             {
-                return AudioService.service.JoinAudioAsync(Context.Guild, ((IVoiceState)Context.User).VoiceChannel, Context.Client.CurrentUser.Id);
+                await ReplyAsync("You need to connect to a voice channel.");
+                return;
             }
-            Context.Channel.SendMessageAsync("There was an error... Check the logs!").GetAwaiter(); return Task.CompletedTask;
+            else
+            {
+                await _musicService.ConnectAsync(user.VoiceChannel, Context.Channel as ITextChannel);
+                await ReplyAsync($"Now playing music in {user.VoiceChannel.Name}! 🔈");
+            }
         }
-
-        // Remember to add preconditions to your commands,
-        // this is merely the minimal amount necessary.
-        // Adding more commands of your own is also encouraged.
         [Command("leave", RunMode = RunMode.Async)]
         [Remarks("leave")]
         [Summary("Bot disconnects from the VC!")]
         [RequireContext(ContextType.Guild)]
-        public Task LeaveCmd()
+        public async Task LeaveCmd()
         {
-            if (!AudioService.service.Fail)
-                return AudioService.service.LeaveAudioAsync(Context.Guild);
-            Context.Channel.SendMessageAsync("There was an error... Check the logs!").GetAwaiter(); return Task.CompletedTask;
+            var user = Context.User as SocketGuildUser;
+            if (user.VoiceChannel is null)
+            {
+                await ReplyAsync("Please join the channel the bot is in to make it leave.");
+            }
+            else
+            {
+                await _musicService.LeaveAsync(user.VoiceChannel);
+                await ReplyAsync($"Leaving {user.VoiceChannel.Name}! 👋");
+            }
         }
 
         [Command("play", RunMode = RunMode.Async)]
         [Remarks("play <youtube url>")]
         [Summary("Plays music from youtube!")]
         [RequireContext(ContextType.Guild)]
-        public Task PlayCmd([Remainder] string song)
-        {
-            if (!AudioService.service.Fail)
-            {
-                return AudioService.service.SendAudioAsync(song, Context);
-            }
-            { Context.Channel.SendMessageAsync("There was an error... Check the logs!").GetAwaiter(); return Task.CompletedTask; }
-        }
-        [Command("queue", RunMode = RunMode.Async)]
-        [Remarks("queue")]
-        [Summary("Gets the playlist!")]
+        public async Task Play([Remainder]string query)
+            => await ReplyAsync(await _musicService.PlayAsync(query, Context.Guild.Id));
+        [Command("stop")]
+        [Remarks("stop")]
         [RequireContext(ContextType.Guild)]
-        public Task QueueCmd()
+        public async Task Stop()
         {
-            if (AudioService.service.Fail)
-            { Context.Channel.SendMessageAsync("There was an error... Check the logs!").GetAwaiter(); return Task.CompletedTask; }
-            var result = AudioService.service.QueueAsync(Context.Guild).GetAwaiter().GetResult();
-            return ReplyAsync(string.IsNullOrWhiteSpace(result) ? "Queue is empty!" : result);
+            await _musicService.StopAsync(Context.Guild.Id);
+            await ReplyAsync("Music stopped.");
         }
+
+        [Command("skip")]
+        [Remarks("skip")]
+        [RequireContext(ContextType.Guild)]
+        public async Task Skip()
+        {
+            var result = await _musicService.SkipAsync(Context.Guild.Id);
+            await ReplyAsync(result);
+        }
+
+        [Command("volume")]
+        [Remarks("volume")]
+        [RequireContext(ContextType.Guild)]
+        public async Task Volume(int vol)
+            => await ReplyAsync(await _musicService.SetVolumeAsync(vol, Context.Guild.Id));
+
+        [Command("pause")]
+        [Remarks("pause")]
+        [RequireContext(ContextType.Guild)]
+        public async Task Pause()
+            => await ReplyAsync(await _musicService.PauseOrResumeAsync(Context.Guild.Id));
+
+        [Command("resume")]
+        [Remarks("resume")]
+        [RequireContext(ContextType.Guild)]
+        public async Task Resume()
+            => await ReplyAsync(await _musicService.ResumeAsync(Context.Guild.Id));
     }
 }
