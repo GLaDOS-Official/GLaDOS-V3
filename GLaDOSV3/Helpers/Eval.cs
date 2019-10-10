@@ -58,7 +58,7 @@ namespace GladosV3.Helpers
             }
             catch (Exception e)
             {
-                return await Task.FromResult($"**Exception!**{e.Message}\n{e.StackTrace}");
+                return await Task.FromResult($"**Exception!** {e.Message}\n{e.StackTrace}");
             }
         }
     }

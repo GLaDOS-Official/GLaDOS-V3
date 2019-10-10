@@ -5,6 +5,7 @@ using Discord.WebSocket;
 using GladosV3.Helpers;
 using System;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -76,7 +77,7 @@ namespace GladosV3.Services
             await FirstStartup(args.Contains("--resetdb"));
             Console.Title = _botSettingsHelper["name"];
             Console.Clear();
-            Console.SetWindowSize(150, 35);
+            //Console.SetWindowSize(150, 35);
             Console.WriteLine("This bot is using a database to store it's settings. Add --resetdb to reset the configuration (token, owners, etc..).");
             string discordToken = _botSettingsHelper["tokens_discord"];     // Get the discord token from the config file
             string gameTitle = _botSettingsHelper["discord_game"]; // Get bot's game status
@@ -98,7 +99,6 @@ namespace GladosV3.Services
                 Task.Delay(10000).Wait();
                 Environment.Exit(0);
             }
-
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), _provider);     // Load commands and modules into the command service
             await new ExtensionLoadingService(_discord, _commands, (BotSettingsHelper<string>)_botSettingsHelper, _provider).Load().ConfigureAwait(false);
         }

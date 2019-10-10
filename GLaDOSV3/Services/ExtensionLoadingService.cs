@@ -47,6 +47,7 @@ namespace GladosV3.Services
                 return load; // no error
             }
             catch { }
+            return null;
             string name = args.Name;
             name = name.Substring(0, name.IndexOf(',')).ToLower();
             char slash = '/';
@@ -140,6 +141,7 @@ namespace GladosV3.Services
         private static IDictionary<string, Assembly> dependencies = new Dictionary<string, Assembly>();
         private Assembly CurrentDomainOnAssemblyResolve(object sender, ResolveEventArgs args)
         {
+            LoggingService.Log(LogSeverity.Verbose, "ExtensionLoadingService", "Loading " + args.Name);
             return dependencies.TryGetValue(args.Name, out var res) ? res : TryLoadFromNuget(args);
         }
         private bool IsValidCLRFile(string file) // based on PE headers
@@ -160,7 +162,7 @@ namespace GladosV3.Services
                 dataDictionaryRVA[i] = reader.ReadUInt32();
                 dataDictionarySize[i] = reader.ReadUInt32();
             }
-            if (peHeaderSignature != 17744)
+            if (peHeaderSignature != 0x4550)
             { LoggingService.Log(LogSeverity.Error, "Module", $"{file} has non-valid PE header!"); returnBool = false; }
             if (dataDictionaryRVA[13] == 64 && returnBool == null)
             {

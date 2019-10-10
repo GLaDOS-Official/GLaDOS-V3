@@ -35,7 +35,7 @@ namespace GladosV3.Module.Default
             [Command("nsfw status")]
             [Remarks("nsfw status")]
             [Summary("Get's status of the nsfw module (disabled by default)")]
-            public async Task Status()
+            public async Task Status()  
             {
                 string result = (Convert.ToInt32(SqLite.Connection.GetValuesAsync("servers", $"WHERE guildid='{Context.Guild.Id.ToString()}'").GetAwaiter().GetResult().Rows[0]["nsfw"]) == 1) ? "enabled" : "disabled";
                 var message =

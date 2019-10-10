@@ -71,6 +71,8 @@ namespace GladosV3.Helpers
         {
             if (!File.Exists(DirPath))
                 SQLiteConnection.CreateFile(DirPath);
+            if ((File.GetAttributes(DirPath) & FileAttributes.ReadOnly) != 0)
+                File.SetAttributes(DirPath, File.GetAttributes(DirPath) & ~FileAttributes.ReadOnly);    
             Connection.Open();
             //CREATE TABLE "servers" ( `guildid` INTEGER, `nsfw` INTEGER, `joinleave_cid` INTEGER, `join_msg` TEXT, `join_toggle` INTEGER, `leave_msg` TEXT, `leave_toggle` INTEGER, `prefix` TEXT )
             if (!Connection.TableExistsAsync("servers").GetAwaiter().GetResult())

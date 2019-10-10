@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using GladosV3.Helpers;
 using System;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace GladosV3.Services
 {
@@ -41,6 +42,9 @@ namespace GladosV3.Services
 
             if (_discord.CurrentUser.Activity?.Name != _botSettingsHelper["discord_game"])
                 await _discord.SetGameAsync(_botSettingsHelper["discord_game"]);
+            var pfpPath = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "avatar.img");
+            if (File.Exists(pfpPath))
+                await _discord.CurrentUser.ModifyAsync((f) => f.Avatar = new Image(pfpPath));
         }
         private Task<bool> IsMfaEnabled()
         {
