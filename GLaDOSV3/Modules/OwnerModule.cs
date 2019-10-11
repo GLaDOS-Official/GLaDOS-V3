@@ -38,10 +38,7 @@ namespace GladosV3.Modules
             [Summary("Toggles maintenance mode on or off")]
             public async Task Maintenance([Remainder]string reason = "")
             {
-                /*JObject clasO = Tools.GetConfigAsync(1).GetAwaiter().GetResult();
-                clasO["maintenance"] = reason;*/
                 CommandHandler.MaintenanceMode = reason;
-                //await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json"), clasO.ToString());
                 IsOwner.botSettingsHelper["maintenance"] = reason;
                 await ReplyAsync($"{(string.IsNullOrWhiteSpace(reason) ? "Disabled" : "Enabled")} maintenance reason{(string.IsNullOrWhiteSpace(reason) ? "" : " to: ")}{(string.IsNullOrWhiteSpace(reason) ? "" : reason)}!");
             }
@@ -58,7 +55,7 @@ namespace GladosV3.Modules
             [Summary("Shutdowns the bot")]
             public async Task Shutdown()
             {
-                await ReplyAsync($"Shutting down the bot! :wave:");
+                await ReplyAsync($"Shutting down the bot! 👋");
                 Environment.Exit(0);
             }
             [Command("username")]
@@ -66,10 +63,6 @@ namespace GladosV3.Modules
             [Summary("Sets bot's username")]
             public async Task Username([Remainder]string username)
             {
-                /*JObject clasO =
-                    Tools.GetConfigAsync(1).GetAwaiter().GetResult();
-                clasO["name"] = username;
-                await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json"), clasO.ToString());*/
                 IsOwner.botSettingsHelper["name"] = username;
                 await ReplyAsync($"Set bot's username to {username}.");
                 await Context.Client.CurrentUser.ModifyAsync(properties => { properties.Username = username; });
@@ -189,7 +182,6 @@ namespace GladosV3.Modules
 
                 await Context.Client.SetGameAsync(status);
             }
-
             [Command("blacklist user add")]
             [Remarks("bot blacklist user add <userid> [Reason]")]
             [Summary("Blacklists a user from using the bot")]
@@ -317,7 +309,6 @@ namespace GladosV3.Modules
                         $"Set bot's game state to {status}.");
                 await Context.Client.SetStatusAsync(Enum.Parse<UserStatus>(status));
             }
-
             [Command("rebuild all")]
             [Remarks("bot rebuild all")]
             [Summary("Rebuilds the DB completely, bot will be unavailable while rebuilding")]

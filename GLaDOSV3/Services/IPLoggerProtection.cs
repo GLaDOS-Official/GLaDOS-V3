@@ -20,6 +20,7 @@ namespace GladosV3.Services
         private readonly CommandService _commands;
         private readonly IServiceProvider _provider;
         private readonly List<ulong> serverIds = new List<ulong>() { 259776446942150656, 472402015679414293, 503145318372868117, 516296348367192074, 611503265313718282 };
+        private readonly bool silentMessage = true;
         // DiscordSocketClient, CommandService, IConfigurationRoot, and IServiceProvider are injected automatically from the IServiceProvider
         public IPLoggerProtection(
             DiscordSocketClient discord,
@@ -71,7 +72,8 @@ namespace GladosV3.Services
                 urlScanned.Add(shortUrl);
                 using (HttpClient hc = new HttpClient())
                 {
-                    var message = await msg.Channel.SendMessageAsync($"[{i + 1}]Verifying URL from {msg.Author.Username}#{msg.Author.Discriminator}...");
+                    RestUserMessage message = null;
+                    if (!silentMessage) message = await msg.Channel.SendMessageAsync($"[{i + 1}]Verifying URL from {msg.Author.Username}#{msg.Author.Discriminator}...");
                     hc.DefaultRequestHeaders.CacheControl = CacheControlHeaderValue.Parse("no-cache");
                     hc.DefaultRequestHeaders.Add("DNT", "1");
                     hc.DefaultRequestHeaders.Add("Save-Data", "on");
@@ -100,7 +102,10 @@ namespace GladosV3.Services
                         builder.Color = isIpLogger ? Color.DarkRed : Color.Green;
                         builder.AddField($"Hops", isIpLogger ? "Known IP logger found, no hops." : "Not an IP logger, no hops.");
                         builder.AddField("Original URL", shortUrl);
-                        await message.ModifyAsync((a) => { a.Embed = builder.Build(); a.Content = ""; });
+                        if (!silentMessage)
+                            await message.ModifyAsync((a) => { a.Embed = builder.Build(); a.Content = ""; });
+                        else
+                            message = await msg.Channel.SendMessageAsync(embed: builder.Build());
                         await DeleteMessageDelay(message, 3000);
                         continue;
                     }
@@ -124,7 +129,7 @@ namespace GladosV3.Services
                             nodeUrl = nodeUrl.Replace("htt", "hxx");
                             warning = " (KNOWN IP LOGGER!)";
                             if (!isIpLogger)
-                            { isIpLogger = true; await DeleteMessage(msg); }
+                            { isIpLogger = true; await DeleteMessage(msg); await arg.Channel.SendMessageAsync($"{arg.Author.Mention} Good job! You have sent an IP logger. Message was logged and reported to Trust and Safety team!"); }
                         }
                         redirectHops += $"{nodeUrl.Replace("\n", string.Empty).Replace("\r", string.Empty)} ({text}){warning}\n↓\n";
                     }
@@ -132,6 +137,7 @@ namespace GladosV3.Services
                     builder.AddField($"Hops", redirectHops);
                     builder.AddField("Original URL", shortUrl);
                     builder.Color = isIpLogger ? Color.DarkRed : Color.Green;
+                    if (message == null) continue;
                     await message.ModifyAsync((a) =>
                     {
                         a.Embed = builder.Build();

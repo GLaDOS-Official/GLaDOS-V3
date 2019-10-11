@@ -2,6 +2,8 @@
 using Discord.WebSocket;
 using GladosV3.Helpers;
 using System;
+using System.Reflection;
+using System.Runtime.Loader;
 
 namespace GladosV3
 {
@@ -12,7 +14,6 @@ namespace GladosV3
         string UpdateUrl();
         string Author();
         Type[] Services { get; }
-
         void PreLoad(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider);
         void PostLoad(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider);
         void Reload(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider);

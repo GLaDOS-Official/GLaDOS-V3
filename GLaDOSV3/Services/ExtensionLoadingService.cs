@@ -119,16 +119,18 @@ namespace GladosV3.Services
                 try
                 {
                     //TODO: remove validfile, cause it causes Assembly.Load (makes Unload worthless)
-                    Assembly asm = ValidFile(file);
-                    if (asm == null) continue;
+                    /*Assembly asm = ValidFile(file);
+                    if (asm == null) continue;*/
                     GladosModuleStruct module =  new GladosModuleStruct(file, _discord, _commands, _config, _provider);
+                    Assembly a = module.LoadFromAssemblyPath(file);
+                    module.Initialize();
                     if (module.loadFailed) continue;
                     module.PreLoad(_discord, _commands, _config, _provider);
-                    _commands.AddModulesAsync(asm, _provider).GetAwaiter();
+                    var count = _commands.AddModulesAsync(a, module._provider).GetAwaiter().GetResult().Count();
                     module.PostLoad(_discord, _commands, _config, _provider);
 
                     extensions.Add(module);
-                    var modules = asm.GetTypes().Where(type => type.IsClass && !type.IsSpecialName && type.IsPublic)
+                    var modules = module.appAssembly.GetTypes().Where(type => type.IsClass && !type.IsSpecialName && type.IsPublic)
                         .Aggregate(string.Empty, (current, type) => current + type.Name + ", ");
                     await LoggingService.Log(LogSeverity.Verbose, "Module",
                         $"Loaded modules: {modules.Remove(modules.Length - 2)} from {Path.GetFileNameWithoutExtension(file)}");
@@ -201,68 +203,72 @@ namespace GladosV3.Services
 
     public class GladosModuleStruct : AssemblyLoadContext
     {
-        public AppDomain appDomain;
         public AssemblyName asmName;
         public Assembly appAssembly;
         public string moduleName;
         public string moduleAuthor;
         public string moduleVersion;
         public bool loadFailed;
+        public IServiceProvider _provider;
 
-
-        private object magicClassObject;
-        private Type asmType;
-        private object[] invokeObjects;
+        private IGladosModule module;
         private AssemblyDependencyResolver _resolver;
+        private DiscordSocketClient _discord;
+        private CommandService _commands;
+        private BotSettingsHelper<string> _config;
+        private string _path;
         public GladosModuleStruct(string path, DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider) : base(isCollectible: true)
         {
+            _discord = discord;
+            _commands = commands;
+            _config = config;
+            _provider = provider;
             _resolver = new AssemblyDependencyResolver(path);
-            appAssembly = this.LoadFromAssemblyPath(path);
-            asmType = appAssembly.GetTypes().Where(type => type.IsClass && type.Name == "ModuleInfo").Distinct().First(); //create type
-            ConstructorInfo asmConstructor = asmType.GetConstructor(Type.EmptyTypes);  // get extension's constructor
-            magicClassObject = asmConstructor?.Invoke(new object[] { }); // create object of class
-            invokeObjects = new object[] { discord, commands, config, provider };
-            object classO = asmConstructor.Invoke(new object[] { }); // create object of class
-            moduleName = ExtensionLoadingService.GetModuleInfo(asmType, classO, "Name").ToString();
-            moduleVersion = ExtensionLoadingService.GetModuleInfo(asmType, classO, "Version").ToString();
-            moduleAuthor = ExtensionLoadingService.GetModuleInfo(asmType, classO, "Author").ToString();
+            _path = path;
+            GC.SuppressFinalize(this);
+        }
+
+        public void Initialize()
+        {
+            var asmType = appAssembly.GetTypes().Where(type => type.IsClass && type.Name == "ModuleInfo").Distinct().First(); //create type
+            MethodInfo getInterface = asmType.GetMethod("GetModule", BindingFlags.Static | BindingFlags.Public);
+            module = (IGladosModule)getInterface.Invoke(null, null);
+            moduleName = module.Name();
+            moduleAuthor = module.Author();
+            moduleVersion = module.Version();
+
             if (string.IsNullOrWhiteSpace(moduleName)) loadFailed = true; // class doesn't have Name string
             if (string.IsNullOrWhiteSpace(moduleVersion)) loadFailed = true; // class doesn't have Version string
             if (string.IsNullOrWhiteSpace(moduleAuthor)) loadFailed = true; // class doesn't have Author string
             if (loadFailed) { this.Unload(); return; }
-            asmName = new AssemblyName(moduleName) { CodeBase = path };
-            GC.KeepAlive(this);
-            GC.SuppressFinalize(this);
+            asmName = new AssemblyName(moduleName) { CodeBase = _path };
+        }
+
+        protected override Assembly Load(AssemblyName name)
+        {
+            string assemblyPath = _resolver.ResolveAssemblyToPath(name);
+            if (assemblyPath != null)
+            {
+                return LoadFromAssemblyPath(assemblyPath);
+            }
+
+            return null;
         }
         public void PreLoad(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider)
         {
-            var memberInfo = asmType.GetMethod("PreLoad", BindingFlags.Instance | BindingFlags.Public); //get PreLoad method
-            if (memberInfo == null) return;
-            memberInfo.Invoke(magicClassObject, invokeObjects);// invoke PreLoad method
+            module.PreLoad(discord, commands, config, provider);
         }
         public void PostLoad(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider)
         {
-            var memberInfo = asmType.GetMethod("PostLoad", BindingFlags.Instance | BindingFlags.Public); //get PostLoad method
-            if (memberInfo == null) return;
-            memberInfo.Invoke(magicClassObject, invokeObjects);// invoke PostLoad method
+            module.PostLoad(discord, commands, config, provider);
         }
-
         public List<Type> GetServices()
         {
-            List<Type> types = new List<Type>();
-            var memberInfo = asmType.GetMethod("get_Services", BindingFlags.Instance | BindingFlags.Public); //get services method
-            if (memberInfo == null) return types;
-            var item = (Type[])memberInfo.Invoke(magicClassObject, new object[] { });
-            if (item != null && item.Length > 0)
-                types.AddRange(item); // invoke services method
-            return types;
+            return module.Services.ToList();
         }
         ~GladosModuleStruct()
         {
-            if (asmType == null) return;
-            var memberInfo = asmType.GetMethod("Unload", BindingFlags.Instance | BindingFlags.Public); //get PostLoad method
-            if (memberInfo != null)  // does the extension have PostLoad?
-                memberInfo.Invoke(magicClassObject, invokeObjects);// invoke PostLoad method
+            module?.Unload(_discord, _commands, _config, _provider);
         }
     }
 }

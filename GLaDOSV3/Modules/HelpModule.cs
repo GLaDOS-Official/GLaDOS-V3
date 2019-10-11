@@ -119,12 +119,10 @@ namespace GladosV3.Modules
 
 
     }
-
     internal class CommandInfo
     {
         private readonly string _module;
         private readonly string _description;
-
         internal CommandInfo(string module, string description)
         {
             _module = module;
