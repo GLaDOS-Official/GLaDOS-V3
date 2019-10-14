@@ -122,11 +122,10 @@ namespace GladosV3.Services
                     /*Assembly asm = ValidFile(file);
                     if (asm == null) continue;*/
                     GladosModuleStruct module =  new GladosModuleStruct(file, _discord, _commands, _config, _provider);
-                    Assembly a = module.LoadFromAssemblyPath(file);
                     module.Initialize();
                     if (module.loadFailed) continue;
                     module.PreLoad(_discord, _commands, _config, _provider);
-                    var count = _commands.AddModulesAsync(a, module._provider).GetAwaiter().GetResult().Count();
+                    var count = _commands.AddModulesAsync(module.appAssembly, module._provider).GetAwaiter().GetResult().Count();
                     module.PostLoad(_discord, _commands, _config, _provider);
 
                     extensions.Add(module);
@@ -194,11 +193,6 @@ namespace GladosV3.Services
             fs.Close();
             return (bool)returnBool;
         }
-        internal static object GetModuleInfo(Type type, object classO, string info)
-        {
-            var memberInfo = type.GetMethod(info, BindingFlags.Instance | BindingFlags.Public);
-            return memberInfo.Invoke(classO, new object[] { });
-        }
     }
 
     public class GladosModuleStruct : AssemblyLoadContext
@@ -230,6 +224,7 @@ namespace GladosV3.Services
 
         public void Initialize()
         {
+            if (appAssembly == null) appAssembly = Assembly.LoadFile(_path);
             var asmType = appAssembly.GetTypes().Where(type => type.IsClass && type.Name == "ModuleInfo").Distinct().First(); //create type
             MethodInfo getInterface = asmType.GetMethod("GetModule", BindingFlags.Static | BindingFlags.Public);
             module = (IGladosModule)getInterface.Invoke(null, null);

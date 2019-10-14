@@ -11,6 +11,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Binaries\**" />
+    <EmbeddedResource Remove="Binaries\**" />
+    <None Remove="Binaries\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Victoria" Version="4.0.17" />
   </ItemGroup>
 
@@ -19,24 +25,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Binaries\ffmpeg.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Binaries\youtube-dl.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Binaries\libsodium.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Binaries\opus.dll">
+    <None Update="Dependencies\Victoria.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp3.0\Modules\"></Copy>
-    <Copy SourceFiles="Binaries\ffmpeg.exe" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp3.0\Binaries\"></Copy>
-    <Copy SourceFiles="Binaries\youtube-dl.exe" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp3.0\Binaries\"></Copy>
-    <Copy SourceFiles="Binaries\libsodium.dll" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp3.0\PInvoke"></Copy>
-    <Copy SourceFiles="Binaries\opus.dll" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp3.0\PInvoke"></Copy>
+    <Copy SourceFiles="Dependencies\Victoria.dll" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp3.0\Dependencies"></Copy>
   </Target>
 </Project>

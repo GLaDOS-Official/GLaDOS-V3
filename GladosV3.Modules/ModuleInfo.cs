@@ -43,6 +43,6 @@ namespace GladosV3.Module.Default
         public static void OnPluginUnloadingRequested(AssemblyLoadContext obj)
         { }
 
-        public Type[] Services => null;
+        public Type[] Services => new Type[] { typeof(InfoModule) };
     }
 }

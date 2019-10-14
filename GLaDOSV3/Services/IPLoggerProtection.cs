@@ -5,6 +5,7 @@ using Discord.WebSocket;
 using HtmlAgilityPack;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -19,7 +20,7 @@ namespace GladosV3.Services
         private readonly DiscordSocketClient _discord;
         private readonly CommandService _commands;
         private readonly IServiceProvider _provider;
-        private readonly List<ulong> serverIds = new List<ulong>() { 259776446942150656, 472402015679414293, 503145318372868117, 516296348367192074, 611503265313718282 };
+        private readonly List<ulong> serverIds = new List<ulong>() { 259776446942150656, 472402015679414293, 503145318372868117, 516296348367192074, 611503265313718282, 611599798595878912, 499598184570421253 };
         private readonly bool silentMessage = true;
         // DiscordSocketClient, CommandService, IConfigurationRoot, and IServiceProvider are injected automatically from the IServiceProvider
         public IPLoggerProtection(
@@ -32,7 +33,7 @@ namespace GladosV3.Services
             _provider = provider;
             _discord.MessageReceived += OnMessageReceivedAsync;
         }
-        private string[] knownIpLoggers = new string[] { "iplogger", "maper.info", "grabify" };
+        private string[] knownIpLoggers = new string[] { "iplogger", "maper.info", "grabify", "iplogger.org", "2no.co", "yip.su", "ipgrabber", "iplis.ru", "02ip.ru", "ezstat.ru", "iplo.ru" };
 
         private async Task DeleteMessage(SocketUserMessage msg)
         {
@@ -51,6 +52,7 @@ namespace GladosV3.Services
             deleteThread.Start();
             return Task.CompletedTask;
         }
+
         private async Task OnMessageReceivedAsync(SocketMessage arg)
         {
             if (!(arg is SocketUserMessage msg)) return; // Ensure the message is from a user/bot
@@ -59,31 +61,43 @@ namespace GladosV3.Services
             if (!(msg.Channel is SocketGuildChannel mChanel)) return; // only guild channels please
             if (!serverIds.Contains(mChanel.Guild.Id)) return; // private feature :P
             if (!(msg.Content.Contains("http://") || msg.Content.Contains("https://"))) return;
-            var items = Regex.Matches(msg.Content, @"(http|https):\/\/([\w\-_]+(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?");
+            var items = Regex.Matches(msg.Content,
+                @"(http|https):\/\/([\w\-_]+(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?");
             List<string> urlScanned = new List<string>();
+            IdnMapping mapping = new IdnMapping();
             bool isIpLogger = false;
             for (var i = 0; i < items.Count; i++)
             {
                 if (isIpLogger) return;
                 Match item = items[i];
                 string shortUrl = item.Value;
-                if (urlScanned.Contains(shortUrl))
-                    return;
-                urlScanned.Add(shortUrl);
-                using (HttpClient hc = new HttpClient())
+                if (knownIpLoggers.Any(var1 => shortUrl.Contains(var1)))
                 {
+                    isIpLogger = true;
+                    await DeleteMessage(msg);
+                    await arg.Channel.SendMessageAsync(
+                        $"{arg.Author.Mention} Good job! You have sent an IP logger. Message was logged and reported to Trust and Safety team!");
+                    if (urlScanned.Contains(shortUrl))
+                        return;
+                    urlScanned.Add(shortUrl);
+                    using HttpClient hc = new HttpClient();
                     RestUserMessage message = null;
-                    if (!silentMessage) message = await msg.Channel.SendMessageAsync($"[{i + 1}]Verifying URL from {msg.Author.Username}#{msg.Author.Discriminator}...");
+                    if (!silentMessage)
+                        message = await msg.Channel.SendMessageAsync(
+                            $"[{i + 1}]Verifying URL from {msg.Author.Username}#{msg.Author.Discriminator}...");
                     hc.DefaultRequestHeaders.CacheControl = CacheControlHeaderValue.Parse("no-cache");
                     hc.DefaultRequestHeaders.Add("DNT", "1");
                     hc.DefaultRequestHeaders.Add("Save-Data", "on");
                     hc.DefaultRequestHeaders.Add("Origin", "https://redirectdetective.com");
                     hc.DefaultRequestHeaders.Referrer = new Uri("https://redirectdetective.com/");
-                    hc.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G920A) AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)"); // we are GoogleBot
-                    shortUrl = shortUrl.Replace(":", "%3A");
-                    HttpContent content = new StringContent("w=" + shortUrl);
+                    hc.DefaultRequestHeaders.Add("User-Agent",
+                        "Mozilla/5.0 (Linux; Android 5.0; SM-G920A) AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)"); // we are GoogleBot
+                    HttpContent content =
+                        new StringContent(
+                            "w=" + mapping.GetAscii(shortUrl.Replace("http://", "").Replace("https://", "")));
                     content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/x-www-form-urlencoded");
-                    var response = await hc.PostAsync("https://redirectdetective.com/linkdetect.px", content).GetAwaiter().GetResult().Content.ReadAsStringAsync();
+                    var response = await hc.PostAsync("https://redirectdetective.com/linkdetect.px", content)
+                        .GetAwaiter().GetResult().Content.ReadAsStringAsync();
                     shortUrl = shortUrl.Replace("%3A", ":");
                     EmbedBuilder builder = new EmbedBuilder()
                     {
@@ -93,22 +107,26 @@ namespace GladosV3.Services
                             IconUrl = (msg.Author.GetAvatarUrl())
                         }
                     };
-                    if (knownIpLoggers.Any(var1 => shortUrl.Contains(var1)))
-                    { isIpLogger = true; await DeleteMessage(msg); }
                     if (isIpLogger)
                         shortUrl = shortUrl.Replace("htt", "hxx");
                     if (response == "<h4>No redirects found</h4>")
                     {
                         builder.Color = isIpLogger ? Color.DarkRed : Color.Green;
-                        builder.AddField($"Hops", isIpLogger ? "Known IP logger found, no hops." : "Not an IP logger, no hops.");
+                        builder.AddField($"Hops",
+                            isIpLogger ? "Known IP logger found, no hops." : "Not an IP logger, no hops.");
                         builder.AddField("Original URL", shortUrl);
                         if (!silentMessage)
-                            await message.ModifyAsync((a) => { a.Embed = builder.Build(); a.Content = ""; });
+                            await message.ModifyAsync((a) =>
+                            {
+                                a.Embed = builder.Build();
+                                a.Content = "";
+                            });
                         else
                             message = await msg.Channel.SendMessageAsync(embed: builder.Build());
                         await DeleteMessageDelay(message, 3000);
                         continue;
                     }
+
                     var document = new HtmlDocument();
                     document.LoadHtml(response);
                     var redirectHops = String.Empty;
@@ -129,15 +147,23 @@ namespace GladosV3.Services
                             nodeUrl = nodeUrl.Replace("htt", "hxx");
                             warning = " (KNOWN IP LOGGER!)";
                             if (!isIpLogger)
-                            { isIpLogger = true; await DeleteMessage(msg); await arg.Channel.SendMessageAsync($"{arg.Author.Mention} Good job! You have sent an IP logger. Message was logged and reported to Trust and Safety team!"); }
+                            {
+                                isIpLogger = true;
+                                await DeleteMessage(msg);
+                                await arg.Channel.SendMessageAsync(
+                                    $"{arg.Author.Mention} Good job! You have sent an IP logger. Message was logged and reported to Trust and Safety team!");
+                            }
                         }
-                        redirectHops += $"{nodeUrl.Replace("\n", string.Empty).Replace("\r", string.Empty)} ({text}){warning}\n↓\n";
+
+                        redirectHops +=
+                            $"{nodeUrl.Replace("\n", string.Empty).Replace("\r", string.Empty)} ({text}){warning}\n↓\n";
                     }
+
+                    if (message == null) continue;
                     redirectHops = redirectHops.Remove(redirectHops.Length - 3);
                     builder.AddField($"Hops", redirectHops);
                     builder.AddField("Original URL", shortUrl);
                     builder.Color = isIpLogger ? Color.DarkRed : Color.Green;
-                    if (message == null) continue;
                     await message.ModifyAsync((a) =>
                     {
                         a.Embed = builder.Build();

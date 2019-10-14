@@ -19,6 +19,7 @@ namespace GladosV3
 
         public async Task StartAsync(string[] args)
         {
+            Console.ResetColor();
             Directory.SetCurrentDirectory(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)));
             var PInvokeDir = Path.Combine(Directory.GetCurrentDirectory(), "PInvoke\\");
             if (!Directory.Exists(PInvokeDir))

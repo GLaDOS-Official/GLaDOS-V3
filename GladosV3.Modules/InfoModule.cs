@@ -10,75 +10,94 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using GladosV3.Helpers;
 
 namespace GladosV3.Module.Default
 {
     [Name("Info")]
     public class InfoModule : ModuleBase<SocketCommandContext>
     {
+        private static string infoMessage;
+        private static DiscordSocketClient _client;
+        Thread t = new Thread(new ThreadStart(refreshMessage));
+        private static BotSettingsHelper<string> _botSettingsHelper;
+
+        private static void refreshMessage()
+        {
+            while (true)
+            {
+                string ToFileSize2(Double size)
+                {
+                    int scale = 1024;
+                    var kb = 1 * scale;
+                    var mb = kb * scale;
+                    long gb = mb * scale;
+                    long tb = gb * scale;
+
+                    if (size < kb)
+                        return size + " Bytes";
+                    if (size < mb)
+                        return (size / kb).ToString("0.## KB");
+                    if (size < gb)
+                        return (size / mb).ToString("0.## MB");
+                    // ReSharper disable once ConvertIfStatementToReturnStatement
+                    if (size < tb)
+                        return (size / gb).ToString("0.## GB");
+
+                    return (size / tb).ToString("0.## TB");
+                }
+
+                float GetCpuUsage()
+                {
+                    var cpuCounter = new PerformanceCounter("Process", "% Processor Time",
+                        Process.GetCurrentProcess().ProcessName); //, Process.GetCurrentProcess().ProcessName,true
+                    cpuCounter.NextValue();
+                    Thread.Sleep(1000);
+                    return cpuCounter.NextValue();
+                }
+
+                infoMessage = (
+                    $"{Format.Bold("Info")}\n" +
+                    $"- Library: Discord.Net ({DiscordConfig.APIVersion.ToString()})\n" +
+                    $"- Runtime: {PlatformServices.Default.Application.RuntimeFramework.Identifier.Replace("App", String.Empty)} {PlatformServices.Default.Application.RuntimeFramework.Version} {(IntPtr.Size * 8).ToString()}-bit\n" +
+                    $"- System: {RuntimeInformation.OSDescription} {RuntimeInformation.ProcessArchitecture.ToString().ToLower()}\n" +
+                    $"- Up-time: {(DateTime.Now - Process.GetCurrentProcess().StartTime):d\'d \'hh\'h \'mm\'m \'ss\'s\'}\n" +
+                    $"- Heartbeat: {_client.Latency.ToString()} ms\n" +
+                    $"- Thread running: {Process.GetCurrentProcess().Threads.OfType<ProcessThread>().Count(t => t.ThreadState == System.Diagnostics.ThreadState.Running).ToString()} out of {Process.GetCurrentProcess().Threads.Count.ToString()}\n" +
+                    $"- RAM usage: {ToFileSize2(Process.GetCurrentProcess().PagedMemorySize64)}\n" +
+                    $"- CPU usage: {GetCpuUsage():N1}%\n" +
+                    $"- Heap Size: {ToFileSize2(GC.GetTotalMemory(true))}\n" +
+                    $"- Owner of the bot: <@{ulong.Parse(_botSettingsHelper["ownerID"]).ToString()}>\n" +
+                    $"- Version: {FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion}\n" +
+                    "- Author of the bot: <@419568355771416577>\n\n" +
+
+                    $"{Format.Bold("Stats")}\n" +
+                    $"- Servers: {_client.Guilds.Count.ToString()}\n"
+                );
+                Thread.Sleep(60000);
+            }
+        }
+        public InfoModule(DiscordSocketClient socketClient, BotSettingsHelper<string> botSettingsHelper)
+        {
+            if (_client != null && _botSettingsHelper != null) return;
+            _botSettingsHelper = botSettingsHelper;
+            _client = socketClient;
+            t.Start();
+        }
         [Command("info")]
         [Summary("Displays bot info.")]
         [Remarks("info")]
-        [Timeout(1, 45, Measure.Seconds)]
         public async Task Info()
         {
             IDMChannel DM = await Context.Message.Author.GetOrCreateDMChannelAsync();
-            var waitMessage = DM.SendMessageAsync("Please wait!").GetAwaiter().GetResult();
-            string ToFileSize2(Double size)
-            {
-                int scale = 1024;
-                var kb = 1 * scale;
-                var mb = kb * scale;
-                long gb = mb * scale;
-                long tb = gb * scale;
-
-                if (size < kb)
-                    return size + " Bytes";
-                if (size < mb)
-                    return (size / kb).ToString("0.## KB");
-                if (size < gb)
-                    return (size / mb).ToString("0.## MB");
-                // ReSharper disable once ConvertIfStatementToReturnStatement
-                if (size < tb)
-                    return (size / gb).ToString("0.## GB");
-
-                return (size / tb).ToString("0.## TB");
-            }
-            float GetCpuUsage()
-            {
-                var cpuCounter = new PerformanceCounter("Process", "% Processor Time", Process.GetCurrentProcess().ProcessName); //, Process.GetCurrentProcess().ProcessName,true
-                cpuCounter.NextValue();
-                Thread.Sleep(1000);
-                return cpuCounter.NextValue();
-            }
-            var message = (
-                $"{Format.Bold("Info")}\n" +
-                $"- Library: Discord.Net ({DiscordConfig.APIVersion.ToString()})\n" +
-                $"- Runtime: {PlatformServices.Default.Application.RuntimeFramework.Identifier.Replace("App", String.Empty)} {PlatformServices.Default.Application.RuntimeFramework.Version} {(IntPtr.Size * 8).ToString()}-bit\n" +
-                $"- System: {RuntimeInformation.OSDescription} {RuntimeInformation.ProcessArchitecture.ToString().ToLower()}\n" +
-                $"- Up-time: {(DateTime.Now - Process.GetCurrentProcess().StartTime):d\'d \'hh\'h \'mm\'m \'ss\'s\'}\n" +
-                $"- Heartbeat: {Context.Client.Latency.ToString()} ms\n" +
-                $"- Thread running: {Process.GetCurrentProcess().Threads.OfType<ProcessThread>().Count(t => t.ThreadState == System.Diagnostics.ThreadState.Running).ToString()} out of {Process.GetCurrentProcess().Threads.Count.ToString()}\n" +
-                $"- RAM usage: {ToFileSize2(Process.GetCurrentProcess().PagedMemorySize64)}\n" +
-                $"- CPU usage: {GetCpuUsage():N1}%\n" +
-                $"- Heap Size: {ToFileSize2(GC.GetTotalMemory(true))}\n" +
-                $"- Owner of the bot: <@{IsOwner.GetOwner(Context).GetAwaiter().GetResult().ToString()}>\n" +
-                $"- Version: {FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion}\n" +
-                "- Author of the bot: <@419568355771416577>\n\n" +
-
-                $"{Format.Bold("Stats")}\n" +
-                $"- Servers: {Context.Client.Guilds.Count.ToString()}\n" +
-                $"- Bot invite: {Context.Client.GetApplicationInfoAsync().GetAwaiter().GetResult().Flags}\n"
-            );
-
             if (Context.Guild != null)
             {
-                message += $"- Channels: {Context.Guild.Channels.Count} (in {Context.Guild.Name})\n" +
+                infoMessage += $"- Channels: {Context.Guild.Channels.Count} (in {Context.Guild.Name})\n" +
                            $"- Users: {Context.Guild.Users.Count} (in {Context.Guild.Name})\n";
             }
-            message += $"- Channels: {Context.Client.Guilds.Sum(guild => guild.Channels.Count)} (total)\n" +
-                       $"- Users: {Context.Client.Guilds.Sum(guild => guild.Users.Count)} (total)\n";
-            await waitMessage.ModifyAsync(u => u.Content = message);
+            infoMessage += $"- Channels: {Context.Client.Guilds.Sum(guild => guild.Channels.Count)} (total)\n" +
+                           $"- Users: {Context.Client.Guilds.Sum(guild => guild.Users.Count)} (total)\n";
+            await DM.SendMessageAsync(infoMessage);
             await DM.CloseAsync();
         }
 

@@ -36,7 +36,7 @@ namespace GladosV3.Services
                 else
                 {
                     await guild.Owner
-                        .SendMessageAsync("I tried to send a welcome message to a channel, but it now longer exists. Please set this up again.");
+                        .SendMessageAsync($"I tried to send a welcome message to a channel, but it now longer exists. Please set this up again in server {guild.Name}.");
                     await Disable(guild);
                 }
             }
@@ -55,7 +55,7 @@ namespace GladosV3.Services
                 else
                 {
                     await guild.Owner
-                        .SendMessageAsync("I tried to send a farewell message to a channel, but it now longer exists. Please set this up again.");
+                        .SendMessageAsync($"I tried to send a farewell message to a channel, but it now longer exists. Please set this up again in server {guild.Name}.");
                     await Disable(guild);
                 }
             }

@@ -9,6 +9,7 @@ using System.Data;
 using System.Data.SQLite;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Schema;
 
 namespace GladosV3.Services
 {
@@ -37,12 +38,10 @@ namespace GladosV3.Services
             _discord.MessageReceived += OnMessageReceivedAsync;
             MaintenanceMode = botSettingsHelper["maintenance"];
             fallbackPrefix = botSettingsHelper["prefix"];
-            using (DataTable dt = SqLite.Connection.GetValuesAsync("BlacklistedUsers").GetAwaiter().GetResult())
+            using DataTable dt = SqLite.Connection.GetValuesAsync("BlacklistedUsers").GetAwaiter().GetResult();
+            for (int i = 0; i < dt.Rows.Count; i++)
             {
-                for (int i = 0; i < dt.Rows.Count; i++)
-                {
-                    BlacklistedUsers.Add(Convert.ToUInt64(dt.Rows[i]["UserId"]));
-                }
+                BlacklistedUsers.Add(Convert.ToUInt64(dt.Rows[i]["UserId"]));
             }
 
             RefreshPrefix();
@@ -51,18 +50,15 @@ namespace GladosV3.Services
         internal static void RefreshPrefix()
         {
             string sql = $"SELECT guildid,prefix FROM servers";
-            using (DataTable dt2 = new DataTable())
+            using DataTable dt2 = new DataTable();
+            using (SQLiteDataAdapter reader = new SQLiteDataAdapter(sql, SqLite.Connection))
+                reader.Fill(dt2);
+            dt2.TableName = "servers";
+            for (int i = 0; i < dt2.Rows.Count; i++)
             {
-
-                using (SQLiteDataAdapter reader = new SQLiteDataAdapter(sql, SqLite.Connection))
-                    reader.Fill(dt2);
-                dt2.TableName = "servers";
-                for (int i = 0; i < dt2.Rows.Count; i++)
-                {
-                    string pref = dt2.Rows[i]["prefix"].ToString();
-                    if (!string.IsNullOrWhiteSpace(pref))
-                        Prefix.Add(Convert.ToUInt64(dt2.Rows[i]["guildid"]), pref);
-                }
+                string pref = dt2.Rows[i]["prefix"].ToString();
+                if (!string.IsNullOrWhiteSpace(pref))
+                    Prefix.Add(Convert.ToUInt64(dt2.Rows[i]["guildid"]), pref);
             }
         }
         private bool IsUserBlackListed(SocketUserMessage msg)
@@ -76,7 +72,6 @@ namespace GladosV3.Services
             {
                 return; // Ensure the message is from a user/bot
             }
-
             if (msg.Author.Id == _discord.CurrentUser.Id)
             {
                 return;     // Ignore self when checking commands
@@ -156,11 +151,9 @@ namespace GladosV3.Services
 
         private Task MentionBomb(SocketUserMessage msg)
         {
-            if (msg.MentionedUsers.Distinct().Count() < 5)
-            {
-                return Task.CompletedTask;
-            }
-
+            if(!(msg.Channel is  SocketGuildChannel channel)) return Task.CompletedTask;
+            if(channel.GetUser(msg.Author.Id).GuildPermissions.Has(GuildPermission.ManageGuild)) return Task.CompletedTask;
+            if (msg.MentionedUsers.Distinct().Count() < 5) return Task.CompletedTask;
             msg.DeleteAsync().GetAwaiter();
             msg.Channel.SendMessageAsync($"{msg.Author.Mention} Please don't mention that many users!").GetAwaiter();
             return Task.CompletedTask;

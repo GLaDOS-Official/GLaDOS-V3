@@ -14,6 +14,9 @@ using Victoria;
 using Discord.WebSocket;
 using Victoria.Entities;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using Newtonsoft.Json;
+using SearchResult = Victoria.Entities.SearchResult;
 
 namespace GladosV3.Module.Music
 {
@@ -30,6 +33,23 @@ namespace GladosV3.Module.Music
             _lavaRestClient = lavaRestClient;
             lavaSocketClient.OnTrackFinished += LavaSocketClient_OnTrackFinished;
             socketClient.Ready += SocketClient_Ready;
+            _socketClient.UserVoiceStateUpdated += (user, old, _new) =>
+            {
+                if (old.VoiceChannel == null)
+                    return Task.CompletedTask;
+                var player = _lavaClient.GetPlayer(old.VoiceChannel.Guild.Id);
+                if (player is null)
+                    return Task.CompletedTask;
+                if (player.VoiceChannel.Id == old.VoiceChannel.Id && old.VoiceChannel.Users.Count <= 1)
+                    _lavaClient.DisconnectAsync(old.VoiceChannel);
+                return Task.CompletedTask;
+            };
+
+        }
+
+        public LavaPlayer GetPlayer(ulong guildId)
+        {
+            return _lavaClient.GetPlayer(guildId);
         }
         public async Task ConnectAsync(SocketVoiceChannel voiceChannel, ITextChannel textChannel)
             => await _lavaClient.ConnectAsync(voiceChannel, textChannel);
@@ -39,12 +59,20 @@ namespace GladosV3.Module.Music
         public async Task<string> PlayAsync(string query, ulong guildId)
         {
             var _player = _lavaClient.GetPlayer(guildId);
-            var results = await _lavaRestClient.SearchYouTubeAsync(query);
-            if (results.LoadType == LoadType.NoMatches || results.LoadType == LoadType.LoadFailed)
+            if (_player == null) return "Player error. Please contact the bot owner.";
+            SearchResult results;
+            try
             {
-                return "No video found on YT.";
+                results = await _lavaRestClient.SearchSoundcloudAsync(query);
+            }
+            catch (JsonReaderException)
+            {
+                await _lavaClient.DisconnectAsync(_player.VoiceChannel);
+                return "Player is offline. Please contact the bot owner.";
             }
 
+            if (results.LoadType == LoadType.NoMatches || results.LoadType == LoadType.LoadFailed) results = await _lavaRestClient.SearchSoundcloudAsync(query); 
+            if (results.LoadType == LoadType.NoMatches || results.LoadType == LoadType.LoadFailed) return "No song found on YT or SC.";
             var track = results.Tracks.FirstOrDefault();
             if (_player.Queue.Count > 35) return "Queue is full!";
             if (_player.IsPlaying)
@@ -65,18 +93,18 @@ namespace GladosV3.Module.Music
             if (_player is null)
                 return "Error with player. Please contact the bot owner.";
             await _player.StopAsync();
-            return "Music Playback Stopped.";
+            return "Music playback Stopped.";
         }
 
         public async Task<string> SkipAsync(ulong guildId)
         {
             var _player = _lavaClient.GetPlayer(guildId);
             if (_player is null || _player.Queue.Items.Count() is 0)
-                return "Queue is empty!";
+                return "There's nothing left in the queue!'";
 
             var oldTrack = _player.CurrentTrack;
             await _player.SkipAsync();
-            return $"Skiped: {oldTrack.Title} \nNow Playing: {_player.CurrentTrack.Title}";
+            return $"Skiped: {oldTrack.Title}\nNow Playing: {_player.CurrentTrack.Title}";
         }
 
         public async Task<string> SetVolumeAsync(int vol, ulong guildId)
@@ -87,7 +115,7 @@ namespace GladosV3.Module.Music
 
             if (vol > 150 || vol <= 2)
             {
-                return "Please use a number between 2 - 150";
+                return "Please use range between 2 - 150";
             }
 
             await _player.SetVolumeAsync(vol);
@@ -105,11 +133,8 @@ namespace GladosV3.Module.Music
                 await _player.PauseAsync();
                 return "Player paused.";
             }
-            else
-            {
-                await _player.ResumeAsync();
-                return "Playback resumed.";
-            }
+            await _player.ResumeAsync();
+            return "Playback resumed.";
         }
 
         public async Task<string> ResumeAsync(ulong guildId)
@@ -118,13 +143,22 @@ namespace GladosV3.Module.Music
             if (_player is null)
                 return "Player isn't playing.";
 
-            if (_player.IsPaused)
-            {
-                await _player.ResumeAsync();
-                return "Playback resumed.";
-            }
+            if (!_player.IsPaused) return "Player is not paused.";
+            await _player.ResumeAsync();
+            return "Playback resumed.";
 
-            return "Player is not paused.";
+        }
+        public async Task<string> QueueCMD(ulong guildId)
+        {
+            var _player = _lavaClient.GetPlayer(guildId);
+            if (_player is null || !_player.IsPlaying)
+                return "Player isn't playing.";
+            string msg = $"Queue:\n```1. {_player.CurrentTrack.Title} by {_player.CurrentTrack.Author} on {_player.CurrentTrack.Provider}";
+            var r = _player.Queue.Items;
+            int i = 2;
+            msg = r.Cast<LavaTrack>().Aggregate(msg, (current, e) => current + $"\n{i++}. {e.Title} by {e.Author} on {e.Provider}");
+            msg += "\n```";
+            return msg;
         }
         private async Task LavaSocketClient_OnTrackFinished(LavaPlayer player, LavaTrack track, TrackEndReason reason)
         {
@@ -136,27 +170,13 @@ namespace GladosV3.Module.Music
                 await player.TextChannel.SendMessageAsync("There are no more tracks in the queue.");
                 return;
             }
-
             await player.PlayAsync(nextTrack);
+            await player.TextChannel.SendMessageAsync($"Now Playing: {player.CurrentTrack.Title} by {player.CurrentTrack.Author}");
         }
 
         private async Task SocketClient_Ready()
         {
             await _lavaClient.StartAsync(_socketClient);
-        }
-
-        private async Task TrackFinished(LavaPlayer player, LavaTrack track, TrackEndReason reason)
-        {
-            if (!reason.ShouldPlayNext())
-                return;
-
-            if (!player.Queue.TryDequeue(out var item) || !(item is LavaTrack nextTrack))
-            {
-                await player.TextChannel.SendMessageAsync("There are no more tracks in the queue.");
-                return;
-            }
-
-            await player.PlayAsync(nextTrack);
         }
     }
 }

@@ -25,11 +25,8 @@ namespace GladosV3.Module.Music
                 await ReplyAsync("You need to connect to a voice channel.");
                 return;
             }
-            else
-            {
-                await _musicService.ConnectAsync(user.VoiceChannel, Context.Channel as ITextChannel);
-                await ReplyAsync($"Now playing music in {user.VoiceChannel.Name}! 🔈");
-            }
+            await _musicService.ConnectAsync(user.VoiceChannel, Context.Channel as ITextChannel);
+            await ReplyAsync($"Connected to {user.VoiceChannel.Name}! 🔈");
         }
         [Command("leave", RunMode = RunMode.Async)]
         [Remarks("leave")]
@@ -41,12 +38,10 @@ namespace GladosV3.Module.Music
             if (user.VoiceChannel is null)
             {
                 await ReplyAsync("Please join the channel the bot is in to make it leave.");
+                return;
             }
-            else
-            {
-                await _musicService.LeaveAsync(user.VoiceChannel);
-                await ReplyAsync($"Leaving {user.VoiceChannel.Name}! 👋");
-            }
+            await _musicService.LeaveAsync(user.VoiceChannel);
+            await ReplyAsync($"Leaving {user.VoiceChannel.Name}! 👋");
         }
 
         [Command("play", RunMode = RunMode.Async)]
@@ -54,7 +49,21 @@ namespace GladosV3.Module.Music
         [Summary("Plays music from youtube!")]
         [RequireContext(ContextType.Guild)]
         public async Task Play([Remainder]string query)
-            => await ReplyAsync(await _musicService.PlayAsync(query, Context.Guild.Id));
+        {
+            var user = Context.User as SocketGuildUser;
+            if(user.VoiceChannel is null)
+            {
+                await ReplyAsync("You need to connect to a voice channel.");
+                return;
+            }
+
+            if (_musicService.GetPlayer(Context.Guild.Id) == null)
+            {
+                await _musicService.ConnectAsync(user.VoiceChannel, Context.Channel as ITextChannel);
+            }
+            await ReplyAsync(await _musicService.PlayAsync(query, Context.Guild.Id));
+        }
+
         [Command("stop")]
         [Remarks("stop")]
         [RequireContext(ContextType.Guild)]
@@ -67,11 +76,7 @@ namespace GladosV3.Module.Music
         [Command("skip")]
         [Remarks("skip")]
         [RequireContext(ContextType.Guild)]
-        public async Task Skip()
-        {
-            var result = await _musicService.SkipAsync(Context.Guild.Id);
-            await ReplyAsync(result);
-        }
+        public async Task Skip() => await ReplyAsync(await _musicService.SkipAsync(Context.Guild.Id));
 
         [Command("volume")]
         [Remarks("volume")]
@@ -90,5 +95,10 @@ namespace GladosV3.Module.Music
         [RequireContext(ContextType.Guild)]
         public async Task Resume()
             => await ReplyAsync(await _musicService.ResumeAsync(Context.Guild.Id));
+
+        [Command("queue")]
+        [Remarks("queue")]
+        [RequireContext(ContextType.Guild)]
+        public async Task Queue() => await ReplyAsync(await _musicService.QueueCMD(Context.Guild.Id));
     }
 }

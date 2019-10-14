@@ -54,7 +54,9 @@ namespace GladosV3.Attributes
             switch (context.Client.TokenType)
             {
                 case TokenType.Bot:
-                    return Task.FromResult(context.Client.GetApplicationInfoAsync().GetAwaiter().GetResult().Owner.Id);
+                    /*var a = context.Client.GetApplicationInfoAsync().GetAwaiter().GetResult();
+                    return Task.FromResult(a.Owner.Id);*/
+                    return Task.FromResult(ulong.Parse(botSettingsHelper["ownerID"]));
                 /*case TokenType.User:
                         return ulong.Parse(config["ownerID"]);*/
                 default:

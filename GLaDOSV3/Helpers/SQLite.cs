@@ -26,7 +26,7 @@ namespace GladosV3.Helpers
                 result = cmd.ExecuteScalar();
             }
 
-            return Task.FromResult(((long)result) == 1);
+            return Task.FromResult(((long)result) >= 1);
         }
         /// <summary>
         /// Creates a table with a name and parameters..

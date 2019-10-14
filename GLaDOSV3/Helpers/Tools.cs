@@ -56,9 +56,11 @@ namespace GladosV3.Helpers
             request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
             string json;
             using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())
-            using (Stream stream = response.GetResponseStream())
-            using (StreamReader reader = new StreamReader(stream ?? throw new InvalidOperationException()))
+            {
+                await using Stream stream = response.GetResponseStream();
+                using StreamReader reader = new StreamReader(stream ?? throw new InvalidOperationException());
                 json = await reader.ReadToEndAsync();
+            }
             if (string.IsNullOrWhiteSpace(json)) return await Task.FromResult("");
             var Object = JObject.Parse(json);
             return await Task.FromResult(new WebProxy { Address = new Uri($"http://{Object["ipPort"]}") });
