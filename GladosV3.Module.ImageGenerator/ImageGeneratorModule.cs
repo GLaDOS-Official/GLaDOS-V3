@@ -173,7 +173,7 @@ namespace GladosV3.Module.ImageGeneration
         }
         [Command("changemymind", RunMode = RunMode.Async)]
         [Remarks("changemymind <text>")]
-        [Summary("Who would win?")]
+        [Summary("Change my mind bruh!")]
         [Timeout(5, 30, Measure.Seconds)]
         [Alias("cmm")]
         public async Task ChangeMyMind([Remainder]string cmm)

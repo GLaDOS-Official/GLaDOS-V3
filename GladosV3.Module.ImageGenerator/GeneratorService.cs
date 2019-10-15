@@ -19,6 +19,13 @@ namespace GladosV3.Module.ImageGeneration
         {
             if (!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Binaries\\wkhtmltoimage.exe"))) { LoggingService.Log(LogSeverity.Error, "ImageGenerator", "wkhtmltoimage.exe not found!"); fail = true; };
         }
+        private static string AppendAtPosition(string baseString, int position, string character)
+        {
+            var sb = new StringBuilder(baseString);
+            for (int i = position; i < sb.Length; i += (position + character.Length))
+                sb.Insert(i, character);
+            return sb.ToString();
+        }
         public Task<MemoryStream> Shit(string[] items, ICommandContext context)
         {
             try
@@ -154,8 +161,9 @@ namespace GladosV3.Module.ImageGeneration
             try
             {
                 typing = context.Channel.EnterTypingState();
+                if (cmm.Length >= 100) cmm = cmm.Substring(0, 100);
                 HttpClient hc = new HttpClient();
-                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?text={cmm}&type=clyde&raw=1").GetAwaiter().GetResult();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?text={cmm}&type=changemymind&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
             finally
@@ -195,9 +203,14 @@ namespace GladosV3.Module.ImageGeneration
         {
             try
             {
+                const int splitPerChar = 10;
+                if (text.Length >= 60) text = text.Substring(0, 60);
+                string a = text[0].ToString();
+                for (int i = 1; i < text.Length; i++)
+                    a += i % splitPerChar != 0 ? text[i].ToString() : text[i] + "%0A";
                 typing = context.Channel.EnterTypingState();
                 HttpClient hc = new HttpClient();
-                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?text={text}&type=kannagen&raw=1").GetAwaiter().GetResult();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?text={a}&type=kannagen&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
             finally
@@ -233,13 +246,15 @@ namespace GladosV3.Module.ImageGeneration
                 typing.Dispose();
             }
         }
-        public Task<MemoryStream> Trump(ICommandContext context, string cmm)
+        public Task<MemoryStream> Trump(ICommandContext context, string trump)
         {
             try
             {
+                if (trump.Length > 33) trump = AppendAtPosition(trump, 34, "%0A");
+                if (trump.Length >= 72) trump = trump.Substring(0, 72);
                 typing = context.Channel.EnterTypingState();
                 HttpClient hc = new HttpClient();
-                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?text={cmm}&type=trump&raw=1").GetAwaiter().GetResult();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?text={trump}&type=trumptweet&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
             finally
