@@ -14,12 +14,13 @@ namespace GladosV3
     public class Program
     {
         public static void Main(string[] args)
-            => new Program().StartAsync(args).GetAwaiter().GetResult();
+            =>new Program().StartAsync(args).GetAwaiter().GetResult();
 
 
         public async Task StartAsync(string[] args)
         {
-            Console.ResetColor();
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.ForegroundColor = ConsoleColor.White;
             Directory.SetCurrentDirectory(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)));
             var PInvokeDir = Path.Combine(Directory.GetCurrentDirectory(), "PInvoke\\");
             if (!Directory.Exists(PInvokeDir))

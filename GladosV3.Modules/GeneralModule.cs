@@ -111,16 +111,27 @@ namespace GladosV3.Module.Default
                 string finalMsg = "";
                 DataTable dt = await SqLite.Connection.GetValuesAsync("servers", $"WHERE guildid='{Context.Guild.Id.ToString()}'");
                 var row = dt.Rows[0];
+                Random rnd = new Random();
+                EmbedBuilder builder = new EmbedBuilder
+                {
+                    Color = new Color(rnd.Next(256), rnd.Next(256), rnd.Next(256)),
+                    Footer = new EmbedFooterBuilder
+                    {
+                        Text = $"Requested by {Context.User.Username}#{Context.User.Discriminator}",
+                        IconUrl = (Context.User.GetAvatarUrl())
+                    }
+                };
 #pragma warning disable CS0252 // Possible unintended reference comparison; left hand side needs cast
-                finalMsg = $"NSFW module status: {(row?[1] == "0" ? "Enabled" : "Disabled")}\n";
-                finalMsg += $"Join and leave announcement channel: {(string.IsNullOrWhiteSpace(row?[2].ToString()) ? "Not set" : $"<#{row?[2]}>")}\n";
+                finalMsg = $"NSFW module status: {(row?[1] == "0" ? "Enabled ✅" : "Disabled ❌")}\n";
+                finalMsg += $"Join and leave announcement channel: {(string.IsNullOrWhiteSpace(row?[2].ToString()) ? "Not set ❌" : $"<#{row?[2]}> ✅")}\n";
                 finalMsg += $"Join message: {row?[3]}\n";
-                finalMsg += $"Join announcement status: {(row?[4] == "0" ? "Enabled" : "Disabled")}\n";
+                finalMsg += $"Join announcement status: {(row?[4] == "0" ? "Enabled ✅" : "Disabled ❌")}\n";
                 finalMsg += $"Leave message: {row?[5]}\n";
-                finalMsg += $"Leave announcement status: {(row?[6] == "0" ? "Enabled" : "Disabled")}\n";
+                finalMsg += $"Leave announcement status: {(row?[6] == "0" ? "Enabled ✅" : "Disabled ❌")}\n";
 #pragma warning restore CS0252 // Possible unintended reference comparison; left hand side needs cast
                 finalMsg += $"Guild prefix: {(string.IsNullOrWhiteSpace(row?[7].ToString()) ? IsOwner.botSettingsHelper["prefix"] : row?[7])}";
-                await msg.ModifyAsync((a) => a.Content = finalMsg);
+                builder.AddField("Guild settings", finalMsg);
+                await msg.ModifyAsync((a) => { a.Content = ""; a.Embed = builder.Build(); });
             }
         }
         [Command("choose")]
@@ -171,35 +182,6 @@ namespace GladosV3.Module.Default
                 await ReplyAsync("❌Emoji not found on that server!");
             else
                 await ReplyAsync($"{(noText ? "" : "Here's your emoji: ")}{emojiString}");
-        }
-        [Command("strawpoll")]
-        [Summary("Creates a strawpoll on strawpoll.me (splitting by comma character)")]
-        [Remarks("strawpoll <title> | <options>")]
-        [Alias("poll")]
-        [Timeout(1, 1, Measure.Minutes)]
-        public async Task Strawpoll([Remainder] string text)
-        {
-            string[] array = text.Split('|');
-            string[] options = array[1].Split(',');
-            if (array.Length >= 30)
-            {
-                await ReplyAsync("The maximum number of options is 30.");
-                return;
-            }
-
-            using (var http = new HttpClient())
-            {
-                JObject classO = new JObject(new JProperty("title", array.First()), new JProperty("options", new JArray(options)), new JProperty("multi", false), new JProperty("captcha", true));
-                http.DefaultRequestHeaders.Add("User-Agent",
-                    "Mozilla/5.0 (Linux; Android 5.0; SM-G920A) AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)"); // we are GoogleBot
-                var httpResult = await http
-                    .PostAsync("http://www.strawpoll.me/api/v2/polls",
-                        new StringContent(classO.ToString(), Encoding.UTF8, "application/json"));
-                httpResult.EnsureSuccessStatusCode();
-                JObject response = JObject.Parse(httpResult.Content.ReadAsStringAsync().GetAwaiter().GetResult());
-                await ReplyAsync(
-                    $"I have created the strawpoll that you wanted. Here's the url: https://www.strawpoll.me/{response["id"]}");
-            }
         }
     }
 }

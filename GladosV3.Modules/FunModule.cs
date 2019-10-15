@@ -31,7 +31,7 @@ namespace GladosV3.Module.Default
         }
         [Command("illegal")]
         [Remarks("illegal <thing>")]
-        [Summary("Did the president banned something again? Powered by IsNowIllegal.com")]
+        [Summary("Did the president ban something again? Powered by IsNowIllegal.com")]
         [Timeout(2, 45, Measure.Seconds)]
         public async Task Illegal([Remainder]string word)
         {

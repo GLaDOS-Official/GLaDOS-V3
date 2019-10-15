@@ -21,31 +21,260 @@ namespace GladosV3.Module.ImageGeneration
         }
         public Task<MemoryStream> Shit(string[] items, ICommandContext context)
         {
-            typing = context.Channel.EnterTypingState();
-            string item = items.Aggregate(string.Empty, (current, type) => current + type + ", ");
-            string html = File.ReadAllTextAsync(Path.Combine(Directory.GetCurrentDirectory(),
-                "images\\shit.html")).GetAwaiter().GetResult().Replace("REPLACEWITHITEM", item.Remove(item.Length - 2)).Replace("REPLACECORRECTPLURAL", items.Length > 1 ? "are" : "is");
-            var jpgBytes = Exec(html).GetAwaiter().GetResult();
-            typing.Dispose();
-            return Task.FromResult(new MemoryStream(jpgBytes));
+            try
+            {
+                typing = context.Channel.EnterTypingState();
+                string item = items.Aggregate(string.Empty, (current, type) => current + type + ", ");
+                string html = File.ReadAllTextAsync(Path.Combine(Directory.GetCurrentDirectory(),
+                    "images\\shit.html")).GetAwaiter().GetResult().Replace("REPLACEWITHITEM", item.Remove(item.Length - 2)).Replace("REPLACECORRECTPLURAL", items.Length > 1 ? "are" : "is");
+                var jpgBytes = Exec(html).GetAwaiter().GetResult();
+                return Task.FromResult(new MemoryStream(jpgBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
         }
         public Task<MemoryStream> Delete(string item, ICommandContext context)
         {
-            typing = context.Channel.EnterTypingState();
-            string html = File.ReadAllTextAsync(Path.Combine(Directory.GetCurrentDirectory(),
-                "images\\delete.html")).GetAwaiter().GetResult().Replace("REPLACEWITHITEM", item);
-            var jpgBytes = Exec(html).GetAwaiter().GetResult();
-            typing.Dispose();
-            return Task.FromResult(new MemoryStream(jpgBytes));
+            try
+            {
+                typing = context.Channel.EnterTypingState();
+                string html = File.ReadAllTextAsync(Path.Combine(Directory.GetCurrentDirectory(),
+                    "images\\delete.html")).GetAwaiter().GetResult().Replace("REPLACEWITHITEM", item);
+                var jpgBytes = Exec(html).GetAwaiter().GetResult();
+                return Task.FromResult(new MemoryStream(jpgBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
         }
         public Task<MemoryStream> MinecraftAchivementGet(string text, ICommandContext context)
         {
-            typing = context.Channel.EnterTypingState();
-            var randoms = new[] { 29, 20, 1, 21, 13, 18, 17, 9, 31, 22, 23, 2, 11, 19, 24, 25, 14, 12, 33, 34, 32, 3, 35, 37, 38, 7, 10, 39, 4, 5, 30, 8, 16, 28 };
-            HttpClient hc = new HttpClient();
-            byte[] jpgBytes = hc.GetByteArrayAsync($"https://www.minecraftskinstealer.com/achievement/a.php?i={randoms[new Random().Next(randoms.Length)]}&h=Achievement+Get%21&t={text}").GetAwaiter().GetResult();
-            typing.Dispose();
-            return Task.FromResult(new MemoryStream(jpgBytes));
+            try
+            {
+                typing = context.Channel.EnterTypingState();
+                var randoms = new[] { 29, 20, 1, 21, 13, 18, 17, 9, 31, 22, 23, 2, 11, 19, 24, 25, 14, 12, 33, 34, 32, 3, 35, 37, 38, 7, 10, 39, 4, 5, 30, 8, 16, 28 };
+                HttpClient hc = new HttpClient();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://www.minecraftskinstealer.com/achievement/a.php?i={randoms[new Random().Next(randoms.Length)]}&h=Achievement+Get%21&t={text}").GetAwaiter().GetResult();
+                return Task.FromResult(new MemoryStream(jpgBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
+        }
+        public Task<MemoryStream> Threats(ICommandContext context, string url)
+        {
+            try
+            {
+                typing = context.Channel.EnterTypingState();
+                HttpClient hc = new HttpClient();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?url={(url.Replace(".gif", ".png"))}&type=threats&raw=1").GetAwaiter().GetResult();
+                return Task.FromResult(new MemoryStream(jpgBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
+        }
+        public Task<MemoryStream> Baguette(ICommandContext context, string url)
+        {
+            try
+            {
+                typing = context.Channel.EnterTypingState();
+                HttpClient hc = new HttpClient();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?url={(url.Replace(".gif", ".png"))}&type=baguette&raw=1").GetAwaiter().GetResult();
+                return Task.FromResult(new MemoryStream(jpgBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
+        }
+        public Task<MemoryStream> Clyde(ICommandContext context, string clyde)
+        {
+            try
+            {
+                typing = context.Channel.EnterTypingState();
+                HttpClient hc = new HttpClient();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?text={clyde}&type=clyde&raw=1").GetAwaiter().GetResult();
+                return Task.FromResult(new MemoryStream(jpgBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
+        }
+        public Task<MemoryStream> Relationship(ICommandContext context, IUser user2)
+        {
+            try
+            {
+                typing = context.Channel.EnterTypingState();
+                HttpClient hc = new HttpClient();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?user1={(context.Message.Author.GetAvatarUrl().Replace(".gif",".png"))}&user2={(user2.GetAvatarUrl().Replace(".gif", ".png"))}&type=ship&raw=1").GetAwaiter().GetResult();
+                return Task.FromResult(new MemoryStream(jpgBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
+        }
+        public Task<MemoryStream> Captcha(ICommandContext context, string url, string username)
+        {
+            try
+            {
+                typing = context.Channel.EnterTypingState();
+                HttpClient hc = new HttpClient();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?url={url}&username={username}&type=captcha&raw=1").GetAwaiter().GetResult();
+                return Task.FromResult(new MemoryStream(jpgBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
+        }
+        public Task<MemoryStream> WhoWouldWin(ICommandContext context, IUser user2)
+        {
+            try
+            {
+                typing = context.Channel.EnterTypingState();
+                HttpClient hc = new HttpClient();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?user1={(context.Message.Author.GetAvatarUrl().Replace(".gif", ".png"))}&user2={(user2.GetAvatarUrl().Replace(".gif", ".png"))}&type=whowouldwin&raw=1").GetAwaiter().GetResult();
+                return Task.FromResult(new MemoryStream(jpgBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
+        }
+        public Task<MemoryStream> ChangeMyMind(ICommandContext context, string cmm)
+        {
+            try
+            {
+                typing = context.Channel.EnterTypingState();
+                HttpClient hc = new HttpClient();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?text={cmm}&type=clyde&raw=1").GetAwaiter().GetResult();
+                return Task.FromResult(new MemoryStream(jpgBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
+        }
+        public Task<MemoryStream> Jpegify(ICommandContext context, string url)
+        {
+            try
+            {
+                typing = context.Channel.EnterTypingState();
+                HttpClient hc = new HttpClient();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?url={(url.Replace(".gif", ".png"))}&type=jpeg&raw=1").GetAwaiter().GetResult();
+                return Task.FromResult(new MemoryStream(jpgBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
+        }
+        public Task<MemoryStream> Lolice(ICommandContext context, string url)
+        {
+            try
+            {
+                typing = context.Channel.EnterTypingState();
+                HttpClient hc = new HttpClient();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?url={(url.Replace(".gif", ".png"))}&type=lolice&raw=1").GetAwaiter().GetResult();
+                return Task.FromResult(new MemoryStream(jpgBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
+        }
+        public Task<MemoryStream> Kannagen(ICommandContext context, string text)
+        {
+            try
+            {
+                typing = context.Channel.EnterTypingState();
+                HttpClient hc = new HttpClient();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?text={text}&type=kannagen&raw=1").GetAwaiter().GetResult();
+                return Task.FromResult(new MemoryStream(jpgBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
+        }
+        public Task<MemoryStream> IPhoneX(ICommandContext context, string url)
+        {
+            try
+            {
+                typing = context.Channel.EnterTypingState();
+                HttpClient hc = new HttpClient();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?url={(url.Replace(".gif", ".png"))}&type=iphonex&raw=1").GetAwaiter().GetResult();
+                return Task.FromResult(new MemoryStream(jpgBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
+        }
+        public Task<MemoryStream> Trap(ICommandContext context, string url)
+        {
+            try
+            {
+                typing = context.Channel.EnterTypingState();
+                HttpClient hc = new HttpClient();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?image={(url.Replace(".gif", ".png"))}&author={context.User.Username}&author={(context.User.GetAvatarUrl().Replace(".gif", ".png"))}& type=trap&raw=1").GetAwaiter().GetResult();
+                return Task.FromResult(new MemoryStream(jpgBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
+        }
+        public Task<MemoryStream> Trump(ICommandContext context, string cmm)
+        {
+            try
+            {
+                typing = context.Channel.EnterTypingState();
+                HttpClient hc = new HttpClient();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?text={cmm}&type=trump&raw=1").GetAwaiter().GetResult();
+                return Task.FromResult(new MemoryStream(jpgBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
+        }
+        public Task<MemoryStream> Deepfry(ICommandContext context, string url)
+        {
+            try
+            {
+                typing = context.Channel.EnterTypingState();
+                HttpClient hc = new HttpClient();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?image={(url.Replace(".gif", ".png"))}&type=deepfry&raw=1").GetAwaiter().GetResult();
+                return Task.FromResult(new MemoryStream(jpgBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
+        }
+        public Task<MemoryStream> Magik(ICommandContext context, string url)
+        {
+            try
+            {
+                typing = context.Channel.EnterTypingState();
+                HttpClient hc = new HttpClient();
+                Random rnd = new Random();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?image={(url.Replace(".gif", ".png"))}&type=magik&intensity={rnd.Next(10)}&raw=1").GetAwaiter().GetResult();
+                return Task.FromResult(new MemoryStream(jpgBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
         }
         public async Task<byte[]> Exec(string html, int width = 0, int height = 0) // Custom wrapper!!!
         {
