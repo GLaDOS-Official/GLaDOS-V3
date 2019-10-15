@@ -14,7 +14,7 @@ namespace GladosV3
     public class Program
     {
         public static void Main(string[] args)
-            =>new Program().StartAsync(args).GetAwaiter().GetResult();
+            => new Program().StartAsync(args).GetAwaiter().GetResult();
 
 
         public async Task StartAsync(string[] args)

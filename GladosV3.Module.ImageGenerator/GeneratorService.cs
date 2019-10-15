@@ -232,13 +232,13 @@ namespace GladosV3.Module.ImageGeneration
                 typing.Dispose();
             }
         }
-        public Task<MemoryStream> Trap(ICommandContext context, string url)
+        public Task<MemoryStream> Trap(ICommandContext context, IUser user)
         {
             try
             {
                 typing = context.Channel.EnterTypingState();
                 HttpClient hc = new HttpClient();
-                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?image={(url.Replace(".gif", ".png"))}&author={context.User.Username}&author={(context.User.GetAvatarUrl().Replace(".gif", ".png"))}& type=trap&raw=1").GetAwaiter().GetResult();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?image={(user.GetAvatarUrl(size:1024).Replace(".gif", ".png"))}&author={context.User.Username}&name={user.Username}&type=trap&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
             finally

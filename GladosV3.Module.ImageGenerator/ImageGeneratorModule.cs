@@ -224,8 +224,8 @@ namespace GladosV3.Module.ImageGeneration
                 await Context.Channel.SendMessageAsync("There was an error... Check the logs!");
         }
         [Command("kannafy", RunMode = RunMode.Async)]
-        [Remarks("changemymind <text>")]
-        [Summary("Who would win?")]
+        [Remarks("kannafy <text>")]
+        [Summary("Kanna OwO")]
         [Timeout(5, 30, Measure.Seconds)]
         [Alias("kannagen")]
         public async Task Kannagen([Remainder]string cmm)
@@ -269,7 +269,7 @@ namespace GladosV3.Module.ImageGeneration
         public async Task Trap(IUser user)
         {
             if (!_service.fail)
-                await Context.Channel.SendFileAsync(_service.Trap(Context, user.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "trap.jpg");
+                await Context.Channel.SendFileAsync(_service.Trap(Context, user).GetAwaiter().GetResult(), "trap.jpg");
             else
                 await Context.Channel.SendMessageAsync("There was an error... Check the logs!");
         }

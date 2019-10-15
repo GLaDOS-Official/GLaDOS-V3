@@ -72,19 +72,13 @@ namespace GladosV3.Services
             {
                 return; // Ensure the message is from a user/bot
             }
-            if (msg.Author.Id == _discord.CurrentUser.Id)
-            {
-                return;     // Ignore self when checking commands
-            }
-
             if (msg.Author.IsBot)
             {
                 return; // Ignore other bots
             }
-
-            if (msg.MentionedUsers.Count > 0)
+            if (msg.Author.Id == _discord.CurrentUser.Id)
             {
-                await MentionBomb(msg);
+                return;     // Ignore self when checking commands
             }
 
             int argPos = 0; // Check if the message has a valid command prefix
@@ -93,6 +87,10 @@ namespace GladosV3.Services
             { prefix = guildPrefix; }
             if (!msg.HasStringPrefix(prefix, ref argPos) && !msg.HasMentionPrefix(_discord.CurrentUser, ref argPos))
             {
+                if (msg.MentionedUsers.Count > 0)
+                {
+                    await MentionBomb(msg);
+                }
                 return; // Ignore messages that aren't meant for the bot
             }
 
@@ -104,7 +102,7 @@ namespace GladosV3.Services
             SocketCommandContext context = new SocketCommandContext(_discord, msg); // Create the command context
             if (!string.IsNullOrWhiteSpace(MaintenanceMode) && (IsOwner.CheckPermission(context).GetAwaiter().GetResult())) { await context.Channel.SendMessageAsync("Bot is in maintenance mode! Reason: " + MaintenanceMode).ConfigureAwait(false); ; return; } // Don't execute commands in maintenance mode 
             IResult result = await _commands.ExecuteAsync(context, argPos, _provider); // Execute the command
-            if (!result.IsSuccess && result.ErrorReason != "hidden" && result.ErrorReason != "Unknown command.")  // If not successful, reply with the error.
+            if (!result.IsSuccess && result.ErrorReason != "hidden")  // If not successful, reply with the error.
             {
                 switch (result.Error)
                 {
@@ -137,7 +135,7 @@ namespace GladosV3.Services
                                     await context.Channel.SendMessageAsync("**Error:** None or few arguments are being used.").ConfigureAwait(false);
                                     break;
                                 case "User not found.":
-                                    await context.Channel.SendMessageAsync("**Error:** No user mention detected.").ConfigureAwait(false);
+                                    await context.Channel.SendMessageAsync("**Error:** No user parameter detected.").ConfigureAwait(false);
                                     break;
                                 default:
                                     await context.Channel.SendMessageAsync($@"**Error:** {result.ErrorReason}").ConfigureAwait(false);
@@ -152,7 +150,7 @@ namespace GladosV3.Services
         private Task MentionBomb(SocketUserMessage msg)
         {
             if(!(msg.Channel is  SocketGuildChannel channel)) return Task.CompletedTask;
-            if(channel.GetUser(msg.Author.Id).GuildPermissions.Has(GuildPermission.ManageGuild)) return Task.CompletedTask;
+            if(channel.GetUser(msg.Author.Id).GuildPermissions.Has(GuildPermission.ManageGuild) || channel.GetUser(msg.Author.Id).GuildPermissions.Has(GuildPermission.Administrator)) return Task.CompletedTask;
             if (msg.MentionedUsers.Distinct().Count() < 5) return Task.CompletedTask;
             msg.DeleteAsync().GetAwaiter();
             msg.Channel.SendMessageAsync($"{msg.Author.Mention} Please don't mention that many users!").GetAwaiter();
