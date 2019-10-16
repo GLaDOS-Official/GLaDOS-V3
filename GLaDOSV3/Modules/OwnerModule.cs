@@ -192,7 +192,7 @@ namespace GladosV3.Modules
                 Services.CommandHandler.BlacklistedUsers.Add(userid);
                 await ReplyAsync("Ok!");
             }
-            [Command("blacklist user")]
+            [Command("blacklist users")]
             [Remarks("bot blacklist users")]
             [Summary("Blacklists a user from using the bot")]
             [Attributes.RequireOwner]

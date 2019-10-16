@@ -15,6 +15,7 @@ namespace GladosV3.Module.ImageGeneration
     {
         IDisposable typing;
         public bool fail;
+        private const string htmlSplit = " ";
         public GeneratorService()
         {
             if (!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Binaries\\wkhtmltoimage.exe"))) { LoggingService.Log(LogSeverity.Error, "ImageGenerator", "wkhtmltoimage.exe not found!"); fail = true; };
@@ -63,7 +64,7 @@ namespace GladosV3.Module.ImageGeneration
             {
                 typing = context.Channel.EnterTypingState();
                 var randoms = new[] { 29, 20, 1, 21, 13, 18, 17, 9, 31, 22, 23, 2, 11, 19, 24, 25, 14, 12, 33, 34, 32, 3, 35, 37, 38, 7, 10, 39, 4, 5, 30, 8, 16, 28 };
-                HttpClient hc = new HttpClient();
+                using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://www.minecraftskinstealer.com/achievement/a.php?i={randoms[new Random().Next(randoms.Length)]}&h=Achievement+Get%21&t={text}").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
@@ -77,7 +78,7 @@ namespace GladosV3.Module.ImageGeneration
             try
             {
                 typing = context.Channel.EnterTypingState();
-                HttpClient hc = new HttpClient();
+                using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?url={(url.Replace(".gif", ".png"))}&type=threats&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
@@ -91,7 +92,7 @@ namespace GladosV3.Module.ImageGeneration
             try
             {
                 typing = context.Channel.EnterTypingState();
-                HttpClient hc = new HttpClient();
+                using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?url={(url.Replace(".gif", ".png"))}&type=baguette&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
@@ -105,7 +106,7 @@ namespace GladosV3.Module.ImageGeneration
             try
             {
                 typing = context.Channel.EnterTypingState();
-                HttpClient hc = new HttpClient();
+                using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?text={clyde}&type=clyde&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
@@ -119,8 +120,8 @@ namespace GladosV3.Module.ImageGeneration
             try
             {
                 typing = context.Channel.EnterTypingState();
-                HttpClient hc = new HttpClient();
-                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?user1={(context.Message.Author.GetAvatarUrl().Replace(".gif",".png"))}&user2={(user2.GetAvatarUrl().Replace(".gif", ".png"))}&type=ship&raw=1").GetAwaiter().GetResult();
+                using HttpClient hc = new HttpClient();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?user1={(context.Message.Author.GetAvatarUrl().Replace(".gif", ".png"))}&user2={(user2.GetAvatarUrl().Replace(".gif", ".png"))}&type=ship&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
             finally
@@ -133,7 +134,7 @@ namespace GladosV3.Module.ImageGeneration
             try
             {
                 typing = context.Channel.EnterTypingState();
-                HttpClient hc = new HttpClient();
+                using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?url={url}&username={username}&type=captcha&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
@@ -147,7 +148,7 @@ namespace GladosV3.Module.ImageGeneration
             try
             {
                 typing = context.Channel.EnterTypingState();
-                HttpClient hc = new HttpClient();
+                using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?user1={(context.Message.Author.GetAvatarUrl().Replace(".gif", ".png"))}&user2={(user2.GetAvatarUrl().Replace(".gif", ".png"))}&type=whowouldwin&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
@@ -162,7 +163,7 @@ namespace GladosV3.Module.ImageGeneration
             {
                 typing = context.Channel.EnterTypingState();
                 if (cmm.Length >= 100) cmm = cmm.Substring(0, 100);
-                HttpClient hc = new HttpClient();
+                using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?text={cmm}&type=changemymind&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
@@ -176,7 +177,7 @@ namespace GladosV3.Module.ImageGeneration
             try
             {
                 typing = context.Channel.EnterTypingState();
-                HttpClient hc = new HttpClient();
+                using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?url={(url.Replace(".gif", ".png"))}&type=jpeg&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
@@ -190,7 +191,7 @@ namespace GladosV3.Module.ImageGeneration
             try
             {
                 typing = context.Channel.EnterTypingState();
-                HttpClient hc = new HttpClient();
+                using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?url={(url.Replace(".gif", ".png"))}&type=lolice&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
@@ -203,14 +204,22 @@ namespace GladosV3.Module.ImageGeneration
         {
             try
             {
-                const int splitPerChar = 10;
-                if (text.Length >= 60) text = text.Substring(0, 60);
-                string a = text[0].ToString();
-                for (int i = 1; i < text.Length; i++)
-                    a += i % splitPerChar != 0 ? text[i].ToString() : text[i] + "%0A";
+                const int splitPerChar = 8;
+                const int splitPerUpperChar = 8;
+                if (text.Length >= 45) text = text.Substring(0, 45);
+
+                string[] split = text.Split(' ');
+                for (int i = 0; i < split.Length; i++)
+                {
+                    int splitNum = char.IsUpper(split[i][split[i].Length - 1]) ? splitPerUpperChar : splitPerChar;
+                    if (split[i].Length < splitNum) continue;
+                    for (int j = splitNum;  j < split[i].Length; j += splitNum) split[i] = split[i].Insert(j, htmlSplit);
+                }
+                string result = string.Join(' ', split);
+
                 typing = context.Channel.EnterTypingState();
-                HttpClient hc = new HttpClient();
-                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?text={a}&type=kannagen&raw=1").GetAwaiter().GetResult();
+                using HttpClient hc = new HttpClient();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?text={result}&type=kannagen&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
             finally
@@ -223,7 +232,7 @@ namespace GladosV3.Module.ImageGeneration
             try
             {
                 typing = context.Channel.EnterTypingState();
-                HttpClient hc = new HttpClient();
+                using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?url={(url.Replace(".gif", ".png"))}&type=iphonex&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
@@ -237,8 +246,8 @@ namespace GladosV3.Module.ImageGeneration
             try
             {
                 typing = context.Channel.EnterTypingState();
-                HttpClient hc = new HttpClient();
-                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?image={(user.GetAvatarUrl(size:1024).Replace(".gif", ".png"))}&author={context.User.Username}&name={user.Username}&type=trap&raw=1").GetAwaiter().GetResult();
+                using HttpClient hc = new HttpClient();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?image={(user.GetAvatarUrl(size: 1024).Replace(".gif", ".png"))}&author={context.User.Username}&name={user.Username}&type=trap&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
             finally
@@ -250,10 +259,10 @@ namespace GladosV3.Module.ImageGeneration
         {
             try
             {
-                if (trump.Length > 33) trump = AppendAtPosition(trump, 34, "%0A");
+                if (trump.Length > 33) trump = trump.Insert(34, htmlSplit);
                 if (trump.Length >= 72) trump = trump.Substring(0, 72);
                 typing = context.Channel.EnterTypingState();
-                HttpClient hc = new HttpClient();
+                using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?text={trump}&type=trumptweet&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
@@ -267,7 +276,7 @@ namespace GladosV3.Module.ImageGeneration
             try
             {
                 typing = context.Channel.EnterTypingState();
-                HttpClient hc = new HttpClient();
+                using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?image={(url.Replace(".gif", ".png"))}&type=deepfry&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
@@ -281,7 +290,7 @@ namespace GladosV3.Module.ImageGeneration
             try
             {
                 typing = context.Channel.EnterTypingState();
-                HttpClient hc = new HttpClient();
+                using HttpClient hc = new HttpClient();
                 Random rnd = new Random();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?image={(url.Replace(".gif", ".png"))}&type=magik&intensity={rnd.Next(10)}&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
