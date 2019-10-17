@@ -204,7 +204,8 @@ namespace GladosV3.Module.ImageGeneration
         {
             try
             {
-                const int splitPerChar = 8;
+                typing = context.Channel.EnterTypingState();
+                const int splitPerChar = 10;
                 const int splitPerUpperChar = 8;
                 if (text.Length >= 45) text = text.Substring(0, 45);
 
@@ -217,7 +218,6 @@ namespace GladosV3.Module.ImageGeneration
                 }
                 string result = string.Join(' ', split);
 
-                typing = context.Channel.EnterTypingState();
                 using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?text={result}&type=kannagen&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
