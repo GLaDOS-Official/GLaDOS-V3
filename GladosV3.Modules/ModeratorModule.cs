@@ -33,12 +33,14 @@ namespace GladosV3.Module.Default
                 var enumerable = Context.Channel.GetMessagesAsync(limit).Flatten();
                 try
                 {
-                    IMessage[] enumerable1 = await enumerable.ToArray();
+                    IMessage[] enumerable1 = await enumerable.ToArrayAsync();
                     IOrderedEnumerable<IMessage> messages = enumerable1
                         .Where((something) => (something.Timestamp - DateTimeOffset.UtcNow).TotalDays > -13)
                         .OrderByDescending(msg => msg.Timestamp);
                     await ((ITextChannel) Context.Channel).DeleteMessagesAsync(messages);
+                    int deletedOld = deleted;
                     deleted += messages.Count();
+                    if (deleted == deletedOld) break;// reached discord limit
                 }
                 catch (ArgumentOutOfRangeException)
                 {
@@ -67,7 +69,7 @@ namespace GladosV3.Module.Default
             while (deleted != count)
             {
                 int limit = count < 100 ? count : 100;
-                IMessage[] newlist = await (Context.Channel.GetMessagesAsync().Flatten()).Where(x => x.Author == UserMention && (x.Timestamp - DateTimeOffset.UtcNow).TotalDays > -13).Take(count).ToArray();
+                IMessage[] newlist = await (Context.Channel.GetMessagesAsync().Flatten()).Where(x => x.Author == UserMention && (x.Timestamp - DateTimeOffset.UtcNow).TotalDays > -13).Take(count).ToArrayAsync();
                 try
                 {
                     IMessage[] enumerable1 = newlist.ToArray();
@@ -304,7 +306,6 @@ namespace GladosV3.Module.Default
                     await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync("User is in this server!").GetAwaiter().GetResult().Channel).CloseAsync();
                 return;
             }
-            SocketGuildUser moderator = Context.User as SocketGuildUser;
             SocketUser normaluser = Context.Client.GetUser(userid);
             try
             {

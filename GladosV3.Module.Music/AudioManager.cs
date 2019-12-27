@@ -148,17 +148,17 @@ namespace GladosV3.Module.Music
             return "Playback resumed.";
 
         }
-        public async Task<string> QueueCMD(ulong guildId)
+        public Task<string> QueueCMD(ulong guildId)
         {
             var _player = _lavaClient.GetPlayer(guildId);
             if (_player is null || !_player.IsPlaying)
-                return "Player isn't playing.";
+                return Task.FromResult("Player isn't playing.");
             string msg = $"Queue:\n```1. {_player.CurrentTrack.Title} by {_player.CurrentTrack.Author} on {_player.CurrentTrack.Provider}";
             var r = _player.Queue.Items;
             int i = 2;
             msg = r.Cast<LavaTrack>().Aggregate(msg, (current, e) => current + $"\n{i++}. {e.Title} by {e.Author} on {e.Provider}");
             msg += "\n```";
-            return msg;
+            return Task.FromResult(msg);
         }
         private async Task LavaSocketClient_OnTrackFinished(LavaPlayer player, LavaTrack track, TrackEndReason reason)
         {

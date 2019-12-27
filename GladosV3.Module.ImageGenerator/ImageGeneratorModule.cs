@@ -9,12 +9,12 @@ namespace GladosV3.Module.ImageGeneration
     public class ImageGeneratorModule : ModuleBase<ICommandContext>
     {
         private readonly GeneratorService _service;
-        string[] imageFormats = { "jpg", "jpeg", "bmp", "png" };
+        readonly string[] imageFormats = { "jpg", "jpeg", "bmp", "png" };
         public ImageGeneratorModule(GeneratorService service)
         {
             _service = service;
         }
-        private bool hasImageExtension(string path)
+        private bool HasImageExtension(string path)
         {
             bool yes = false;
             for (int i = 0; i < imageFormats.Length; i++)
@@ -72,7 +72,7 @@ namespace GladosV3.Module.ImageGeneration
                 {
                     IAttachment attach = Context.Message.Attachments.First();
 
-                    if (hasImageExtension(attach.Url))
+                    if (HasImageExtension(attach.Url))
                         await Context.Channel.SendFileAsync(_service.Threats(Context, attach.Url).GetAwaiter().GetResult(), "dangerous_object.jpg");
                     else
                         await ReplyAsync("The attachment is not an image!");
@@ -96,7 +96,7 @@ namespace GladosV3.Module.ImageGeneration
                 else if (Context.Message.Attachments.Count > 0)
                 {
                     IAttachment attach = Context.Message.Attachments.First();
-                    if (hasImageExtension(attach.Url))
+                    if (HasImageExtension(attach.Url))
                         await Context.Channel.SendFileAsync(_service.Baguette(Context, attach.Url).GetAwaiter().GetResult(), "baguette.jpg");
                     else
                         await ReplyAsync("The attachment is not an image!");
@@ -147,7 +147,7 @@ namespace GladosV3.Module.ImageGeneration
                 {
                     IAttachment attach = Context.Message.Attachments.First();
 
-                    if (hasImageExtension(attach.Url))
+                    if (HasImageExtension(attach.Url))
                         await Context.Channel.SendFileAsync(_service.Captcha(Context, attach.Url, System.IO.Path.GetFileNameWithoutExtension(attach.Filename)).GetAwaiter().GetResult(), "captcha.jpg");
                     else
                         await ReplyAsync("The attachment is not an image!");
@@ -196,7 +196,7 @@ namespace GladosV3.Module.ImageGeneration
                 else if (Context.Message.Attachments.Count > 0)
                 {
                     IAttachment attach = Context.Message.Attachments.First();
-                    if (hasImageExtension(attach.Url))
+                    if (HasImageExtension(attach.Url))
                         await Context.Channel.SendFileAsync(_service.Jpegify(Context, attach.Url).GetAwaiter().GetResult(), "jpeg.jpg");
                     else
                         await ReplyAsync("The attachment is not an image!");
@@ -251,7 +251,7 @@ namespace GladosV3.Module.ImageGeneration
                 {
                     IAttachment attach = Context.Message.Attachments.First();
 
-                    if (hasImageExtension(attach.Url))
+                    if (HasImageExtension(attach.Url))
                         await Context.Channel.SendFileAsync(_service.IPhoneX(Context, attach.Url).GetAwaiter().GetResult(), "iphone.jpg");
                     else
                         await ReplyAsync("The attachment is not an image!");
@@ -299,7 +299,7 @@ namespace GladosV3.Module.ImageGeneration
                 {
                     IAttachment attach = Context.Message.Attachments.First();
 
-                    if (hasImageExtension(attach.Url))
+                    if (HasImageExtension(attach.Url))
                         await Context.Channel.SendFileAsync(_service.Deepfry(Context, attach.Url).GetAwaiter().GetResult(), "Deepfry.jpg");
                     else
                         await ReplyAsync("The attachment is not an image!");
@@ -324,7 +324,7 @@ namespace GladosV3.Module.ImageGeneration
                 {
                     IAttachment attach = Context.Message.Attachments.First();
 
-                    if (hasImageExtension(attach.Url))
+                    if (HasImageExtension(attach.Url))
                         await Context.Channel.SendFileAsync(_service.Magik(Context, attach.Url).GetAwaiter().GetResult(), "Magik.jpg");
                     else
                         await ReplyAsync("The attachment is not an image!");

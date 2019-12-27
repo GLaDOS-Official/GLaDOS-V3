@@ -18,22 +18,15 @@ namespace GladosV3.Services
     public class IPLoggerProtection
     {
         private readonly DiscordSocketClient _discord;
-        private readonly CommandService _commands;
-        private readonly IServiceProvider _provider;
         private readonly List<ulong> serverIds = new List<ulong>() { 259776446942150656, 472402015679414293, 503145318372868117, 516296348367192074, 611503265313718282, 611599798595878912, 499598184570421253 };
         private readonly bool silentMessage = true;
         // DiscordSocketClient, CommandService, IConfigurationRoot, and IServiceProvider are injected automatically from the IServiceProvider
-        public IPLoggerProtection(
-            DiscordSocketClient discord,
-            CommandService commands,
-            IServiceProvider provider)
+        public IPLoggerProtection(DiscordSocketClient discord)
         {
             _discord = discord;
-            _commands = commands;
-            _provider = provider;
             _discord.MessageReceived += OnMessageReceivedAsync;
         }
-        private string[] knownIpLoggers = new string[] { "iplogger", "maper.info", "grabify", "iplogger.org", "2no.co", "yip.su", "ipgrabber", "iplis.ru", "02ip.ru", "ezstat.ru", "iplo.ru" };
+        private readonly string[] knownIpLoggers = new string[] { "iplogger", "maper.info", "grabify", "iplogger.org", "2no.co", "yip.su", "ipgrabber", "iplis.ru", "02ip.ru", "ezstat.ru", "iplo.ru" };
 
         private async Task DeleteMessage(SocketUserMessage msg)
         {

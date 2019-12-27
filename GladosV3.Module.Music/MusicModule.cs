@@ -7,7 +7,7 @@ namespace GladosV3.Module.Music
 {
     public class MusicModule : ModuleBase<ICommandContext>
     {
-        private AudioService _musicService;
+        private readonly AudioService _musicService;
 
         public MusicModule(AudioService musicService)
         {

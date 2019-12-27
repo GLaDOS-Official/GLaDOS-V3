@@ -12,10 +12,10 @@ namespace GladosV3.Helpers
         /// <summary>
         ///  Returns a bool if a table exists.
         /// </summary>
-        public static Task<bool> TableExistsAsync(this IDbConnection connection, string tableName)
+        public static Task<bool> TableExistsAsync(this SQLiteConnection connection, string tableName)
         {
             object result;
-            using (SQLiteCommand cmd = new SQLiteCommand(Connection))
+            using (SQLiteCommand cmd = new SQLiteCommand(connection))
             {
                 cmd.CommandText = @"SELECT COUNT(*) FROM sqlite_master WHERE name=@TableName";
                 var p1 = cmd.CreateParameter();
@@ -44,7 +44,7 @@ namespace GladosV3.Helpers
         public static Task SetValueAsync<T>(this SQLiteConnection connection, string tableName, string parameter, T value, string filter = "")
         {
             string sql = $"UPDATE {tableName} SET {parameter}='{value.ToString()}'";
-            if (filter != "")
+            if (!string.IsNullOrEmpty(filter))
                 sql += $" {filter}";
             using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                 command.ExecuteNonQuery();
@@ -57,7 +57,7 @@ namespace GladosV3.Helpers
         {
             string sql = $"SELECT * FROM {tableName}";
             DataTable dt = new DataTable();
-            if (filter != "")
+            if (!string.IsNullOrEmpty(filter))
                 sql += $" {filter}";
             using (SQLiteDataAdapter reader = new SQLiteDataAdapter(sql, connection))
                 reader.Fill(dt);
@@ -95,9 +95,9 @@ namespace GladosV3.Helpers
                 result += $"@val{i},";
             }
             string sql = $"INSERT INTO {tablename} ({values}) VALUES ({result.Remove(result.Length - 1)}) ";
-            if (filter != "")
+            if (!string.IsNullOrEmpty(filter))
                 sql += $"WHERE {filter}";
-            using (SQLiteCommand command = new SQLiteCommand(sql, Connection))
+            using (SQLiteCommand command = new SQLiteCommand(sql, connection))
             {
                 for (int i = 1; i <= items.Length; i++)
                     command.Parameters.AddWithValue($"@val{i}", items[i - 1]);
@@ -113,7 +113,7 @@ namespace GladosV3.Helpers
             if (string.IsNullOrWhiteSpace(filter))
                 return Task.FromException(new SQLiteException("Filter mustn't be empty!"));
             string sql = $"DELETE FROM {tablename} WHERE {filter}";
-            using (SQLiteCommand command = new SQLiteCommand(sql, Connection))
+            using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                 command.ExecuteNonQuery();
             return Task.CompletedTask;
         }
@@ -124,7 +124,7 @@ namespace GladosV3.Helpers
         {
             if (string.IsNullOrWhiteSpace(command))
                 return Task.FromException(new SQLiteException("Command mustn't be empty!!"));
-            using (SQLiteCommand sqlCommand = new SQLiteCommand(command, Connection))
+            using (SQLiteCommand sqlCommand = new SQLiteCommand(command, connection))
                 sqlCommand.ExecuteNonQuery();
             return Task.CompletedTask;
         }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace GladosV3.Attributes
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
-    public class RequireMFAAttribute : PreconditionAttribute
+    public sealed class RequireMFAAttribute : PreconditionAttribute
     {
         public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
         {

@@ -6,7 +6,7 @@ namespace GladosV3.Services
 {
     public class ClientEvents
     {
-        private DiscordSocketClient _discord;
+        private readonly DiscordSocketClient _discord;
         // DiscordSocketClient is injected automatically from the IServiceProvider
         public ClientEvents(
             DiscordSocketClient discord)

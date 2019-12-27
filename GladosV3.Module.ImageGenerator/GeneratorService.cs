@@ -20,13 +20,6 @@ namespace GladosV3.Module.ImageGeneration
         {
             if (!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Binaries\\wkhtmltoimage.exe"))) { LoggingService.Log(LogSeverity.Error, "ImageGenerator", "wkhtmltoimage.exe not found!"); fail = true; };
         }
-        private static string AppendAtPosition(string baseString, int position, string character)
-        {
-            var sb = new StringBuilder(baseString);
-            for (int i = position; i < sb.Length; i += (position + character.Length))
-                sb.Insert(i, character);
-            return sb.ToString();
-        }
         public Task<MemoryStream> Shit(string[] items, ICommandContext context)
         {
             try
@@ -212,7 +205,7 @@ namespace GladosV3.Module.ImageGeneration
                 string[] split = text.Split(' ');
                 for (int i = 0; i < split.Length; i++)
                 {
-                    int splitNum = char.IsUpper(split[i][split[i].Length - 1]) ? splitPerUpperChar : splitPerChar;
+                    int splitNum = char.IsUpper(split[i][^1]) ? splitPerUpperChar : splitPerChar;
                     if (split[i].Length < splitNum) continue;
                     for (int j = splitNum;  j < split[i].Length; j += splitNum) split[i] = split[i].Insert(j, htmlSplit);
                 }
@@ -300,7 +293,7 @@ namespace GladosV3.Module.ImageGeneration
                 typing.Dispose();
             }
         }
-        public async Task<byte[]> Exec(string html, int width = 0, int height = 0) // Custom wrapper!!!
+        public static async Task<byte[]> Exec(string html, int width = 0, int height = 0) // Custom wrapper!!!
         {
             var e = Process.Start(new ProcessStartInfo
             {

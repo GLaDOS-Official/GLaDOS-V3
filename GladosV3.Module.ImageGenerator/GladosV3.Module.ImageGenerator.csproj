@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyVersion>1.0.76.8</AssemblyVersion>
     <FileVersion>1.0.76.8</FileVersion>
   </PropertyGroup>
@@ -38,9 +38,9 @@
     </None>
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp3.0\Modules\"></Copy>
-    <Copy SourceFiles="Binaries\wkhtmltoimage.exe" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp3.0\Binaries\"></Copy>
-    <Copy SourceFiles="Images\shit.html" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp3.0\Images\"></Copy>
-    <Copy SourceFiles="Images\delete.html" DestinationFolder="..\GLaDOSV3\bin\$(Configuration)\netcoreapp3.0\Images\"></Copy>
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\GLaDOSV3\$(OutDir)\Modules\"></Copy>
+    <Copy SourceFiles="Binaries\wkhtmltoimage.exe" DestinationFolder="..\GLaDOSV3\$(OutDir)\Binaries\"></Copy>
+    <Copy SourceFiles="Images\shit.html" DestinationFolder="..\GLaDOSV3\$(OutDir)\Images\"></Copy>
+    <Copy SourceFiles="Images\delete.html" DestinationFolder="..\GLaDOSV3\$(OutDir)\Images\"></Copy>
   </Target>
 </Project>

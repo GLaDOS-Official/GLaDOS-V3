@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace GladosV3.Helpers
 {
-    public class Tools
+    public sealed class Tools
     {
 
         public static void WriteColorLine(ConsoleColor color, string message)
@@ -88,7 +88,7 @@ namespace GladosV3.Helpers
                     msg = "";
                 }
 
-                msg += $"{(msg != "" ? "\n" : "")}{chunk}";
+                msg += $"{(!string.IsNullOrEmpty(msg) ? "\n" : "")}{chunk}";
             }
 
             messages.Add(msg);

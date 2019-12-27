@@ -42,7 +42,7 @@ namespace GladosV3.Services
             }
         }
 
-        public Assembly TryLoadFromNuget(ResolveEventArgs args)
+        public static Assembly TryLoadFromNuget(ResolveEventArgs args)
         {
             try
             {
@@ -86,10 +86,10 @@ namespace GladosV3.Services
                         if (asm == null) continue;
                         Type asmType = asm.GetTypes().Where(type => type.IsClass && type.Name == "ModuleInfo").Distinct().First(); //create type
                         ConstructorInfo asmConstructor = asmType.GetConstructor(Type.EmptyTypes);  // get extension's constructor
-                        object magicClassObject = asmConstructor.Invoke(new object[] { }); // create object of class
+                        object magicClassObject = asmConstructor.Invoke(Array.Empty<object>()); // create object of class
                         var memberInfo = asmType.GetMethod("get_Services", BindingFlags.Instance | BindingFlags.Public); //get services method
                         if (memberInfo == null) continue;
-                        var item = (Type[])memberInfo.Invoke(magicClassObject, new object[] { });
+                        var item = (Type[])memberInfo.Invoke(magicClassObject, Array.Empty<object>());
                         if (item != null && item.Length > 0)
                             types.AddRange(item); // invoke services method
                     }
@@ -154,7 +154,7 @@ namespace GladosV3.Services
             }
             return Task.CompletedTask;
         }
-        private static IDictionary<string, Assembly> dependencies = new Dictionary<string, Assembly>();
+        private static readonly IDictionary<string, Assembly> dependencies = new Dictionary<string, Assembly>();
 
 
         private Assembly CurrentDomainOnAssemblyResolve(object sender, ResolveEventArgs args)
@@ -206,11 +206,11 @@ namespace GladosV3.Services
         public IServiceProvider _provider;
 
         private IGladosModule module;
-        private AssemblyDependencyResolver _resolver;
-        private DiscordSocketClient _discord;
-        private CommandService _commands;
-        private BotSettingsHelper<string> _config;
-        private string _path;
+        private readonly AssemblyDependencyResolver _resolver;
+        private readonly DiscordSocketClient _discord;
+        private readonly CommandService _commands;
+        private readonly BotSettingsHelper<string> _config;
+        private readonly string _path;
         public GladosModuleStruct(string path, DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider) : base(isCollectible: true)
         {
             _discord = discord;

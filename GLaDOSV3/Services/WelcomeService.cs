@@ -9,16 +9,10 @@ namespace GladosV3.Services
 {
     class WelcomeService
     {
-        private readonly DiscordSocketClient _discord;
-        private readonly CommandService _commands;
 
         // DiscordSocketClient, CommandService, and IConfigurationRoot are injected automatically from the IServiceProvider
-        public WelcomeService(
-            DiscordSocketClient discord,
-            CommandService commands)
+        public WelcomeService(DiscordSocketClient discord)
         {
-            _discord = discord;
-            _commands = commands;
             discord.UserJoined += DiscordOnUserJoined;
             discord.UserLeft += DiscordOnUserLeft;
         }

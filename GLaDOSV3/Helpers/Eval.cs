@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace GladosV3.Helpers
 {
-    public class Eval
+    public sealed class Eval
     {
         public class Globals
         {

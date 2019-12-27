@@ -1,23 +1,27 @@
 ﻿using Discord;
 using Discord.Commands;
+using Discord.Net.Rest;
+using Discord.Net.Udp;
+using Discord.Net.WebSockets;
 using Discord.WebSocket;
 using GladosV3.Helpers;
 using GladosV3.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace GladosV3
 {
-    public class Program
+    public sealed class Program
     {
         public static void Main(string[] args)
-            => new Program().StartAsync(args).GetAwaiter().GetResult();
+            => StartAsync(args).GetAwaiter().GetResult();
 
 
-        public async Task StartAsync(string[] args)
+        public static async Task StartAsync(string[] args)
         {
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.White;
@@ -35,6 +39,12 @@ namespace GladosV3
                 .AddSingleton(new DiscordSocketClient(new DiscordSocketConfig     // Add the discord client to the service provider
                 {
                     LogLevel = LogSeverity.Verbose,
+                    RateLimitPrecision = RateLimitPrecision.Millisecond,
+                    ExclusiveBulkDelete = true,   // Disable firing message delete event on bulk delete event (bulk delete event will still be fired)
+#if DEBUG
+                    RestClientProvider = DefaultRestClientProvider.Create(useProxy: true),
+                    WebSocketProvider = DefaultWebSocketProvider.Create(new WebProxy("127.0.0.1",8888)),
+#endif
                     MessageCacheSize = 0,    // Tell Discord.Net to NOT CACHE! This will also disable MessageUpdated event
                     DefaultRetryMode = RetryMode.AlwaysRetry // Always believe
                 }))

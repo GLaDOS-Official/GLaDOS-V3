@@ -13,7 +13,7 @@ namespace GladosV3.Module.Default
     [Name("Fun")]
     public class FunModule : ModuleBase<SocketCommandContext>
     {
-        private Random rnd = new Random();
+        private readonly Random rnd = new Random();
         [Command("catfact")]
         [Remarks("catfact")]
         [Summary("This is self-explanatory.")]
@@ -174,7 +174,7 @@ namespace GladosV3.Module.Default
         }
         [Command("8ball")]
         [Remarks("8ball <question>")]
-        public async Task EightBall([Remainder] string word)
+        public async Task EightBall()
         {
             string[] answers =
             {

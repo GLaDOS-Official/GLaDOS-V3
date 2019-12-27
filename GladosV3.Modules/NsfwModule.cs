@@ -44,7 +44,8 @@ namespace GladosV3.Module.Default
             }
 
         }
-        string[] blacklisted_tags = { "GORE", "LOLI", "SHOTA" };
+
+        private readonly string[] blacklisted_tags = { "GORE", "LOLI", "SHOTA" };
         [Command("e621")]
         [Remarks("e621 [tags]")]
         [Summary("Find images on e621 by the given tags.")]
@@ -54,33 +55,31 @@ namespace GladosV3.Module.Default
             if (Convert.ToInt32(SqLite.Connection.GetValuesAsync("servers", $"WHERE guildid='{Context.Guild.Id.ToString()}'").GetAwaiter().GetResult().Rows[0]["nsfw"]) == 0)
             { await ReplyAsync("The nsfw module is disabled on this server!"); return; }
             string url = "https://e621.net/post/index.json?limit=20";
-            if (tags != "")
+            if (!string.IsNullOrEmpty(tags))
                 url += $"&tags={string.Join(" ", tags)}";
             if (blacklisted_tags.Any(tags.ToUpper().Contains))
             { await ReplyAsync("You should probadly read the discord TOS..."); return; }
-            using (var http = new HttpClient())
+            using var http = new HttpClient();
+            http.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G920A) AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)"); // we are GoogleBot
+            var httpResult = http.GetAsync(url).ConfigureAwait(false).GetAwaiter().GetResult().Content.ReadAsStringAsync().GetAwaiter()
+                .GetResult();
+
+            JArray images = JArray.Parse(httpResult);
+            if (images.Count == 0)
+            { await ReplyAsync("Couldn't find an image with those tags."); return; }
+
+            string ext = String.Empty;
+            JObject image = null;
+            int retries = 6;
+            while (ext != "png" && ext != "jpg" && ext != "jpeg" && ext != "gif" && ext != "webm" && ext != "mp4" && retries >= 0)
             {
-                http.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G920A) AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)"); // we are GoogleBot
-                var httpResult = http.GetAsync(url).ConfigureAwait(false).GetAwaiter().GetResult().Content.ReadAsStringAsync().GetAwaiter()
-                    .GetResult();
-
-                JArray images = JArray.Parse(httpResult);
-                if (images.Count == 0)
-                { await ReplyAsync("Couldn't find an image with those tags."); return; }
-
-                string ext = String.Empty;
-                JObject image = null;
-                int retries = 6;
-                while (ext != "png" && ext != "jpg" && ext != "jpeg" && ext != "gif" && ext != "webm" && ext != "mp4" && retries >= 0)
-                {
-                    image = (JObject)images[new Random().Next(0, images.Count)];
-                    ext = image.GetValue("file_ext").ToObject<string>();
-                    retries--;
-                }
-                if (image == null)
-                { await ReplyAsync("Couldn't find an image with those tags."); return; }
-                await ReplyAsync($"Image score: {image.GetValue("score").ToObject<string>()}\n{image.GetValue("file_url").ToObject<string>()}");
+                image = (JObject)images[new Random().Next(0, images.Count)];
+                ext = image.GetValue("file_ext").ToObject<string>();
+                retries--;
             }
+            if (image == null)
+            { await ReplyAsync("Couldn't find an image with those tags."); return; }
+            await ReplyAsync($"Image score: {image.GetValue("score").ToObject<string>()}\n{image.GetValue("file_url").ToObject<string>()}");
         }
         [Command("r34")]
         [Remarks("r34 [tags]")]
@@ -91,22 +90,20 @@ namespace GladosV3.Module.Default
             if (Convert.ToInt32(SqLite.Connection.GetValuesAsync("servers", $"WHERE guildid='{Context.Guild.Id.ToString()}'").GetAwaiter().GetResult().Rows[0]["nsfw"]) == 0)
             { await ReplyAsync("The nsfw module is disabled on this server!"); return; }
             string url = "https://rule34.xxx/index.php?page=dapi&s=post&q=index&limit=20";
-            if (tags != "")
+            if (!string.IsNullOrEmpty(tags))
                 url += $"&tags={string.Join(" ", tags)}";
             if (blacklisted_tags.Any(tags.ToUpper().Contains))
             { await ReplyAsync("You should probadly read the discord TOS..."); return; }
-            using (var http = new HttpClient())
+            using var http = new HttpClient();
+            http.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G920A) AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)"); // we are GoogleBot
+            var httpResult = http.GetAsync(url).ConfigureAwait(false).GetAwaiter().GetResult().Content.ReadAsStringAsync().GetAwaiter()
+                .GetResult();
+            var xml = XDocument.Parse(httpResult);
+            if (xml.Root != null)
             {
-                http.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G920A) AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)"); // we are GoogleBot
-                var httpResult = http.GetAsync(url).ConfigureAwait(false).GetAwaiter().GetResult().Content.ReadAsStringAsync().GetAwaiter()
-                    .GetResult();
-                var xml = XDocument.Parse(httpResult);
-                if (xml.Root != null)
-                {
-                    var xNodes = xml.Root.Elements().ToList();
-                    var rndNode = xNodes[new Random().Next(xNodes.Count - 1)];
-                    await ReplyAsync($"Image score: {rndNode?.Attribute("score")?.Value}\n{rndNode?.Attribute("file_url")?.Value}");
-                }
+                var xNodes = xml.Root.Elements().ToList();
+                var rndNode = xNodes[new Random().Next(xNodes.Count - 1)];
+                await ReplyAsync($"Image score: {rndNode?.Attribute("score")?.Value}\n{rndNode?.Attribute("file_url")?.Value}");
             }
         }
     }

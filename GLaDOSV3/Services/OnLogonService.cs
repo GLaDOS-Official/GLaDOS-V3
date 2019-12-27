@@ -11,17 +11,14 @@ namespace GladosV3.Services
     public class OnLogonService
     {
         private readonly DiscordSocketClient _discord;
-        private readonly CommandService _commands;
         private readonly BotSettingsHelper<string> _botSettingsHelper;
 
         // DiscordSocketClient, CommandService, and IConfigurationRoot are injected automatically from the IServiceProvider
         public OnLogonService(
             DiscordSocketClient discord,
-            CommandService commands,
             BotSettingsHelper<string> botSettingsHelper)
         {
             _discord = discord;
-            _commands = commands;
             _discord.Connected += Connected;
             _botSettingsHelper = botSettingsHelper;
         }

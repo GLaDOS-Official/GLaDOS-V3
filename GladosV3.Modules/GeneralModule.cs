@@ -178,7 +178,7 @@ namespace GladosV3.Module.Default
                 break;
             }
 
-            if (emojiString == "")
+            if (string.IsNullOrEmpty(emojiString))
                 await ReplyAsync("❌Emoji not found on that server!");
             else
                 await ReplyAsync($"{(noText ? "" : "Here's your emoji: ")}{emojiString}");

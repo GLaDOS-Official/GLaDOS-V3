@@ -171,7 +171,7 @@ namespace GladosV3.Modules
                 IsOwner.botSettingsHelper["discord_game"] = status;
                 //clasO["discord"]["game"] = status;
                 //await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json"), clasO.ToString());
-                if (status == "")
+                if (string.IsNullOrEmpty(status))
                 {
                     await ReplyAsync($"Reset bot's game state");
                 }
@@ -198,21 +198,19 @@ namespace GladosV3.Modules
             [Attributes.RequireOwner]
             public async Task BlacklistUsers()
             {
-                using (DataTable dt = await SqLite.Connection.GetValuesAsync("BlacklistedUsers"))
+                using DataTable dt = await SqLite.Connection.GetValuesAsync("BlacklistedUsers");
+                if (dt.Rows.Count <= 0)
                 {
-                    if (dt.Rows.Count <= 0)
-                    {
-                        await ReplyAsync("No users are blocked.");
-                        return;
-                    }
-                    string output = "User (Mention), Date, Reason\n";
-                    for (int i = 0; i < dt.Rows.Count; i++)
-                    {
-                        output +=
-                            $"{dt.Rows[i]["UserId"]} (<@{dt.Rows[i]["UserId"]}>), {dt.Rows[i]["Date"]}, {dt.Rows[i]["Reason"]}\n";
-                    }
-                    await ReplyAsync(output);
+                    await ReplyAsync("No users are blocked.");
+                    return;
                 }
+                string output = "User (Mention), Date, Reason\n";
+                for (int i = 0; i < dt.Rows.Count; i++)
+                {
+                    output +=
+                        $"{dt.Rows[i]["UserId"]} (<@{dt.Rows[i]["UserId"]}>), {dt.Rows[i]["Date"]}, {dt.Rows[i]["Reason"]}\n";
+                }
+                await ReplyAsync(output);
             }
             [Command("blacklist user remove")]
             [Remarks("bot blacklist user remove <userid>")]
@@ -255,21 +253,19 @@ namespace GladosV3.Modules
             [Attributes.RequireOwner]
             public async Task BlacklistServers()
             {
-                using (DataTable dt = await SqLite.Connection.GetValuesAsync("BlacklistedServers"))
+                using DataTable dt = await SqLite.Connection.GetValuesAsync("BlacklistedServers");
+                if (dt.Rows.Count <= 0)
                 {
-                    if (dt.Rows.Count <= 0)
-                    {
-                        await ReplyAsync("No servers are blocked.");
-                        return;
-                    }
-                    string output = "Guild ID, Date, Reason\n";
-                    for (int i = 0; i < dt.Rows.Count; i++)
-                    {
-                        output +=
-                            $"{dt.Rows[i]["guildid"]}, {dt.Rows[i]["date"]}, {dt.Rows[i]["reason"]}\n";
-                    }
-                    await ReplyAsync(output);
+                    await ReplyAsync("No servers are blocked.");
+                    return;
                 }
+                string output = "Guild ID, Date, Reason\n";
+                for (int i = 0; i < dt.Rows.Count; i++)
+                {
+                    output +=
+                        $"{dt.Rows[i]["guildid"]}, {dt.Rows[i]["date"]}, {dt.Rows[i]["reason"]}\n";
+                }
+                await ReplyAsync(output);
             }
             [Command("blacklist guild remove")]
             [Remarks("bot blacklist guild remove <guildid>")]
@@ -278,7 +274,7 @@ namespace GladosV3.Modules
             public async Task BlacklistServerRemove(ulong guildid)
             {
                 await SqLite.Connection.RemoveRecordAsync("BlacklistedServers", $"guildid={guildid.ToString()}").ConfigureAwait(true);
-                Services.CommandHandler.BlacklistedServers.Remove(guildid);
+                CommandHandler.BlacklistedServers.Remove(guildid);
                 await ReplyAsync("Ok!");
             }
             [Command("release")]

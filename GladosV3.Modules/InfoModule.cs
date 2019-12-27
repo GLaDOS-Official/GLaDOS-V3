@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using GladosV3.Helpers;
+using System.Globalization;
 
 namespace GladosV3.Module.Default
 {
@@ -19,14 +20,14 @@ namespace GladosV3.Module.Default
     {
         private static string infoMessage;
         private static DiscordSocketClient _client;
-        Thread t = new Thread(new ThreadStart(refreshMessage));
+        readonly Thread t = new Thread(new ThreadStart(RefreshMessage));
         private static BotSettingsHelper<string> _botSettingsHelper;
 
-        private static void refreshMessage()
+        private static void RefreshMessage()
         {
             while (true)
             {
-                string ToFileSize2(Double size)
+                static string ToFileSize2(Double size)
                 {
                     int scale = 1024;
                     var kb = 1 * scale;
@@ -47,7 +48,7 @@ namespace GladosV3.Module.Default
                     return (size / tb).ToString("0.## TB");
                 }
 
-                float GetCpuUsage()
+                static float GetCpuUsage()
                 {
                     var cpuCounter = new PerformanceCounter("Process", "% Processor Time",
                         Process.GetCurrentProcess().ProcessName); //, Process.GetCurrentProcess().ProcessName,true
@@ -55,7 +56,6 @@ namespace GladosV3.Module.Default
                     Thread.Sleep(1000);
                     return cpuCounter.NextValue();
                 }
-
                 infoMessage = (
                     $"{Format.Bold("Info")}\n" +
                     $"- Library: Discord.Net ({DiscordConfig.APIVersion.ToString()})\n" +
@@ -153,7 +153,7 @@ namespace GladosV3.Module.Default
             {
                 var userInfo = user ?? Context.User;
                 var avatarUrl = userInfo.GetAvatarUrl() ??
-                                "http://ravegames.net/ow_userfiles/themes/theme_image_22.jpg";
+                                userInfo.GetDefaultAvatarUrl();
                 var eb = new EmbedBuilder
                 {
                     Color = new Color(4, 97, 247),

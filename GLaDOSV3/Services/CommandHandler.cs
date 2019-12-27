@@ -101,50 +101,56 @@ namespace GladosV3.Services
 
             SocketCommandContext context = new SocketCommandContext(_discord, msg); // Create the command context
             if (!string.IsNullOrWhiteSpace(MaintenanceMode) && (IsOwner.CheckPermission(context).GetAwaiter().GetResult())) { await context.Channel.SendMessageAsync("Bot is in maintenance mode! Reason: " + MaintenanceMode).ConfigureAwait(false); ; return; } // Don't execute commands in maintenance mode 
-            IResult result = await _commands.ExecuteAsync(context, argPos, _provider); // Execute the command
-            if (!result.IsSuccess && result.ErrorReason != "hidden")  // If not successful, reply with the error.
+            var result = _commands.ExecuteAsync(context, argPos, _provider); // Execute the command
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            result.ContinueWith(task =>
             {
-                switch (result.Error)
+                while(!task.IsCompleted) { System.Threading.Thread.Sleep(4); }
+                var result = task.Result;
+                if (!result.IsSuccess && result.ErrorReason != "hidden")  // If not successful, reply with the error.
                 {
-                    case CommandError.BadArgCount:
-                        break;
-                    case CommandError.Exception:
-                        break;
-                    case CommandError.UnknownCommand:
-                        break;
-                    case CommandError.ParseFailed:
-                        break;
-                    case CommandError.ObjectNotFound:
-                        break;
-                    case CommandError.MultipleMatches:
-                        break;
-                    case CommandError.UnmetPrecondition:
-                        break;
-                    case CommandError.Unsuccessful:
-                        break;
-                    case null:
-                        break;
-                    default:
-                        {
-                            switch (result.ErrorReason) // "Custom" error
+                    switch (result.Error)
+                    {
+                        case CommandError.BadArgCount:
+                            break;
+                        case CommandError.Exception:
+                            Console.WriteLine("Exception :(");
+                            break;
+                        case CommandError.UnknownCommand:
+                            break;
+                        case CommandError.ParseFailed:
+                            break;
+                        case CommandError.MultipleMatches:
+                            break;
+                        case CommandError.UnmetPrecondition:
+                            break;
+                        case CommandError.Unsuccessful:
+                            break;
+                        case null:
+                            break;
+                        default:
                             {
-                                case "Invalid context for command; accepted contexts: Guild":
-                                    await context.Channel.SendMessageAsync("**Error:** This command must be used in a guild!").ConfigureAwait(false);
-                                    break;
-                                case "The input text has too few parameters.":
-                                    await context.Channel.SendMessageAsync("**Error:** None or few arguments are being used.").ConfigureAwait(false);
-                                    break;
-                                case "User not found.":
-                                    await context.Channel.SendMessageAsync("**Error:** No user parameter detected.").ConfigureAwait(false);
-                                    break;
-                                default:
-                                    await context.Channel.SendMessageAsync($@"**Error:** {result.ErrorReason}").ConfigureAwait(false);
-                                    break;
+                                switch (result.ErrorReason) // "Custom" error
+                                {
+                                    case "Invalid context for command; accepted contexts: Guild":
+                                        context.Channel.SendMessageAsync("**Error:** This command must be used in a guild!").ConfigureAwait(false);
+                                        break;
+                                    case "The input text has too few parameters.":
+                                        context.Channel.SendMessageAsync("**Error:** None or few arguments are being used.").ConfigureAwait(false);
+                                        break;
+                                    case "User not found.":
+                                        context.Channel.SendMessageAsync("**Error:** No user parameter detected.").ConfigureAwait(false);
+                                        break;
+                                    default:
+                                        context.Channel.SendMessageAsync($@"**Error:** {result.ErrorReason}").ConfigureAwait(false);
+                                        break;
+                                }
                             }
-                        }
-                        break;
+                            break;
+                    }
                 }
-            }
+            });
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
         }
 
         private Task MentionBomb(SocketUserMessage msg)
