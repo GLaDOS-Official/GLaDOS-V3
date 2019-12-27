@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.Net.Rest;
-using Discord.Net.Udp;
 using Discord.Net.WebSockets;
 using Discord.WebSocket;
 using GladosV3.Helpers;
@@ -43,7 +42,7 @@ namespace GladosV3
                     ExclusiveBulkDelete = true,   // Disable firing message delete event on bulk delete event (bulk delete event will still be fired)
 #if DEBUG
                     RestClientProvider = DefaultRestClientProvider.Create(useProxy: true),
-                    WebSocketProvider = DefaultWebSocketProvider.Create(new WebProxy("127.0.0.1",8888)),
+                    WebSocketProvider = DefaultWebSocketProvider.Create(new WebProxy("127.0.0.1", 8888)),
 #endif
                     MessageCacheSize = 0,    // Tell Discord.Net to NOT CACHE! This will also disable MessageUpdated event
                     DefaultRetryMode = RetryMode.AlwaysRetry // Always believe

@@ -23,12 +23,12 @@ namespace GladosV3.Module.Default
                 var done = new Expression(math).calculate();
                 if (double.IsNaN(done))
                     throw new FormatException("idk");
-                await ReplyAsync(
-                    $"Math is solved! The output is: {Double.Parse(done.ToString(String.Empty), NumberStyles.Float).ToString("N3", CultureInfo.CreateSpecificCulture("en-US"))}");
+                await this.ReplyAsync(
+                    $"Math is solved! The output is: {double.Parse(done.ToString(string.Empty), NumberStyles.Float).ToString("N3", CultureInfo.CreateSpecificCulture("en-US"))}");
             }
             catch (FormatException)
             {
-                await ReplyAsync($@"**Error:** Impossible to solve!");
+                await this.ReplyAsync($@"**Error:** Impossible to solve!");
             }
         }
     }

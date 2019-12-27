@@ -1,18 +1,16 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace GladosV3.Module.ServerBackup.Models
 {
-    class BackupGuild
+    internal class BackupGuild
     {
         public class UserC
         {
@@ -45,19 +43,18 @@ namespace GladosV3.Module.ServerBackup.Models
         public int SystemChannelLocalId { get; set; }
         public int AFKTimeout { get; set; }
         public int AFKChannelLocalId { get; set; }
-        public BackupGuild() => SaveGuild(null).GetAwaiter();
-        public BackupGuild(SocketCommandContext ctx) => SaveGuild(ctx).GetAwaiter().GetResult();
-        public static async Task<List<BackupChatMessage>> GenChannelHiddenMessage()
-        {
-            return new List<BackupChatMessage>(1) { new BackupChatMessage(null)
+        public BackupGuild() => this.SaveGuild(null).GetAwaiter();
+        public BackupGuild(SocketCommandContext ctx) => this.SaveGuild(ctx).GetAwaiter().GetResult();
+        public static async Task<List<BackupChatMessage>> GenChannelHiddenMessage() =>
+            new List<BackupChatMessage>(1) { new BackupChatMessage(null)
             {
-                Author = "Server backup",
-                AuthorId = 1,
+                Author    = "Server backup",
+                AuthorId  = 1,
                 AuthorPic = "https://images.discordapp.net/avatars/536953835361665024/ea7664a628a7a4b772dd06ed81637334.png?size=512",
-                Text = "This channel was unavailable or hidden during backup!",
-                Embeds = Array.Empty<BackupEmbed>()
+                Text      = "This channel was unavailable or hidden during backup!",
+                Embeds    = Array.Empty<BackupEmbed>()
             }};
-        }
+
         public static async Task<SocketChannel> GetDiscordChannelFromLocalIdAsync(SocketGuild guild, int id)
         {
             int localId = -1;
@@ -72,7 +69,7 @@ namespace GladosV3.Module.ServerBackup.Models
             foreach (var voice in guild.VoiceChannels.Where(c => c.Category == null).OrderBy(c => c.Id).Where(voice => ++localId == id).Select(voice => voice)) return voice;
             return null;
         }
-        public async Task<BackupChannel> GetChannelFromLocalIdAsync(int id) => await ForEachChannelCheck(f => f.LocalChannelId == id);
+        public async Task<BackupChannel> GetChannelFromLocalIdAsync(int id) => await this.ForEachChannelCheck(f => f.LocalChannelId == id);
         public static async Task<int> DiscordChannelToLocalIdAsync(SocketGuild guild, SocketChannel channel)
         {
             if (channel == null) return -1;
@@ -107,14 +104,14 @@ namespace GladosV3.Module.ServerBackup.Models
         }
         private async Task<BackupChannel> ForEachChannelCheck(Func<BackupChannel, bool> check)
         {
-            foreach (var category in this.Categories)
+            foreach (var category in Categories)
             {
                 if (check(category)) return category;
                 foreach (var text in category.TextChannels) if (check(text)) return text;
                 foreach (var voice in category.VoiceChannels) if (check(voice)) return voice;
             }
-            foreach (var text in this.TextChannels) if (check(text)) return text;
-            foreach (var voice in this.VoiceChannels) if (check(voice)) return voice;
+            foreach (var text in TextChannels) if (check(text)) return text;
+            foreach (var voice in VoiceChannels) if (check(voice)) return voice;
             return null;
         }
         private static async Task<string> RegexIdFix(string pattern, string input, Func<string, Task<string>> callback)
@@ -214,27 +211,27 @@ namespace GladosV3.Module.ServerBackup.Models
         private async Task SaveGuild(SocketCommandContext ctx)
         {
             if (ctx == null) return;
-            this.ServerName = ctx.Guild.Name;
-            this.EveryonePerms = ctx.Guild.EveryoneRole.Permissions.RawValue;
+            ServerName = ctx.Guild.Name;
+            EveryonePerms = ctx.Guild.EveryoneRole.Permissions.RawValue;
             int channelId = -1;
-            this.Categories = ctx.Guild.CategoryChannels.OrderBy(c => c.Id).Select(c => new BackupCategory(c, ref channelId)).ToList();
-            this.TextChannels = ctx.Guild.TextChannels.Where(c => c.Category == null).OrderBy(c => c.Id).Select(c => new BackupTextChannel(c, ref channelId)).ToList();
-            this.VoiceChannels = ctx.Guild.VoiceChannels.Where(c => c.Category == null).OrderBy(c => c.Id).Select(c => new BackupAudioChannel(c, ref channelId)).ToList();
-            this.AFKChannelLocalId = await DiscordChannelToLocalIdAsync(ctx.Guild, ctx.Guild.AFKChannel);
-            this.SystemChannelLocalId = await DiscordChannelToLocalIdAsync(ctx.Guild, ctx.Guild.SystemChannel);
-            this.Roles = ctx.Guild.Roles.Where(r => !r.IsEveryone && !r.IsManaged).OrderBy(c => c.Position).Select(r => new BackupRole(r)).ToList();
-            this.Bans = ctx.Guild.GetUser(ctx.Client.CurrentUser.Id).GuildPermissions.Has(GuildPermission.BanMembers) ? (await ctx.Guild.GetBansAsync()).Select(b => new BackupBan(b)).ToList() : new List<BackupBan>(0);
-            this.Users = ctx.Guild.Users.Select(u => new UserC(u)).ToList();
-            this.VerificationLevel = ctx.Guild.VerificationLevel;
-            this.VoiceRegion = ctx.Guild.VoiceRegionId;
-            this.DefaultNotifications = ctx.Guild.DefaultMessageNotifications;
-            this.ContentFilter = ctx.Guild.ExplicitContentFilter;
-            this.AFKTimeout = ctx.Guild.AFKTimeout;
-            this.SystemChannelFlags = ctx.Guild.SystemChannelFlags;
+            Categories = ctx.Guild.CategoryChannels.OrderBy(c => c.Id).Select(c => new BackupCategory(c, ref channelId)).ToList();
+            TextChannels = ctx.Guild.TextChannels.Where(c => c.Category == null).OrderBy(c => c.Id).Select(c => new BackupTextChannel(c, ref channelId)).ToList();
+            VoiceChannels = ctx.Guild.VoiceChannels.Where(c => c.Category == null).OrderBy(c => c.Id).Select(c => new BackupAudioChannel(c, ref channelId)).ToList();
+            AFKChannelLocalId = await DiscordChannelToLocalIdAsync(ctx.Guild, ctx.Guild.AFKChannel);
+            SystemChannelLocalId = await DiscordChannelToLocalIdAsync(ctx.Guild, ctx.Guild.SystemChannel);
+            Roles = ctx.Guild.Roles.Where(r => !r.IsEveryone && !r.IsManaged).OrderBy(c => c.Position).Select(r => new BackupRole(r)).ToList();
+            Bans = ctx.Guild.GetUser(ctx.Client.CurrentUser.Id).GuildPermissions.Has(GuildPermission.BanMembers) ? (await ctx.Guild.GetBansAsync()).Select(b => new BackupBan(b)).ToList() : new List<BackupBan>(0);
+            Users = ctx.Guild.Users.Select(u => new UserC(u)).ToList();
+            VerificationLevel = ctx.Guild.VerificationLevel;
+            VoiceRegion = ctx.Guild.VoiceRegionId;
+            DefaultNotifications = ctx.Guild.DefaultMessageNotifications;
+            ContentFilter = ctx.Guild.ExplicitContentFilter;
+            AFKTimeout = ctx.Guild.AFKTimeout;
+            SystemChannelFlags = ctx.Guild.SystemChannelFlags;
             using var wc = new WebClient();
-            this.Emojis = ctx.Guild.Emotes.OrderBy(c => c.Name).Select(e => new BackupEmoji(e)).ToList();
-            this.SplashImage = string.IsNullOrWhiteSpace(ctx.Guild.SplashUrl) ? Array.Empty<byte>() : wc.DownloadData(ctx.Guild.SplashUrl);
-            this.Icon = string.IsNullOrWhiteSpace(ctx.Guild.IconUrl) ? Array.Empty<byte>() : wc.DownloadData(ctx.Guild.IconUrl);
+            Emojis = ctx.Guild.Emotes.OrderBy(c => c.Name).Select(e => new BackupEmoji(e)).ToList();
+            SplashImage = string.IsNullOrWhiteSpace(ctx.Guild.SplashUrl) ? Array.Empty<byte>() : wc.DownloadData(ctx.Guild.SplashUrl);
+            Icon = string.IsNullOrWhiteSpace(ctx.Guild.IconUrl) ? Array.Empty<byte>() : wc.DownloadData(ctx.Guild.IconUrl);
         }
     }
 }

@@ -1,9 +1,9 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
+using GladosV3.Helpers;
 using System;
 using System.Reflection;
 using System.Runtime.Loader;
-using GladosV3.Helpers;
 
 namespace GladosV3.Module.ImageGeneration
 {

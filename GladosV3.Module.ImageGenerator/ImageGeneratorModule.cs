@@ -1,25 +1,23 @@
-﻿using Discord.Commands;
-using System.Threading.Tasks;
+﻿using Discord;
+using Discord.Commands;
 using GladosV3.Attributes;
-using Discord;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace GladosV3.Module.ImageGeneration
 {
     public class ImageGeneratorModule : ModuleBase<ICommandContext>
     {
         private readonly GeneratorService _service;
-        readonly string[] imageFormats = { "jpg", "jpeg", "bmp", "png" };
-        public ImageGeneratorModule(GeneratorService service)
-        {
-            _service = service;
-        }
+        private readonly string[] imageFormats = { "jpg", "jpeg", "bmp", "png" };
+        public ImageGeneratorModule(GeneratorService service) => this._service = service;
+
         private bool HasImageExtension(string path)
         {
             bool yes = false;
-            for (int i = 0; i < imageFormats.Length; i++)
+            for (int i = 0; i < this.imageFormats.Length; i++)
             {
-                string a = imageFormats[i];
+                string a = this.imageFormats[i];
                 if (path.EndsWith(a))
                 { yes = true; break; }
             }
@@ -31,8 +29,8 @@ namespace GladosV3.Module.ImageGeneration
         [Timeout(5, 30, Measure.Seconds)]
         public async Task Delete([Remainder]string text)
         {
-            if (!_service.fail)
-                await Context.Channel.SendFileAsync(_service.Delete(text, Context).GetAwaiter().GetResult(), "delet.jpg");
+            if (!this._service.fail)
+                await Context.Channel.SendFileAsync(this._service.Delete(text, Context).GetAwaiter().GetResult(), "delet.jpg");
             else
                 await Context.Channel.SendMessageAsync("There was an error... Check the logs!");
         }
@@ -42,8 +40,8 @@ namespace GladosV3.Module.ImageGeneration
         [Timeout(5, 30, Measure.Seconds)]
         public async Task Shit([Remainder]string text)
         {
-            if (!_service.fail)
-                await Context.Channel.SendFileAsync(_service.Shit(text.Split(','), Context).GetAwaiter().GetResult(), "shit.jpg");
+            if (!this._service.fail)
+                await Context.Channel.SendFileAsync(this._service.Shit(text.Split(','), Context).GetAwaiter().GetResult(), "shit.jpg");
             else
                 await Context.Channel.SendMessageAsync("There was an error... Check the logs!");
         }
@@ -53,8 +51,8 @@ namespace GladosV3.Module.ImageGeneration
         [Timeout(5, 30, Measure.Seconds)]
         public async Task Minecraft([Remainder]string text)
         {
-            if (!_service.fail)
-                await Context.Channel.SendFileAsync(_service.MinecraftAchivementGet(text, Context).GetAwaiter().GetResult(), "minecraft_bullshit.jpg");
+            if (!this._service.fail)
+                await Context.Channel.SendFileAsync(this._service.MinecraftAchivementGet(text, Context).GetAwaiter().GetResult(), "minecraft_bullshit.jpg");
             else
                 await Context.Channel.SendMessageAsync("There was an error... Check the logs!");
         }
@@ -64,21 +62,21 @@ namespace GladosV3.Module.ImageGeneration
         [Timeout(5, 30, Measure.Seconds)]
         public async Task Threats(IUser user = null)
         {
-            if (!_service.fail)
+            if (!this._service.fail)
             {
                 if (user != null)
-                    await Context.Channel.SendFileAsync(_service.Threats(Context, user.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "dangerous_person.jpg");
+                    await Context.Channel.SendFileAsync(this._service.Threats(Context, user.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "dangerous_person.jpg");
                 else if (Context.Message.Attachments.Count > 0)
                 {
                     IAttachment attach = Context.Message.Attachments.First();
 
-                    if (HasImageExtension(attach.Url))
-                        await Context.Channel.SendFileAsync(_service.Threats(Context, attach.Url).GetAwaiter().GetResult(), "dangerous_object.jpg");
+                    if (this.HasImageExtension(attach.Url))
+                        await Context.Channel.SendFileAsync(this._service.Threats(Context, attach.Url).GetAwaiter().GetResult(), "dangerous_object.jpg");
                     else
-                        await ReplyAsync("The attachment is not an image!");
+                        await this.ReplyAsync("The attachment is not an image!");
                 }
                 else
-                    await Context.Channel.SendFileAsync(_service.Threats(Context, Context.User.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "dangerous_person.jpg");
+                    await Context.Channel.SendFileAsync(this._service.Threats(Context, Context.User.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "dangerous_person.jpg");
             }
             else
                 await Context.Channel.SendMessageAsync("There was an error... Check the logs!");
@@ -89,20 +87,20 @@ namespace GladosV3.Module.ImageGeneration
         [Timeout(5, 30, Measure.Seconds)]
         public async Task Baguette(IUser user = null)
         {
-            if (!_service.fail)
+            if (!this._service.fail)
             {
                 if (user != null)
-                    await Context.Channel.SendFileAsync(_service.Baguette(Context, user.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "baguette.jpg");
+                    await Context.Channel.SendFileAsync(this._service.Baguette(Context, user.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "baguette.jpg");
                 else if (Context.Message.Attachments.Count > 0)
                 {
                     IAttachment attach = Context.Message.Attachments.First();
-                    if (HasImageExtension(attach.Url))
-                        await Context.Channel.SendFileAsync(_service.Baguette(Context, attach.Url).GetAwaiter().GetResult(), "baguette.jpg");
+                    if (this.HasImageExtension(attach.Url))
+                        await Context.Channel.SendFileAsync(this._service.Baguette(Context, attach.Url).GetAwaiter().GetResult(), "baguette.jpg");
                     else
-                        await ReplyAsync("The attachment is not an image!");
+                        await this.ReplyAsync("The attachment is not an image!");
                 }
                 else
-                    await Context.Channel.SendFileAsync(_service.Baguette(Context, Context.User.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "baguette.jpg");
+                    await Context.Channel.SendFileAsync(this._service.Baguette(Context, Context.User.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "baguette.jpg");
             }
             else
                 await Context.Channel.SendMessageAsync("There was an error... Check the logs!");
@@ -113,9 +111,9 @@ namespace GladosV3.Module.ImageGeneration
         [Timeout(5, 30, Measure.Seconds)]
         public async Task Clyde([Remainder]string clyde)
         {
-            if (!_service.fail)
+            if (!this._service.fail)
             {
-                await Context.Channel.SendFileAsync(_service.Clyde(Context, clyde).GetAwaiter().GetResult(), "clyde.jpg");
+                await Context.Channel.SendFileAsync(this._service.Clyde(Context, clyde).GetAwaiter().GetResult(), "clyde.jpg");
             }
             else
                 await Context.Channel.SendMessageAsync("There was an error... Check the logs!");
@@ -126,9 +124,9 @@ namespace GladosV3.Module.ImageGeneration
         [Timeout(5, 30, Measure.Seconds)]
         public async Task Relationship(IUser user2)
         {
-            if (!_service.fail)
+            if (!this._service.fail)
             {
-                await Context.Channel.SendFileAsync(_service.Relationship(Context, user2).GetAwaiter().GetResult(), "relationship.jpg");
+                await Context.Channel.SendFileAsync(this._service.Relationship(Context, user2).GetAwaiter().GetResult(), "relationship.jpg");
             }
             else
                 await Context.Channel.SendMessageAsync("There was an error... Check the logs!");
@@ -139,21 +137,21 @@ namespace GladosV3.Module.ImageGeneration
         [Timeout(5, 30, Measure.Seconds)]
         public async Task Captcha(IUser user = null)
         {
-            if (!_service.fail)
+            if (!this._service.fail)
             {
                 if (user != null)
-                    await Context.Channel.SendFileAsync(_service.Captcha(Context, user.GetAvatarUrl(size: 1024), user.Username).GetAwaiter().GetResult(), "captcha.jpg");
+                    await Context.Channel.SendFileAsync(this._service.Captcha(Context, user.GetAvatarUrl(size: 1024), user.Username).GetAwaiter().GetResult(), "captcha.jpg");
                 else if (Context.Message.Attachments.Count > 0)
                 {
                     IAttachment attach = Context.Message.Attachments.First();
 
-                    if (HasImageExtension(attach.Url))
-                        await Context.Channel.SendFileAsync(_service.Captcha(Context, attach.Url, System.IO.Path.GetFileNameWithoutExtension(attach.Filename)).GetAwaiter().GetResult(), "captcha.jpg");
+                    if (this.HasImageExtension(attach.Url))
+                        await Context.Channel.SendFileAsync(this._service.Captcha(Context, attach.Url, System.IO.Path.GetFileNameWithoutExtension(attach.Filename)).GetAwaiter().GetResult(), "captcha.jpg");
                     else
-                        await ReplyAsync("The attachment is not an image!");
+                        await this.ReplyAsync("The attachment is not an image!");
                 }
                 else
-                    await Context.Channel.SendFileAsync(_service.Captcha(Context, Context.User.GetAvatarUrl(size: 1024), Context.User.Username).GetAwaiter().GetResult(), "captcha.jpg");
+                    await Context.Channel.SendFileAsync(this._service.Captcha(Context, Context.User.GetAvatarUrl(size: 1024), Context.User.Username).GetAwaiter().GetResult(), "captcha.jpg");
             }
             else
                 await Context.Channel.SendMessageAsync("There was an error... Check the logs!");
@@ -164,9 +162,9 @@ namespace GladosV3.Module.ImageGeneration
         [Timeout(5, 30, Measure.Seconds)]
         public async Task WhoWouldWin(IUser user2)
         {
-            if (!_service.fail)
+            if (!this._service.fail)
             {
-                await Context.Channel.SendFileAsync(_service.WhoWouldWin(Context, user2).GetAwaiter().GetResult(), "WhoWouldWin.jpg");
+                await Context.Channel.SendFileAsync(this._service.WhoWouldWin(Context, user2).GetAwaiter().GetResult(), "WhoWouldWin.jpg");
             }
             else
                 await Context.Channel.SendMessageAsync("There was an error... Check the logs!");
@@ -178,8 +176,8 @@ namespace GladosV3.Module.ImageGeneration
         [Alias("cmm")]
         public async Task ChangeMyMind([Remainder]string cmm)
         {
-            if (!_service.fail)
-                await Context.Channel.SendFileAsync(_service.ChangeMyMind(Context, cmm).GetAwaiter().GetResult(), "CMM.jpg");
+            if (!this._service.fail)
+                await Context.Channel.SendFileAsync(this._service.ChangeMyMind(Context, cmm).GetAwaiter().GetResult(), "CMM.jpg");
             else
                 await Context.Channel.SendMessageAsync("There was an error... Check the logs!");
         }
@@ -189,20 +187,20 @@ namespace GladosV3.Module.ImageGeneration
         [Timeout(5, 30, Measure.Seconds)]
         public async Task Jpegify(IUser user = null)
         {
-            if (!_service.fail)
+            if (!this._service.fail)
             {
                 if (user != null)
-                    await Context.Channel.SendFileAsync(_service.Jpegify(Context, user.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "jpeg.jpg");
+                    await Context.Channel.SendFileAsync(this._service.Jpegify(Context, user.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "jpeg.jpg");
                 else if (Context.Message.Attachments.Count > 0)
                 {
                     IAttachment attach = Context.Message.Attachments.First();
-                    if (HasImageExtension(attach.Url))
-                        await Context.Channel.SendFileAsync(_service.Jpegify(Context, attach.Url).GetAwaiter().GetResult(), "jpeg.jpg");
+                    if (this.HasImageExtension(attach.Url))
+                        await Context.Channel.SendFileAsync(this._service.Jpegify(Context, attach.Url).GetAwaiter().GetResult(), "jpeg.jpg");
                     else
-                        await ReplyAsync("The attachment is not an image!");
+                        await this.ReplyAsync("The attachment is not an image!");
                 }
                 else
-                    await Context.Channel.SendFileAsync(_service.Jpegify(Context, Context.User.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "jpeg.jpg");
+                    await Context.Channel.SendFileAsync(this._service.Jpegify(Context, Context.User.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "jpeg.jpg");
             }
             else
                 await Context.Channel.SendMessageAsync("There was an error... Check the logs!");
@@ -213,12 +211,12 @@ namespace GladosV3.Module.ImageGeneration
         [Timeout(5, 30, Measure.Seconds)]
         public async Task Lolice(IUser user = null)
         {
-            if (!_service.fail)
+            if (!this._service.fail)
             {
                 if (user != null)
-                    await Context.Channel.SendFileAsync(_service.Lolice(Context, user.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "lolice.jpg");
+                    await Context.Channel.SendFileAsync(this._service.Lolice(Context, user.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "lolice.jpg");
                 else
-                    await Context.Channel.SendFileAsync(_service.Lolice(Context, Context.User.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "lolice.jpg");
+                    await Context.Channel.SendFileAsync(this._service.Lolice(Context, Context.User.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "lolice.jpg");
             }
             else
                 await Context.Channel.SendMessageAsync("There was an error... Check the logs!");
@@ -230,9 +228,9 @@ namespace GladosV3.Module.ImageGeneration
         [Alias("kannagen")]
         public async Task Kannagen([Remainder]string cmm)
         {
-            if (!_service.fail)
+            if (!this._service.fail)
             {
-                await Context.Channel.SendFileAsync(_service.Kannagen(Context, cmm).GetAwaiter().GetResult(), "Kanna.jpg");
+                await Context.Channel.SendFileAsync(this._service.Kannagen(Context, cmm).GetAwaiter().GetResult(), "Kanna.jpg");
             }
             else
                 await Context.Channel.SendMessageAsync("There was an error... Check the logs!");
@@ -243,21 +241,21 @@ namespace GladosV3.Module.ImageGeneration
         [Timeout(5, 30, Measure.Seconds)]
         public async Task IPhoneX(IUser user = null)
         {
-            if (!_service.fail)
+            if (!this._service.fail)
             {
                 if (user != null)
-                    await Context.Channel.SendFileAsync(_service.IPhoneX(Context, user.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "iphone.jpg");
+                    await Context.Channel.SendFileAsync(this._service.IPhoneX(Context, user.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "iphone.jpg");
                 else if (Context.Message.Attachments.Count > 0)
                 {
                     IAttachment attach = Context.Message.Attachments.First();
 
-                    if (HasImageExtension(attach.Url))
-                        await Context.Channel.SendFileAsync(_service.IPhoneX(Context, attach.Url).GetAwaiter().GetResult(), "iphone.jpg");
+                    if (this.HasImageExtension(attach.Url))
+                        await Context.Channel.SendFileAsync(this._service.IPhoneX(Context, attach.Url).GetAwaiter().GetResult(), "iphone.jpg");
                     else
-                        await ReplyAsync("The attachment is not an image!");
+                        await this.ReplyAsync("The attachment is not an image!");
                 }
                 else
-                    await Context.Channel.SendFileAsync(_service.IPhoneX(Context, Context.User.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "iphone.jpg");
+                    await Context.Channel.SendFileAsync(this._service.IPhoneX(Context, Context.User.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "iphone.jpg");
             }
             else
                 await Context.Channel.SendMessageAsync("There was an error... Check the logs!");
@@ -268,8 +266,8 @@ namespace GladosV3.Module.ImageGeneration
         [Timeout(5, 30, Measure.Seconds)]
         public async Task Trap(IUser user)
         {
-            if (!_service.fail)
-                await Context.Channel.SendFileAsync(_service.Trap(Context, user).GetAwaiter().GetResult(), "trap.jpg");
+            if (!this._service.fail)
+                await Context.Channel.SendFileAsync(this._service.Trap(Context, user).GetAwaiter().GetResult(), "trap.jpg");
             else
                 await Context.Channel.SendMessageAsync("There was an error... Check the logs!");
         }
@@ -280,8 +278,8 @@ namespace GladosV3.Module.ImageGeneration
         [Alias("trumptweet")]
         public async Task TrumpTweet([Remainder]string cmm)
         {
-            if (!_service.fail)
-                await Context.Channel.SendFileAsync(_service.Trump(Context, cmm).GetAwaiter().GetResult(), "realDonaldTrump.jpg");
+            if (!this._service.fail)
+                await Context.Channel.SendFileAsync(this._service.Trump(Context, cmm).GetAwaiter().GetResult(), "realDonaldTrump.jpg");
             else
                 await Context.Channel.SendMessageAsync("There was an error... Check the logs!");
         }
@@ -291,21 +289,21 @@ namespace GladosV3.Module.ImageGeneration
         [Timeout(5, 30, Measure.Seconds)]
         public async Task Deepfry(IUser user = null)
         {
-            if (!_service.fail)
+            if (!this._service.fail)
             {
                 if (user != null)
-                    await Context.Channel.SendFileAsync(_service.Deepfry(Context, user.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "Deepfry.jpg");
+                    await Context.Channel.SendFileAsync(this._service.Deepfry(Context, user.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "Deepfry.jpg");
                 else if (Context.Message.Attachments.Count > 0)
                 {
                     IAttachment attach = Context.Message.Attachments.First();
 
-                    if (HasImageExtension(attach.Url))
-                        await Context.Channel.SendFileAsync(_service.Deepfry(Context, attach.Url).GetAwaiter().GetResult(), "Deepfry.jpg");
+                    if (this.HasImageExtension(attach.Url))
+                        await Context.Channel.SendFileAsync(this._service.Deepfry(Context, attach.Url).GetAwaiter().GetResult(), "Deepfry.jpg");
                     else
-                        await ReplyAsync("The attachment is not an image!");
+                        await this.ReplyAsync("The attachment is not an image!");
                 }
                 else
-                    await Context.Channel.SendFileAsync(_service.Deepfry(Context, Context.User.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "Deepfry.jpg");
+                    await Context.Channel.SendFileAsync(this._service.Deepfry(Context, Context.User.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "Deepfry.jpg");
             }
             else
                 await Context.Channel.SendMessageAsync("There was an error... Check the logs!");
@@ -316,21 +314,21 @@ namespace GladosV3.Module.ImageGeneration
         [Timeout(5, 30, Measure.Seconds)]
         public async Task Magik(IUser user = null)
         {
-            if (!_service.fail)
+            if (!this._service.fail)
             {
                 if (user != null)
-                    await Context.Channel.SendFileAsync(_service.Magik(Context, user.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "Magik.jpg");
+                    await Context.Channel.SendFileAsync(this._service.Magik(Context, user.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "Magik.jpg");
                 else if (Context.Message.Attachments.Count > 0)
                 {
                     IAttachment attach = Context.Message.Attachments.First();
 
-                    if (HasImageExtension(attach.Url))
-                        await Context.Channel.SendFileAsync(_service.Magik(Context, attach.Url).GetAwaiter().GetResult(), "Magik.jpg");
+                    if (this.HasImageExtension(attach.Url))
+                        await Context.Channel.SendFileAsync(this._service.Magik(Context, attach.Url).GetAwaiter().GetResult(), "Magik.jpg");
                     else
-                        await ReplyAsync("The attachment is not an image!");
+                        await this.ReplyAsync("The attachment is not an image!");
                 }
                 else
-                    await Context.Channel.SendFileAsync(_service.Magik(Context, Context.User.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "Deepfry.jpg");
+                    await Context.Channel.SendFileAsync(this._service.Magik(Context, Context.User.GetAvatarUrl(size: 1024)).GetAwaiter().GetResult(), "Deepfry.jpg");
             }
             else
                 await Context.Channel.SendMessageAsync("There was an error... Check the logs!");

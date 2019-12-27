@@ -2,6 +2,7 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using GladosV3.Attributes;
+using GladosV3.Helpers;
 using Microsoft.Extensions.PlatformAbstractions;
 using System;
 using System.Diagnostics;
@@ -10,8 +11,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using GladosV3.Helpers;
-using System.Globalization;
 
 namespace GladosV3.Module.Default
 {
@@ -20,14 +19,14 @@ namespace GladosV3.Module.Default
     {
         private static string infoMessage;
         private static DiscordSocketClient _client;
-        readonly Thread t = new Thread(new ThreadStart(RefreshMessage));
+        private readonly Thread t = new Thread(new ThreadStart(RefreshMessage));
         private static BotSettingsHelper<string> _botSettingsHelper;
 
         private static void RefreshMessage()
         {
             while (true)
             {
-                static string ToFileSize2(Double size)
+                static string ToFileSize2(double size)
                 {
                     int scale = 1024;
                     var kb = 1 * scale;
@@ -59,7 +58,7 @@ namespace GladosV3.Module.Default
                 infoMessage = (
                     $"{Format.Bold("Info")}\n" +
                     $"- Library: Discord.Net ({DiscordConfig.APIVersion.ToString()})\n" +
-                    $"- Runtime: {PlatformServices.Default.Application.RuntimeFramework.Identifier.Replace("App", String.Empty)} {PlatformServices.Default.Application.RuntimeFramework.Version} {(IntPtr.Size * 8).ToString()}-bit\n" +
+                    $"- Runtime: {PlatformServices.Default.Application.RuntimeFramework.Identifier.Replace("App", string.Empty)} {PlatformServices.Default.Application.RuntimeFramework.Version} {(IntPtr.Size * 8).ToString()}-bit\n" +
                     $"- System: {RuntimeInformation.OSDescription} {RuntimeInformation.ProcessArchitecture.ToString().ToLower()}\n" +
                     $"- Up-time: {(DateTime.Now - Process.GetCurrentProcess().StartTime):d\'d \'hh\'h \'mm\'m \'ss\'s\'}\n" +
                     $"- Heartbeat: {_client.Latency.ToString()} ms\n" +
@@ -82,7 +81,7 @@ namespace GladosV3.Module.Default
             if (_client != null && _botSettingsHelper != null) return;
             _botSettingsHelper = botSettingsHelper;
             _client = socketClient;
-            t.Start();
+            this.t.Start();
         }
         [Command("info")]
         [Summary("Displays bot info.")]
@@ -108,7 +107,7 @@ namespace GladosV3.Module.Default
         public async Task Ping()
         {
             var sw = Stopwatch.StartNew();
-            var message = await ReplyAsync("Ping!").ConfigureAwait(false);
+            var message = await this.ReplyAsync("Ping!").ConfigureAwait(false);
             sw.Stop();
             var usual = (sw.ElapsedMilliseconds > 2500 || Context.Client.Latency > 5000) ? "there could be something wrong." : "there should be nothing wrong.";
             await message.ModifyAsync(delegate (MessageProperties properties)
@@ -241,7 +240,7 @@ namespace GladosV3.Module.Default
                     {
                         x.Name = "Guild Permissions";
                         x.IsInline = true;
-                        x.Value = $"{(String.IsNullOrWhiteSpace(permissions) ? "*none*" : permissions)}";
+                        x.Value = $"{(string.IsNullOrWhiteSpace(permissions) ? "*none*" : permissions)}";
                     });
                     eb.AddField(x =>
                     {
@@ -262,7 +261,7 @@ namespace GladosV3.Module.Default
                         }
                         x.Name = "Roles";
                         x.IsInline = true;
-                        x.Value = $"{(String.IsNullOrWhiteSpace(roles) ? "*none*" : $"{roles}")}";
+                        x.Value = $"{(string.IsNullOrWhiteSpace(roles) ? "*none*" : $"{roles}")}";
                     });
                 }
 

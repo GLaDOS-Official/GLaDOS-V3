@@ -22,8 +22,8 @@ namespace GladosV3.Modules
         // CommandService, IConfigurationRoot, and IServiceProvider are injected automatically from the IServiceProvider;
         public OwnerModule(CommandService service, IServiceProvider provider)
         {
-            _service = service;
-            _provider = provider;
+            this._service = service;
+            this._provider = provider;
             mCache = new MemoryCache(new MemoryCacheOptions());
         }
 
@@ -40,14 +40,14 @@ namespace GladosV3.Modules
             {
                 CommandHandler.MaintenanceMode = reason;
                 IsOwner.botSettingsHelper["maintenance"] = reason;
-                await ReplyAsync($"{(string.IsNullOrWhiteSpace(reason) ? "Disabled" : "Enabled")} maintenance reason{(string.IsNullOrWhiteSpace(reason) ? "" : " to: ")}{(string.IsNullOrWhiteSpace(reason) ? "" : reason)}!");
+                await this.ReplyAsync($"{(string.IsNullOrWhiteSpace(reason) ? "Disabled" : "Enabled")} maintenance reason{(string.IsNullOrWhiteSpace(reason) ? "" : " to: ")}{(string.IsNullOrWhiteSpace(reason) ? "" : reason)}!");
             }
             [Command("restart")]
             [Remarks("bot restart")]
             [Summary("Restarts the bot")]
             public async Task Restart()
             {
-                await ReplyAsync($"Restarting the bot!");
+                await this.ReplyAsync($"Restarting the bot!");
                 Tools.RestartApp();
             }
             [Command("shutdown")]
@@ -55,7 +55,7 @@ namespace GladosV3.Modules
             [Summary("Shutdowns the bot")]
             public async Task Shutdown()
             {
-                await ReplyAsync($"Shutting down the bot! 👋");
+                await this.ReplyAsync($"Shutting down the bot! 👋");
                 Environment.Exit(0);
             }
             [Command("username")]
@@ -64,7 +64,7 @@ namespace GladosV3.Modules
             public async Task Username([Remainder]string username)
             {
                 IsOwner.botSettingsHelper["name"] = username;
-                await ReplyAsync($"Set bot's username to {username}.");
+                await this.ReplyAsync($"Set bot's username to {username}.");
                 await Context.Client.CurrentUser.ModifyAsync(properties => { properties.Username = username; });
             }
             [Command("eval")]
@@ -73,7 +73,7 @@ namespace GladosV3.Modules
             [Attributes.RequireOwner]
             public async Task Eval([Remainder]string code)
             {
-                IUserMessage message = await ReplyAsync("Please wait...");
+                IUserMessage message = await this.ReplyAsync("Please wait...");
                 await message.ModifyAsync(properties => properties.Content = Helpers.Eval.EvalTask(Context, code).GetAwaiter().GetResult());
             }
             [Command("webhookmass")]
@@ -113,7 +113,7 @@ namespace GladosV3.Modules
                 }
                 else
                 {
-                    message = await ReplyAsync("Hooking....");
+                    message = await this.ReplyAsync("Hooking....");
                 }
 
                 System.Collections.Generic.IReadOnlyCollection<SocketGuildChannel> channels = Context.Guild.Channels;
@@ -141,7 +141,7 @@ namespace GladosV3.Modules
             [Attributes.RequireOwner]
             public async Task Message([Remainder]string message)
             {
-                IUserMessage progress = await ReplyAsync("Sending...");
+                IUserMessage progress = await this.ReplyAsync("Sending...");
                 foreach (SocketGuild t in Context.Client.Guilds)
                 {
                     if (t.DefaultChannel != null)
@@ -173,11 +173,11 @@ namespace GladosV3.Modules
                 //await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json"), clasO.ToString());
                 if (string.IsNullOrEmpty(status))
                 {
-                    await ReplyAsync($"Reset bot's game state");
+                    await this.ReplyAsync($"Reset bot's game state");
                 }
                 else
                 {
-                    await ReplyAsync($"Set bot's game state to {status}.");
+                    await this.ReplyAsync($"Set bot's game state to {status}.");
                 }
 
                 await Context.Client.SetGameAsync(status);
@@ -190,7 +190,7 @@ namespace GladosV3.Modules
             {
                 await SqLite.Connection.AddRecordAsync("BlacklistedUsers", "UserId,Date,Reason", new[] { userid.ToString(), DateTime.Now.ToString(), reason }).ConfigureAwait(true);
                 Services.CommandHandler.BlacklistedUsers.Add(userid);
-                await ReplyAsync("Ok!");
+                await this.ReplyAsync("Ok!");
             }
             [Command("blacklist users")]
             [Remarks("bot blacklist users")]
@@ -201,7 +201,7 @@ namespace GladosV3.Modules
                 using DataTable dt = await SqLite.Connection.GetValuesAsync("BlacklistedUsers");
                 if (dt.Rows.Count <= 0)
                 {
-                    await ReplyAsync("No users are blocked.");
+                    await this.ReplyAsync("No users are blocked.");
                     return;
                 }
                 string output = "User (Mention), Date, Reason\n";
@@ -210,7 +210,7 @@ namespace GladosV3.Modules
                     output +=
                         $"{dt.Rows[i]["UserId"]} (<@{dt.Rows[i]["UserId"]}>), {dt.Rows[i]["Date"]}, {dt.Rows[i]["Reason"]}\n";
                 }
-                await ReplyAsync(output);
+                await this.ReplyAsync(output);
             }
             [Command("blacklist user remove")]
             [Remarks("bot blacklist user remove <userid>")]
@@ -220,7 +220,7 @@ namespace GladosV3.Modules
             {
                 await SqLite.Connection.RemoveRecordAsync("BlacklistedUsers", $"UserID={userid.ToString()}").ConfigureAwait(true);
                 Services.CommandHandler.BlacklistedUsers.Remove(userid);
-                await ReplyAsync("Ok!");
+                await this.ReplyAsync("Ok!");
             }
             [Command("blacklist guild add")]
             [Remarks("bot blacklist guild add <guildid> [Reason]")]
@@ -245,7 +245,7 @@ namespace GladosV3.Modules
                     break;
                 }
                 await SqLite.Connection.RemoveRecordAsync("servers", $"guildid={guildid.ToString()}");
-                await ReplyAsync("Ok!");
+                await this.ReplyAsync("Ok!");
             }
             [Command("blacklist guilds")]
             [Remarks("bot blacklist guilds")]
@@ -256,7 +256,7 @@ namespace GladosV3.Modules
                 using DataTable dt = await SqLite.Connection.GetValuesAsync("BlacklistedServers");
                 if (dt.Rows.Count <= 0)
                 {
-                    await ReplyAsync("No servers are blocked.");
+                    await this.ReplyAsync("No servers are blocked.");
                     return;
                 }
                 string output = "Guild ID, Date, Reason\n";
@@ -265,7 +265,7 @@ namespace GladosV3.Modules
                     output +=
                         $"{dt.Rows[i]["guildid"]}, {dt.Rows[i]["date"]}, {dt.Rows[i]["reason"]}\n";
                 }
-                await ReplyAsync(output);
+                await this.ReplyAsync(output);
             }
             [Command("blacklist guild remove")]
             [Remarks("bot blacklist guild remove <guildid>")]
@@ -275,7 +275,7 @@ namespace GladosV3.Modules
             {
                 await SqLite.Connection.RemoveRecordAsync("BlacklistedServers", $"guildid={guildid.ToString()}").ConfigureAwait(true);
                 CommandHandler.BlacklistedServers.Remove(guildid);
-                await ReplyAsync("Ok!");
+                await this.ReplyAsync("Ok!");
             }
             [Command("release")]
             [Remarks("bot release")]
@@ -284,7 +284,7 @@ namespace GladosV3.Modules
             public Task Release()
             {
                 Tools.ReleaseMemory();
-                ReplyAsync("Ok!").GetAwaiter().GetResult();
+                this.ReplyAsync("Ok!").GetAwaiter().GetResult();
                 return Task.CompletedTask;
             }
             [Command("status")]
@@ -296,12 +296,12 @@ namespace GladosV3.Modules
 
                 //JObject clasO = Tools.GetConfigAsync(1).GetAwaiter().GetResult();
                 if (status != "Online" && status != "Invisible" && status != "AFK" && status != "DoNotDisturb")
-                { await ReplyAsync("Valid statuses are: Online, Invisible, AFK, DoNotDisturb"); return; }
+                { await this.ReplyAsync("Valid statuses are: Online, Invisible, AFK, DoNotDisturb"); return; }
                 /*clasO["discord"]["status"] = status;
                 await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json"),
                     clasO.ToString());*/
                 IsOwner.botSettingsHelper["discord_status"] = status;
-                await ReplyAsync(
+                await this.ReplyAsync(
                         $"Set bot's game state to {status}.");
                 await Context.Client.SetStatusAsync(Enum.Parse<UserStatus>(status));
             }
@@ -315,20 +315,20 @@ namespace GladosV3.Modules
                 {
                     string random = Convert.ToBase64String(Guid.NewGuid().ToByteArray()).Substring(0, 19);
                     mCache.Set("rebuildDB_All", random, TimeSpan.FromSeconds(45));
-                    await ReplyAsync($"This is a dangerous operation! All server settings, blacklisted users, blacklisted servers will be lost! Type the \"{random}\" to rebuild it! This key will expire in 45 seconds!");
+                    await this.ReplyAsync($"This is a dangerous operation! All server settings, blacklisted users, blacklisted servers will be lost! Type the \"{random}\" to rebuild it! This key will expire in 45 seconds!");
                     return;
                 }
                 if (!mCache.TryGetValue("rebuildDB_All", out string entry))
-                { await ReplyAsync("Key expired or not created!"); return; }
+                { await this.ReplyAsync("Key expired or not created!"); return; }
                 if (entry != key)
-                { await ReplyAsync("Incorrect key!"); return; }
+                { await this.ReplyAsync("Incorrect key!"); return; }
                 mCache.Remove("rebuildDB_All");
                 await SqLite.Connection.ExecuteSQL("DROP TABLE servers");
                 await SqLite.Connection.ExecuteSQL("DROP TABLE BlacklistedUsers");
                 await SqLite.Connection.ExecuteSQL("DROP TABLE BlacklistedServers");
                 SqLite.Connection.Close();
                 SqLite.Start();
-                var message = await ReplyAsync("Bot will be unavailable for a while. Rebuilding the database.....\nRefactoring server table...");
+                var message = await this.ReplyAsync("Bot will be unavailable for a while. Rebuilding the database.....\nRefactoring server table...");
                 CommandHandler.BotBusy = true; ;
                 for (int i = 0; i < Context.Client.Guilds.Count; i++)
                 {
@@ -351,15 +351,15 @@ namespace GladosV3.Modules
                 {
                     string random = Convert.ToBase64String(Guid.NewGuid().ToByteArray()).Substring(0, 19);
                     mCache.Set("rebuildDB_ServerAll", random, TimeSpan.FromSeconds(45));
-                    await ReplyAsync($"This is a dangerous operation! All server settings will be lost! Type \"{random}\" to rebuild it! This key will expire in 45 seconds!");
+                    await this.ReplyAsync($"This is a dangerous operation! All server settings will be lost! Type \"{random}\" to rebuild it! This key will expire in 45 seconds!");
                     return;
                 }
                 if (!mCache.TryGetValue("rebuildDB_ServerAll", out string entry))
-                { await ReplyAsync("Key expired or not created!"); return; }
+                { await this.ReplyAsync("Key expired or not created!"); return; }
                 if (entry != key)
-                { await ReplyAsync("Incorrect key!"); return; }
+                { await this.ReplyAsync("Incorrect key!"); return; }
                 mCache.Remove("rebuildDB_ServerAll");
-                var msg = await ReplyAsync("Bot will be unavailable for a while. Rebuilding the database.....\nRefactoring server table...");
+                var msg = await this.ReplyAsync("Bot will be unavailable for a while. Rebuilding the database.....\nRefactoring server table...");
                 CommandHandler.BotBusy = true;
                 await SqLite.Connection.ExecuteSQL("DELETE FROM servers");
                 for (int i = 0; i < Context.Client.Guilds.Count; i++)
@@ -383,15 +383,15 @@ namespace GladosV3.Modules
                 {
                     string random = Convert.ToBase64String(Guid.NewGuid().ToByteArray()).Substring(0, 19);
                     mCache.Set("rebuildDB_ServerThis", random, TimeSpan.FromSeconds(45));
-                    await ReplyAsync($"This is a dangerous operation! This server settings will be lost! Type \"{random}\" to rebuild it! This key will expire in 45 seconds!");
+                    await this.ReplyAsync($"This is a dangerous operation! This server settings will be lost! Type \"{random}\" to rebuild it! This key will expire in 45 seconds!");
                     return;
                 }
                 if (!mCache.TryGetValue("rebuildDB_ServerThis", out string entry))
-                { await ReplyAsync("Key expired or not created!"); return; }
+                { await this.ReplyAsync("Key expired or not created!"); return; }
                 if (entry != key)
-                { await ReplyAsync("Incorrect key!"); return; }
+                { await this.ReplyAsync("Incorrect key!"); return; }
                 mCache.Remove("rebuildDB_ServerThis");
-                var msg = await ReplyAsync("Rebuilding the database....");
+                var msg = await this.ReplyAsync("Rebuilding the database....");
                 await SqLite.Connection.RemoveRecordAsync("servers", $"guildid={Context.Guild.Id.ToString()}");
                 await SqLite.Connection.AddRecordAsync("servers", "guildid,nsfw,join_toggle,leave_toggle,join_msg,leave_msg", new[] { Context.Guild.Id.ToString(), "0", "0", "0", "Hey {mention}! Welcome to {sname}!", "Bye {uname}" });
                 CommandHandler.Prefix.Remove(Context.Guild.Id);

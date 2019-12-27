@@ -27,12 +27,12 @@ namespace GladosV3.Attributes
         public TimeoutAttribute(uint times, double period, Measure measure, bool noLimitInDMs = false,
             bool noLimitForAdmins = false, bool applyPerGuild = false)
         {
-            _invokeLimit = times;
-            _noLimitInDMs = noLimitInDMs;
-            _noLimitForAdmins = noLimitForAdmins;
-            _applyPerGuild = applyPerGuild;
+            this._invokeLimit = times;
+            this._noLimitInDMs = noLimitInDMs;
+            this._noLimitForAdmins = noLimitForAdmins;
+            this._applyPerGuild = applyPerGuild;
 
-            _invokeLimitPeriod = measure switch
+            this._invokeLimitPeriod = measure switch
             {
                 Measure.Days => TimeSpan.FromDays(period),
                 Measure.Hours => TimeSpan.FromHours(period),
@@ -51,11 +51,11 @@ namespace GladosV3.Attributes
         public TimeoutAttribute(uint times, TimeSpan period, bool noLimitInDMs = false, bool noLimitForAdmins = false,
             bool applyPerGuild = false)
         {
-            _invokeLimit = times;
-            _noLimitInDMs = noLimitInDMs;
-            _noLimitForAdmins = noLimitForAdmins;
-            _invokeLimitPeriod = period;
-            _applyPerGuild = applyPerGuild;
+            this._invokeLimit = times;
+            this._noLimitInDMs = noLimitInDMs;
+            this._noLimitForAdmins = noLimitForAdmins;
+            this._invokeLimitPeriod = period;
+            this._applyPerGuild = applyPerGuild;
         }
 
         public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command,
@@ -63,22 +63,22 @@ namespace GladosV3.Attributes
         {
             if (!IsOwner.CheckPermission(context).GetAwaiter().GetResult()) // bypass for owner of the bot
                 return Task.FromResult(PreconditionResult.FromSuccess());
-            if (_noLimitInDMs && context.Channel is IPrivateChannel)
+            if (this._noLimitInDMs && context.Channel is IPrivateChannel)
                 return Task.FromResult(PreconditionResult.FromSuccess());
 
-            if (_noLimitForAdmins && context.User is IGuildUser gu && gu.GuildPermissions.Administrator)
+            if (this._noLimitForAdmins && context.User is IGuildUser gu && gu.GuildPermissions.Administrator)
                 return Task.FromResult(PreconditionResult.FromSuccess());
 
             var now = DateTime.UtcNow;
-            var key = _applyPerGuild ? (context.User.Id, context.Guild?.Id) : (context.User.Id, null);
+            var key = this._applyPerGuild ? (context.User.Id, context.Guild?.Id) : (context.User.Id, null);
 
-            var timeout = (_tracker.TryGetValue(key, out var t) && ((now - t.FirstInvoke) < _invokeLimitPeriod)) ? t : new CommandTimeout(now);
+            var timeout = (this._tracker.TryGetValue(key, out var t) && ((now - t.FirstInvoke) < this._invokeLimitPeriod)) ? t : new CommandTimeout(now);
 
             timeout.TimesInvoked++;
 
-            if (timeout.TimesInvoked <= _invokeLimit)
+            if (timeout.TimesInvoked <= this._invokeLimit)
             {
-                _tracker[key] = timeout;
+                this._tracker[key] = timeout;
                 return Task.FromResult(PreconditionResult.FromSuccess());
             }
 
@@ -90,10 +90,7 @@ namespace GladosV3.Attributes
             public uint TimesInvoked { get; set; }
             public DateTime FirstInvoke { get; }
 
-            public CommandTimeout(DateTime timeStarted)
-            {
-                FirstInvoke = timeStarted;
-            }
+            public CommandTimeout(DateTime timeStarted) => FirstInvoke = timeStarted;
         }
     }
 

@@ -1,10 +1,9 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
+using GladosV3.Helpers;
 using System;
 using System.Reflection;
 using System.Runtime.Loader;
-using System.Threading.Tasks;
-using GladosV3.Helpers;
 using Victoria;
 
 namespace GladosV3.Module.Music
@@ -19,7 +18,7 @@ namespace GladosV3.Module.Music
 
         public string Author() => "BlackOfWorld#8125";
 
-        public Type[] Services => new Type[] { typeof(LavaRestClient), typeof(LavaSocketClient), typeof(AudioService)};
+        public Type[] Services => new Type[] { typeof(LavaRestClient), typeof(LavaSocketClient), typeof(AudioService) };
         private static volatile ModuleInfo singleton;
         public static IGladosModule GetModule()
         {

@@ -22,11 +22,11 @@ namespace GladosV3.Services
         // DiscordSocketClient and CommandService are injected automatically from the IServiceProvider
         public LoggingService(DiscordSocketClient discord, CommandService commands, bool init = true)
         {
-            _discord = discord;
-            _commands = commands;
+            this._discord = discord;
+            this._commands = commands;
             if (!init) return;
-            _discord.Log += OnLogAsync;
-            _commands.Log += OnLogAsync;
+            this._discord.Log += OnLogAsync;
+            this._commands.Log += OnLogAsync;
         }
         public static void Begin()
         {

@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace GladosV3.Services
 {
-    static class MemoryHandlerService
+    internal static class MemoryHandlerService
     {
         public static void Start()
         {

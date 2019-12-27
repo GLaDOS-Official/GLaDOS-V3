@@ -24,10 +24,7 @@ namespace GladosV3.Helpers
             public SocketCommandContext Context { get; private set; }
             public SQLiteConnection SQLConnection = SqLite.Connection;
 
-            public Globals(SocketCommandContext ctx)
-            {
-                Context = ctx;
-            }
+            public Globals(SocketCommandContext ctx) => Context = ctx;
         }
         public static async Task<string> EvalTask(SocketCommandContext ctx, string cScode)
         {

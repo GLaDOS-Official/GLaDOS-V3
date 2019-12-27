@@ -1,5 +1,4 @@
 ﻿using Discord;
-using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
 using HtmlAgilityPack;
@@ -23,14 +22,14 @@ namespace GladosV3.Services
         // DiscordSocketClient, CommandService, IConfigurationRoot, and IServiceProvider are injected automatically from the IServiceProvider
         public IPLoggerProtection(DiscordSocketClient discord)
         {
-            _discord = discord;
-            _discord.MessageReceived += OnMessageReceivedAsync;
+            this._discord = discord;
+            this._discord.MessageReceived += this.OnMessageReceivedAsync;
         }
         private readonly string[] knownIpLoggers = new string[] { "iplogger", "maper.info", "grabify", "iplogger.org", "2no.co", "yip.su", "ipgrabber", "iplis.ru", "02ip.ru", "ezstat.ru", "iplo.ru" };
 
         private async Task DeleteMessage(SocketUserMessage msg)
         {
-            if (((SocketGuildChannel)msg.Channel).Guild.GetUser(_discord.CurrentUser.Id).GuildPermissions.ManageMessages)
+            if (((SocketGuildChannel)msg.Channel).Guild.GetUser(this._discord.CurrentUser.Id).GuildPermissions.ManageMessages)
                 await msg.DeleteAsync();
         }
 
@@ -49,10 +48,10 @@ namespace GladosV3.Services
         private async Task OnMessageReceivedAsync(SocketMessage arg)
         {
             if (!(arg is SocketUserMessage msg)) return; // Ensure the message is from a user/bot
-            if (msg.Author.Id == _discord.CurrentUser.Id) return; // Ignore self when checking commands
+            if (msg.Author.Id == this._discord.CurrentUser.Id) return; // Ignore self when checking commands
             if (msg.Author.IsBot) return; // Ignore other bots
             if (!(msg.Channel is SocketGuildChannel mChanel)) return; // only guild channels please
-            if (!serverIds.Contains(mChanel.Guild.Id)) return; // private feature :P
+            if (!this.serverIds.Contains(mChanel.Guild.Id)) return; // private feature :P
             if (!(msg.Content.Contains("http://") || msg.Content.Contains("https://"))) return;
             var items = Regex.Matches(msg.Content,
                 @"(http|https):\/\/([\w\-_]+(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?");
@@ -64,10 +63,10 @@ namespace GladosV3.Services
                 if (isIpLogger) return;
                 Match item = items[i];
                 string shortUrl = item.Value;
-                if (knownIpLoggers.Any(var1 => shortUrl.Contains(var1)))
+                if (this.knownIpLoggers.Any(var1 => shortUrl.Contains(var1)))
                 {
                     isIpLogger = true;
-                    await DeleteMessage(msg);
+                    await this.DeleteMessage(msg);
                     await arg.Channel.SendMessageAsync(
                         $"{arg.Author.Mention} Good job! You have sent an IP logger. Message was logged and reported to Trust and Safety team!");
                     if (urlScanned.Contains(shortUrl))
@@ -75,7 +74,7 @@ namespace GladosV3.Services
                     urlScanned.Add(shortUrl);
                     using HttpClient hc = new HttpClient();
                     RestUserMessage message = null;
-                    if (!silentMessage)
+                    if (!this.silentMessage)
                         message = await msg.Channel.SendMessageAsync(
                             $"[{i + 1}]Verifying URL from {msg.Author.Username}#{msg.Author.Discriminator}...");
                     hc.DefaultRequestHeaders.CacheControl = CacheControlHeaderValue.Parse("no-cache");
@@ -108,7 +107,7 @@ namespace GladosV3.Services
                         builder.AddField($"Hops",
                             isIpLogger ? "Known IP logger found, no hops." : "Not an IP logger, no hops.");
                         builder.AddField("Original URL", shortUrl);
-                        if (!silentMessage)
+                        if (!this.silentMessage)
                             await message.ModifyAsync((a) =>
                             {
                                 a.Embed = builder.Build();
@@ -116,13 +115,13 @@ namespace GladosV3.Services
                             });
                         else
                             message = await msg.Channel.SendMessageAsync(embed: builder.Build());
-                        await DeleteMessageDelay(message, 3000);
+                        await this.DeleteMessageDelay(message, 3000);
                         continue;
                     }
 
                     var document = new HtmlDocument();
                     document.LoadHtml(response);
-                    var redirectHops = String.Empty;
+                    var redirectHops = string.Empty;
                     var imgNodes = document.DocumentNode.SelectNodes("//img");
                     var spanNodes = document.DocumentNode.SelectNodes("//span");
                     for (var index = 0; index < imgNodes.Count; index++)
@@ -135,14 +134,14 @@ namespace GladosV3.Services
                         text = text.Remove(3);
                         var nodeUrl = spanNodes[index / 2].InnerText;
                         string warning = "";
-                        if (knownIpLoggers.Any(var1 => nodeUrl.Contains(var1)))
+                        if (this.knownIpLoggers.Any(var1 => nodeUrl.Contains(var1)))
                         {
                             nodeUrl = nodeUrl.Replace("htt", "hxx");
                             warning = " (KNOWN IP LOGGER!)";
                             if (!isIpLogger)
                             {
                                 isIpLogger = true;
-                                await DeleteMessage(msg);
+                                await this.DeleteMessage(msg);
                                 await arg.Channel.SendMessageAsync(
                                     $"{arg.Author.Mention} Good job! You have sent an IP logger. Message was logged and reported to Trust and Safety team!");
                             }
@@ -162,7 +161,7 @@ namespace GladosV3.Services
                         a.Embed = builder.Build();
                         a.Content = "";
                     });
-                    await DeleteMessageDelay(message);
+                    await this.DeleteMessageDelay(message);
                 }
             }
         }

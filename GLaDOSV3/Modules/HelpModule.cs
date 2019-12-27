@@ -14,10 +14,7 @@ namespace GladosV3.Modules
     {
         private readonly CommandService _service;
 
-        public HelpModule(CommandService service)
-        {
-            _service = service;
-        }
+        public HelpModule(CommandService service) => this._service = service;
 
         [Command("modules")]
         [Remarks("modules")]
@@ -29,7 +26,7 @@ namespace GladosV3.Modules
                 Color = new Color(0, 255, 100),
                 Title = ($"Here's the information about all modules\n")
             };
-            foreach (var module in _service.Modules)
+            foreach (var module in this._service.Modules)
             {
                 builder.AddField(e =>
                 {
@@ -38,7 +35,7 @@ namespace GladosV3.Modules
                     e.IsInline = (false);
                 });
             }
-            ReplyAsync("", false, builder.Build()).GetAwaiter().GetResult();
+            this.ReplyAsync("", false, builder.Build()).GetAwaiter().GetResult();
             return Task.CompletedTask;
         }
 
@@ -58,11 +55,11 @@ namespace GladosV3.Modules
             string prefix = IsOwner.botSettingsHelper["prefix"];
             if (command != null)
             {
-                var result = _service.Search(Context, command);
+                var result = this._service.Search(Context, command);
 
                 if (!result.IsSuccess)
                 {
-                    await ReplyAsync($"Sorry, I couldn't find a command like **{command}**.");
+                    await this.ReplyAsync($"Sorry, I couldn't find a command like **{command}**.");
                     return;
                 }
 
@@ -85,14 +82,14 @@ namespace GladosV3.Modules
             else
             {
                 List<CommandInfo> list = new List<CommandInfo>();
-                if (_service != null)
+                if (this._service != null)
                 {
 
-                    var sorted = _service.Commands.OrderByDescending(x => x.Remarks.Length).FirstOrDefault().Remarks.Length;
+                    var sorted = this._service.Commands.OrderByDescending(x => x.Remarks.Length).FirstOrDefault().Remarks.Length;
 
 
                     builder.Description = "These are the commands you can use.";
-                    foreach (var module in _service.Modules)
+                    foreach (var module in this._service.Modules)
                     {
                         List<string> array = new List<string>();
                         foreach (var cmd in module.Commands)
@@ -125,10 +122,10 @@ namespace GladosV3.Modules
         private readonly string _description;
         internal CommandInfo(string module, string description)
         {
-            _module = module;
-            _description = description;
+            this._module = module;
+            this._description = description;
         }
-        internal string GetModName() => _module;
-        internal string GetDec() => _description;
+        internal string GetModName() => this._module;
+        internal string GetDec() => this._description;
     }
 }

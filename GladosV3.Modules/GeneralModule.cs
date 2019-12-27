@@ -3,12 +3,9 @@ using Discord.Commands;
 using GladosV3.Attributes;
 using GladosV3.Helpers;
 using GladosV3.Services;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Data;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace GladosV3.Module.Default
@@ -26,7 +23,7 @@ namespace GladosV3.Module.Default
             public async Task FarewellMessage(string value)
             {
                 await SqLite.Connection.SetValueAsync("servers", "leave_msg", value, $"WHERE guildid={Context.Guild.Id.ToString()}").ConfigureAwait(false);
-                await ReplyAsync("Done!");
+                await this.ReplyAsync("Done!");
             }
             [Command("guild farewell channel")]
             [Summary("Set the current channel ID of Guild Join module")]
@@ -39,7 +36,7 @@ namespace GladosV3.Module.Default
                 else
                     throw new Exception("Channel ID is invalid!");
 
-                await ReplyAsync("Done!");
+                await this.ReplyAsync("Done!");
             }
             [Command("guild farewell status")]
             [Summary("Set the current status of Guild Join module")]
@@ -51,7 +48,7 @@ namespace GladosV3.Module.Default
                     await SqLite.Connection.SetValueAsync("servers", "leave_toggle", value, $"WHERE guildid={Context.Guild.Id.ToString()}").ConfigureAwait(false);
                 else
                     throw new Exception("Only 0 or 1 is accepted!");
-                await ReplyAsync("Done!");
+                await this.ReplyAsync("Done!");
             }
             [Command("guild join message")]
             [Summary("Set the current message of Guild Join module")]
@@ -60,7 +57,7 @@ namespace GladosV3.Module.Default
             public async Task JoinMessage(string value)
             {
                 await SqLite.Connection.SetValueAsync("servers", "join_msg", value, $"WHERE guildid={Context.Guild.Id.ToString()}").ConfigureAwait(false);
-                await ReplyAsync("Done!");
+                await this.ReplyAsync("Done!");
             }
             [Command("guild join channel")]
             [Summary("Set the current channel ID of Guild Join module")]
@@ -73,7 +70,7 @@ namespace GladosV3.Module.Default
                 else
                     throw new Exception("Channel ID is invalid!");
 
-                await ReplyAsync("Done!");
+                await this.ReplyAsync("Done!");
             }
             [Command("guild join status")]
             [Summary("Set the current status of Guild Join module")]
@@ -85,7 +82,7 @@ namespace GladosV3.Module.Default
                     await SqLite.Connection.SetValueAsync("servers", "join_toggle", value, $"WHERE guildid={Context.Guild.Id.ToString()}").ConfigureAwait(false);
                 else
                     throw new Exception("Only 0 or 1 is accepted!");
-                await ReplyAsync("Done!");
+                await this.ReplyAsync("Done!");
             }
             [Command("guild prefix")]
             [Summary("Set the guild prefix of this bot")]
@@ -98,7 +95,7 @@ namespace GladosV3.Module.Default
                     CommandHandler.Prefix.Remove(Context.Guild.Id);
                 if (!string.IsNullOrWhiteSpace(value))
                     CommandHandler.Prefix.Add(Context.Guild.Id, value);
-                await ReplyAsync($"Done! Changed the prefix to: {(string.IsNullOrWhiteSpace(value) ? IsOwner.botSettingsHelper["prefix"] : value)}");
+                await this.ReplyAsync($"Done! Changed the prefix to: {(string.IsNullOrWhiteSpace(value) ? IsOwner.botSettingsHelper["prefix"] : value)}");
             }
             [Command("guild configuration")]
             [Summary("Lists the current settings of the Guild module")]
@@ -107,7 +104,7 @@ namespace GladosV3.Module.Default
             [Attributes.RequireUserPermission(GuildPermission.ManageGuild)]
             public async Task GuildConfig()
             {
-                var msg = await ReplyAsync("Please wait...");
+                var msg = await this.ReplyAsync("Please wait...");
                 string finalMsg = "";
                 DataTable dt = await SqLite.Connection.GetValuesAsync("servers", $"WHERE guildid='{Context.Guild.Id.ToString()}'");
                 var row = dt.Rows[0];
@@ -142,7 +139,7 @@ namespace GladosV3.Module.Default
         {
             string[] array = text.Split(',');
             Random rnd = new Random();
-            ReplyAsync($"I have chosen: {array[rnd.Next(array.Length - 1)]}").GetAwaiter();
+            this.ReplyAsync($"I have chosen: {array[rnd.Next(array.Length - 1)]}").GetAwaiter();
             return Task.CompletedTask;
         }
         [Command("emojisay")]
@@ -166,7 +163,7 @@ namespace GladosV3.Module.Default
             var guild = Context.Client.GetGuild(serverid);
             if (guild == null)
             {
-                await ReplyAsync("❌I'm not in that server!");
+                await this.ReplyAsync("❌I'm not in that server!");
                 return;
             }
             var emoteArray = guild.Emotes.ToArray();
@@ -179,9 +176,9 @@ namespace GladosV3.Module.Default
             }
 
             if (string.IsNullOrEmpty(emojiString))
-                await ReplyAsync("❌Emoji not found on that server!");
+                await this.ReplyAsync("❌Emoji not found on that server!");
             else
-                await ReplyAsync($"{(noText ? "" : "Here's your emoji: ")}{emojiString}");
+                await this.ReplyAsync($"{(noText ? "" : "Here's your emoji: ")}{emojiString}");
         }
     }
 }

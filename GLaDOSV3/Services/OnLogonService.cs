@@ -1,10 +1,9 @@
 ﻿using Discord;
-using Discord.Commands;
 using Discord.WebSocket;
 using GladosV3.Helpers;
 using System;
-using System.Threading.Tasks;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace GladosV3.Services
 {
@@ -18,35 +17,35 @@ namespace GladosV3.Services
             DiscordSocketClient discord,
             BotSettingsHelper<string> botSettingsHelper)
         {
-            _discord = discord;
-            _discord.Connected += Connected;
-            _botSettingsHelper = botSettingsHelper;
+            this._discord = discord;
+            this._discord.Connected += this.Connected;
+            this._botSettingsHelper = botSettingsHelper;
         }
 
         private async Task Connected()
         {
-            await IsMfaEnabled();
-            await GetUserFromConfigAsync();
+            await this.IsMfaEnabled();
+            await this.GetUserFromConfigAsync();
 
-            if (_botSettingsHelper["discord_status"] != "online")
+            if (this._botSettingsHelper["discord_status"] != "online")
             {
-                if (Enum.TryParse(typeof(UserStatus), _botSettingsHelper["discord_status"], true, out var status))
-                    await _discord.SetStatusAsync((UserStatus)status);
+                if (Enum.TryParse(typeof(UserStatus), this._botSettingsHelper["discord_status"], true, out var status))
+                    await this._discord.SetStatusAsync((UserStatus)status);
                 else
                     await LoggingService.Log(LogSeverity.Warning, "Client status",
                         "Could not parse status string from config.json!");
             }
 
-            if (_discord.CurrentUser.Activity?.Name != _botSettingsHelper["discord_game"])
-                await _discord.SetGameAsync(_botSettingsHelper["discord_game"]);
+            if (this._discord.CurrentUser.Activity?.Name != this._botSettingsHelper["discord_game"])
+                await this._discord.SetGameAsync(this._botSettingsHelper["discord_game"]);
             var pfpPath = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "avatar.img");
             if (File.Exists(pfpPath))
-                await _discord.CurrentUser.ModifyAsync((f) => f.Avatar = new Image(pfpPath));
+                await this._discord.CurrentUser.ModifyAsync((f) => f.Avatar = new Image(pfpPath));
         }
         private Task<bool> IsMfaEnabled()
         {
-            if (_discord.CurrentUser == null) return Task.FromResult(false);
-            if (_discord.CurrentUser.IsMfaEnabled) return Task.FromResult(true);
+            if (this._discord.CurrentUser == null) return Task.FromResult(false);
+            if (this._discord.CurrentUser.IsMfaEnabled) return Task.FromResult(true);
             LoggingService.Log(LogSeverity.Warning, "Bot",
                 "MFA is disabled! Mod usage on MFA enabled server won't work!",
                 null).GetAwaiter();
@@ -54,17 +53,17 @@ namespace GladosV3.Services
         }
         private async Task GetUserFromConfigAsync()
         {
-            if (_discord.CurrentUser == null) return;
-            if (_discord.CurrentUser.Username != _botSettingsHelper["name"])
+            if (this._discord.CurrentUser == null) return;
+            if (this._discord.CurrentUser.Username != this._botSettingsHelper["name"])
             {
-                await _discord.CurrentUser.ModifyAsync(u => u.Username = _botSettingsHelper["name"]);
-                foreach (SocketGuild guild in _discord.Guilds)
+                await this._discord.CurrentUser.ModifyAsync(u => u.Username = this._botSettingsHelper["name"]);
+                foreach (SocketGuild guild in this._discord.Guilds)
                 {
-                    var me = guild.GetUser(_discord.CurrentUser.Id);
-                    if (me.Nickname == _botSettingsHelper["name"]) continue;
+                    var me = guild.GetUser(this._discord.CurrentUser.Id);
+                    if (me.Nickname == this._botSettingsHelper["name"]) continue;
                     await me.ModifyAsync(x =>
                     {
-                        x.Nickname = _botSettingsHelper["name"];
+                        x.Nickname = this._botSettingsHelper["name"];
                     });
                 }
             }

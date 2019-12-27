@@ -9,10 +9,8 @@ namespace GladosV3.Module.Music
     {
         private readonly AudioService _musicService;
 
-        public MusicModule(AudioService musicService)
-        {
-            _musicService = musicService;
-        }
+        public MusicModule(AudioService musicService) => this._musicService = musicService;
+
         [Command("join", RunMode = RunMode.Async)]
         [Remarks("join")]
         [Summary("Bot connect to the VC!")]
@@ -22,11 +20,11 @@ namespace GladosV3.Module.Music
             var user = Context.User as SocketGuildUser;
             if (user.VoiceChannel is null)
             {
-                await ReplyAsync("You need to connect to a voice channel.");
+                await this.ReplyAsync("You need to connect to a voice channel.");
                 return;
             }
-            await _musicService.ConnectAsync(user.VoiceChannel, Context.Channel as ITextChannel);
-            await ReplyAsync($"Connected to {user.VoiceChannel.Name}! 🔈");
+            await this._musicService.ConnectAsync(user.VoiceChannel, Context.Channel as ITextChannel);
+            await this.ReplyAsync($"Connected to {user.VoiceChannel.Name}! 🔈");
         }
         [Command("leave", RunMode = RunMode.Async)]
         [Remarks("leave")]
@@ -37,11 +35,11 @@ namespace GladosV3.Module.Music
             var user = Context.User as SocketGuildUser;
             if (user.VoiceChannel is null)
             {
-                await ReplyAsync("Please join the channel the bot is in to make it leave.");
+                await this.ReplyAsync("Please join the channel the bot is in to make it leave.");
                 return;
             }
-            await _musicService.LeaveAsync(user.VoiceChannel);
-            await ReplyAsync($"Leaving {user.VoiceChannel.Name}! 👋");
+            await this._musicService.LeaveAsync(user.VoiceChannel);
+            await this.ReplyAsync($"Leaving {user.VoiceChannel.Name}! 👋");
         }
 
         [Command("play", RunMode = RunMode.Async)]
@@ -51,17 +49,17 @@ namespace GladosV3.Module.Music
         public async Task Play([Remainder]string query)
         {
             var user = Context.User as SocketGuildUser;
-            if(user.VoiceChannel is null)
+            if (user.VoiceChannel is null)
             {
-                await ReplyAsync("You need to connect to a voice channel.");
+                await this.ReplyAsync("You need to connect to a voice channel.");
                 return;
             }
 
-            if (_musicService.GetPlayer(Context.Guild.Id) == null)
+            if (this._musicService.GetPlayer(Context.Guild.Id) == null)
             {
-                await _musicService.ConnectAsync(user.VoiceChannel, Context.Channel as ITextChannel);
+                await this._musicService.ConnectAsync(user.VoiceChannel, Context.Channel as ITextChannel);
             }
-            await ReplyAsync(await _musicService.PlayAsync(query, Context.Guild.Id));
+            await this.ReplyAsync(await this._musicService.PlayAsync(query, Context.Guild.Id));
         }
 
         [Command("stop")]
@@ -69,36 +67,36 @@ namespace GladosV3.Module.Music
         [RequireContext(ContextType.Guild)]
         public async Task Stop()
         {
-            await _musicService.StopAsync(Context.Guild.Id);
-            await ReplyAsync("Music stopped.");
+            await this._musicService.StopAsync(Context.Guild.Id);
+            await this.ReplyAsync("Music stopped.");
         }
 
         [Command("skip")]
         [Remarks("skip")]
         [RequireContext(ContextType.Guild)]
-        public async Task Skip() => await ReplyAsync(await _musicService.SkipAsync(Context.Guild.Id));
+        public async Task Skip() => await this.ReplyAsync(await this._musicService.SkipAsync(Context.Guild.Id));
 
         [Command("volume")]
         [Remarks("volume")]
         [RequireContext(ContextType.Guild)]
         public async Task Volume(int vol)
-            => await ReplyAsync(await _musicService.SetVolumeAsync(vol, Context.Guild.Id));
+            => await this.ReplyAsync(await this._musicService.SetVolumeAsync(vol, Context.Guild.Id));
 
         [Command("pause")]
         [Remarks("pause")]
         [RequireContext(ContextType.Guild)]
         public async Task Pause()
-            => await ReplyAsync(await _musicService.PauseOrResumeAsync(Context.Guild.Id));
+            => await this.ReplyAsync(await this._musicService.PauseOrResumeAsync(Context.Guild.Id));
 
         [Command("resume")]
         [Remarks("resume")]
         [RequireContext(ContextType.Guild)]
         public async Task Resume()
-            => await ReplyAsync(await _musicService.ResumeAsync(Context.Guild.Id));
+            => await this.ReplyAsync(await this._musicService.ResumeAsync(Context.Guild.Id));
 
         [Command("queue")]
         [Remarks("queue")]
         [RequireContext(ContextType.Guild)]
-        public async Task Queue() => await ReplyAsync(await _musicService.QueueCMD(Context.Guild.Id));
+        public async Task Queue() => await this.ReplyAsync(await this._musicService.QueueCMD(Context.Guild.Id));
     }
 }

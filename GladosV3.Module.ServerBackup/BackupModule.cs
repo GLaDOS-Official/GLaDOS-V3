@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Threading;
-using System.Threading.Tasks;
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 using Discord.Net.Rest;
 using Discord.Rest;
@@ -17,6 +8,11 @@ using GladosV3.Module.ServerBackup.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace GladosV3.Module.ServerBackup
 {
@@ -32,10 +28,7 @@ namespace GladosV3.Module.ServerBackup
         }
         private class OrderedExpandoPropertiesConverter : ExpandoObjectConverter
         {
-            public override bool CanWrite
-            {
-                get { return true; }
-            }
+            public override bool CanWrite => true;
 
             public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
             {
@@ -93,7 +86,7 @@ namespace GladosV3.Module.ServerBackup
         {
             BackupGuild backup = new BackupGuild(Context);
             WriteToJsonFile("backup.json", backup);
-            await ReplyAsync("Done!");
+            await this.ReplyAsync("Done!");
         }
 
         [Command("loadbackup")]
@@ -144,10 +137,7 @@ namespace GladosV3.Module.ServerBackup
             // fix channel topics
             foreach (var channel in Context.Guild.TextChannels) await channel.ModifyAsync(async f => f.Topic = (await BackupGuild.FixId(Context.Guild, channel.Topic, true)));
 
-            foreach (var channel in Context.Guild.TextChannels)
-            {
-                await SendMessagesToChannelAsync(backupMessages, channel);
-            }
+            foreach (var channel in Context.Guild.TextChannels) await this.SendMessagesToChannelAsync(backupMessages, channel);
         }
         private async Task SendMessagesToChannelAsync(Dictionary<ulong, List<BackupChatMessage>> backupMessages, SocketTextChannel o)
         {
@@ -160,10 +150,10 @@ namespace GladosV3.Module.ServerBackup
                 RestClientProvider = DefaultRestClientProvider.Create(true)
             });
             wc.Log += Services.LoggingService.OnLogAsync;
-            var backupMessage = backupMessages.TryGetValue(o.Id, out var messages);
+            if (!backupMessages.TryGetValue(o.Id, out var messages)) return;
             foreach (var message in messages)
             {
-                var embeds = (from embed in message.Embeds let fields = embed.Fields.Select(f => new EmbedFieldBuilder().WithName(f.Name).WithValue(f.Value).WithIsInline(f.Inline)).ToList() let embedBuilder = new EmbedBuilder { /* Embed property can be set within object initializer*/ Title = embed.Title,Description = (BackupGuild.FixId(Context.Guild, embed.Description, true).GetAwaiter().GetResult()), Author = (embed.Author == null && embed.AuthorIcon == null && embed.AuthorUrl == null) ? null : new EmbedAuthorBuilder().WithName(embed.Author).WithIconUrl(embed.AuthorIcon).WithUrl(embed.AuthorUrl), Color = embed.Color, Fields = fields, Footer = (embed.FooterText == null && embed.FooterIconUrl == null) ? null : new EmbedFooterBuilder().WithText(embed.FooterText).WithIconUrl(embed.FooterIconUrl), ImageUrl = embed.Image, ThumbnailUrl = embed.Thumbnail, Timestamp = embed.Timestamp, Url = embed.Url } let m = embedBuilder.Build() select embedBuilder.Build()).ToList();
+                var embeds = (from embed in message.Embeds let fields = embed.Fields.Select(f => new EmbedFieldBuilder().WithName(f.Name).WithValue(f.Value).WithIsInline(f.Inline)).ToList() let embedBuilder = new EmbedBuilder { /* Embed property can be set within object initializer*/ Title = embed.Title, Description = (BackupGuild.FixId(Context.Guild, embed.Description, true).GetAwaiter().GetResult()), Author = (embed.Author == null && embed.AuthorIcon == null && embed.AuthorUrl == null) ? null : new EmbedAuthorBuilder().WithName(embed.Author).WithIconUrl(embed.AuthorIcon).WithUrl(embed.AuthorUrl), Color = embed.Color, Fields = fields, Footer = (embed.FooterText == null && embed.FooterIconUrl == null) ? null : new EmbedFooterBuilder().WithText(embed.FooterText).WithIconUrl(embed.FooterIconUrl), ImageUrl = embed.Image, ThumbnailUrl = embed.Thumbnail, Timestamp = embed.Timestamp, Url = embed.Url } let m = embedBuilder.Build() select embedBuilder.Build()).ToList();
                 SocketUser user = Context.Client.GetUser(message.AuthorId);
             retry:
                 try

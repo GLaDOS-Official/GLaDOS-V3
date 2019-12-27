@@ -1,13 +1,11 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace GladosV3.Module.ServerBackup.Models
 {
-    
+
     public class BackupChannel
     {
         public string Name { get; set; }
@@ -18,11 +16,11 @@ namespace GladosV3.Module.ServerBackup.Models
         public BackupChannel(SocketGuildChannel c, ref int channelId)
         {
             if (c == null) return;
-            this.LocalChannelId = ++channelId;
-            this.Name = c.Name;
-            this.Position = c.Position;
-            this.IsHidden = c.GetUser(c.Guild.CurrentUser.Id) == null ? true : !c.GetUser(c.Guild.CurrentUser.Id).GetPermissions(c).ViewChannel;
-            this.Permissions = c.PermissionOverwrites.Where(x => x.TargetType == PermissionTarget.Role).Select(z => new BackupChannelPerms(z, c.Guild)).ToList();
+            LocalChannelId = ++channelId;
+            Name = c.Name;
+            Position = c.Position;
+            IsHidden = c.GetUser(c.Guild.CurrentUser.Id) == null ? true : !c.GetUser(c.Guild.CurrentUser.Id).GetPermissions(c).ViewChannel;
+            Permissions = c.PermissionOverwrites.Where(x => x.TargetType == PermissionTarget.Role).Select(z => new BackupChannelPerms(z, c.Guild)).ToList();
         }
     }
 }

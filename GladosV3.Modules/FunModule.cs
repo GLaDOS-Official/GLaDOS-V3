@@ -27,7 +27,7 @@ namespace GladosV3.Module.Default
                 .Content.ReadAsStringAsync().GetAwaiter()
                 .GetResult();
             JObject fact = JObject.Parse(result);
-            await ReplyAsync(fact["fact"].Value<string>());
+            await this.ReplyAsync(fact["fact"].Value<string>());
         }
         [Command("illegal")]
         [Remarks("illegal <thing>")]
@@ -37,10 +37,10 @@ namespace GladosV3.Module.Default
         {
             if (!new Regex("^[a-zA-Z\\s]{0,10}$").IsMatch(word))
             {
-                await ReplyAsync("You cannot use non-standard unicode characters and it cannot be longer than 10 characters!"); return;
+                await this.ReplyAsync("You cannot use non-standard unicode characters and it cannot be longer than 10 characters!"); return;
             }
 
-            var msg = await ReplyAsync("Please wait...");
+            var msg = await this.ReplyAsync("Please wait...");
             using var http = new HttpClient();
             http.DefaultRequestHeaders.Add("User-Agent",
                 "Mozilla/5.0 (Linux; Android 5.0; SM-G920A) AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)"); // we are GoogleBot
@@ -67,7 +67,7 @@ namespace GladosV3.Module.Default
             var result = http.GetAsync("https://api.bunnies.io/v2/loop/random/?media=gif,poster,mp4").GetAwaiter().GetResult()
                 .Content.ReadAsStringAsync().GetAwaiter().GetResult();
             JObject bunny = JObject.Parse(result);
-            await ReplyAsync(
+            await this.ReplyAsync(
                 $"Here's your bunny! {bunny["media"]["gif"].Value<string>()}");
         }
         [Command("cat")]
@@ -83,7 +83,7 @@ namespace GladosV3.Module.Default
             var result = http.GetAsync("http://aws.random.cat/meow").GetAwaiter().GetResult()
                 .Content.ReadAsStringAsync().GetAwaiter().GetResult();
             JObject cat = JObject.Parse(result);
-            await ReplyAsync(
+            await this.ReplyAsync(
                 $"Here's your cat! {cat["file"].Value<string>()}");
         }
         [Command("dog")]
@@ -99,7 +99,7 @@ namespace GladosV3.Module.Default
             var result = http.GetAsync("https://dog.ceo/api/breeds/image/random").GetAwaiter().GetResult()
                 .Content.ReadAsStringAsync().GetAwaiter().GetResult();
             JObject dog = JObject.Parse(result);
-            await ReplyAsync(
+            await this.ReplyAsync(
                 $"Here's your dog! {dog["message"].Value<string>()}");
         }
         [Command("urban")]
@@ -116,7 +116,7 @@ namespace GladosV3.Module.Default
             JObject dictionary = JObject.Parse(result);
             EmbedBuilder builder = new EmbedBuilder
             {
-                Color = new Color(rnd.Next(256), rnd.Next(256), rnd.Next(256)),
+                Color = new Color(this.rnd.Next(256), this.rnd.Next(256), this.rnd.Next(256)),
                 Footer = new EmbedFooterBuilder
                 {
                     Text = $"Requested by {Context.User.Username}#{Context.User.Discriminator}",
@@ -185,7 +185,7 @@ namespace GladosV3.Module.Default
                 ":8ball: My sources say no", ":8ball: You may rely on it", ":8ball: Cannot predict now",
                 ":8ball: Concentrate and ask again", ":8ball: Ask again later", ":8ball: As I see it, yes"
             };
-            await ReplyAsync(answers[rnd.Next(answers.Length)]);
+            await this.ReplyAsync(answers[this.rnd.Next(answers.Length)]);
         }
     }
 }

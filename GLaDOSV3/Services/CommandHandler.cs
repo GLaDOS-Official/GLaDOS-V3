@@ -9,7 +9,6 @@ using System.Data;
 using System.Data.SQLite;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Xml.Schema;
 
 namespace GladosV3.Services
 {
@@ -32,12 +31,12 @@ namespace GladosV3.Services
             IServiceProvider provider,
             BotSettingsHelper<string> botSettingsHelper)
         {
-            _discord = discord;
-            _commands = commands;
-            _provider = provider;
-            _discord.MessageReceived += OnMessageReceivedAsync;
+            this._discord = discord;
+            this._commands = commands;
+            this._provider = provider;
+            this._discord.MessageReceived += this.OnMessageReceivedAsync;
             MaintenanceMode = botSettingsHelper["maintenance"];
-            fallbackPrefix = botSettingsHelper["prefix"];
+            this.fallbackPrefix = botSettingsHelper["prefix"];
             using DataTable dt = SqLite.Connection.GetValuesAsync("BlacklistedUsers").GetAwaiter().GetResult();
             for (int i = 0; i < dt.Rows.Count; i++)
             {
@@ -61,10 +60,8 @@ namespace GladosV3.Services
                     Prefix.Add(Convert.ToUInt64(dt2.Rows[i]["guildid"]), pref);
             }
         }
-        private bool IsUserBlackListed(SocketUserMessage msg)
-        {
-            return BlacklistedUsers.Contains(msg.Author.Id);
-        }
+        private bool IsUserBlackListed(SocketUserMessage msg) => BlacklistedUsers.Contains(msg.Author.Id);
+
         private async Task OnMessageReceivedAsync(SocketMessage s)
         {
             if (BotBusy) return;
@@ -76,36 +73,36 @@ namespace GladosV3.Services
             {
                 return; // Ignore other bots
             }
-            if (msg.Author.Id == _discord.CurrentUser.Id)
+            if (msg.Author.Id == this._discord.CurrentUser.Id)
             {
                 return;     // Ignore self when checking commands
             }
 
             int argPos = 0; // Check if the message has a valid command prefix
-            string prefix = fallbackPrefix;
+            string prefix = this.fallbackPrefix;
             if ((msg.Channel is IGuildChannel ok) && Prefix.TryGetValue(ok.Guild.Id, out string guildPrefix))
             { prefix = guildPrefix; }
-            if (!msg.HasStringPrefix(prefix, ref argPos) && !msg.HasMentionPrefix(_discord.CurrentUser, ref argPos))
+            if (!msg.HasStringPrefix(prefix, ref argPos) && !msg.HasMentionPrefix(this._discord.CurrentUser, ref argPos))
             {
                 if (msg.MentionedUsers.Count > 0)
                 {
-                    await MentionBomb(msg);
+                    await this.MentionBomb(msg);
                 }
                 return; // Ignore messages that aren't meant for the bot
             }
 
-            if (IsUserBlackListed(msg))
+            if (this.IsUserBlackListed(msg))
             {
                 return; // We can't let blacklisted users ruin our bot!
             }
 
-            SocketCommandContext context = new SocketCommandContext(_discord, msg); // Create the command context
+            SocketCommandContext context = new SocketCommandContext(this._discord, msg); // Create the command context
             if (!string.IsNullOrWhiteSpace(MaintenanceMode) && (IsOwner.CheckPermission(context).GetAwaiter().GetResult())) { await context.Channel.SendMessageAsync("Bot is in maintenance mode! Reason: " + MaintenanceMode).ConfigureAwait(false); ; return; } // Don't execute commands in maintenance mode 
-            var result = _commands.ExecuteAsync(context, argPos, _provider); // Execute the command
+            var result = this._commands.ExecuteAsync(context, argPos, this._provider); // Execute the command
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             result.ContinueWith(task =>
             {
-                while(!task.IsCompleted) { System.Threading.Thread.Sleep(4); }
+                while (!task.IsCompleted) { System.Threading.Thread.Sleep(4); }
                 var result = task.Result;
                 if (!result.IsSuccess && result.ErrorReason != "hidden")  // If not successful, reply with the error.
                 {
@@ -155,8 +152,8 @@ namespace GladosV3.Services
 
         private Task MentionBomb(SocketUserMessage msg)
         {
-            if(!(msg.Channel is  SocketGuildChannel channel)) return Task.CompletedTask;
-            if(channel.GetUser(msg.Author.Id).GuildPermissions.Has(GuildPermission.ManageGuild) || channel.GetUser(msg.Author.Id).GuildPermissions.Has(GuildPermission.Administrator)) return Task.CompletedTask;
+            if (!(msg.Channel is SocketGuildChannel channel)) return Task.CompletedTask;
+            if (channel.GetUser(msg.Author.Id).GuildPermissions.Has(GuildPermission.ManageGuild) || channel.GetUser(msg.Author.Id).GuildPermissions.Has(GuildPermission.Administrator)) return Task.CompletedTask;
             if (msg.MentionedUsers.Distinct().Count() < 5) return Task.CompletedTask;
             msg.DeleteAsync().GetAwaiter();
             msg.Channel.SendMessageAsync($"{msg.Author.Mention} Please don't mention that many users!").GetAwaiter();

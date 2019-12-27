@@ -22,7 +22,7 @@ namespace GladosV3.Module.Default
         {
             if (count < 2)
             {
-                await ReplyAsync("**ERROR: **Please Specify the amount of messages you want to clear");
+                await this.ReplyAsync("**ERROR: **Please Specify the amount of messages you want to clear");
                 return;
             }
             int deleted = 0;
@@ -37,19 +37,19 @@ namespace GladosV3.Module.Default
                     IOrderedEnumerable<IMessage> messages = enumerable1
                         .Where((something) => (something.Timestamp - DateTimeOffset.UtcNow).TotalDays > -13)
                         .OrderByDescending(msg => msg.Timestamp);
-                    await ((ITextChannel) Context.Channel).DeleteMessagesAsync(messages);
+                    await ((ITextChannel)Context.Channel).DeleteMessagesAsync(messages);
                     int deletedOld = deleted;
                     deleted += messages.Count();
                     if (deleted == deletedOld) break;// reached discord limit
                 }
                 catch (ArgumentOutOfRangeException)
                 {
-                    await ReplyAsync("Some messages failed to delete! This is not a error and can not be fixed!");
+                    await this.ReplyAsync("Some messages failed to delete! This is not a error and can not be fixed!");
                     return;
                 }
             }
             string warning = count - deleted != 0 ? "Some messages failed to delete! This is not an error." : null;
-            await ReplyAsync($"Purged {deleted} messages! {warning}");
+            await this.ReplyAsync($"Purged {deleted} messages! {warning}");
         }
 
         [Command("prune")]
@@ -62,7 +62,7 @@ namespace GladosV3.Module.Default
         {
             if (count < 2)
             {
-                await ReplyAsync("**ERROR: **Please Specify the amount of messages you want to clear");
+                await this.ReplyAsync("**ERROR: **Please Specify the amount of messages you want to clear");
             }
             int deleted = 0;
             await Context.Message.DeleteAsync().ConfigureAwait(false);
@@ -81,14 +81,14 @@ namespace GladosV3.Module.Default
                 }
                 catch (ArgumentOutOfRangeException)
                 {
-                    await ReplyAsync("Some messages failed to delete! This is not a error and can not be fixed!");
+                    await this.ReplyAsync("Some messages failed to delete! This is not a error and can not be fixed!");
                     return;
                 }
             }
-            await ReplyAsync($"Purged {deleted} from <@{UserMention.Id}> messages!");
+            await this.ReplyAsync($"Purged {deleted} from <@{UserMention.Id}> messages!");
             if (deleted > 0)
             {
-                await ReplyAsync($"Cleared **{UserMention.Username}'s** Messages (Count = {deleted})");
+                await this.ReplyAsync($"Cleared **{UserMention.Username}'s** Messages (Count = {deleted})");
             }
         }
         [Command("kick")]
@@ -109,7 +109,7 @@ namespace GladosV3.Module.Default
             if (UserMention.Id == Context.User.Id)
             {
                 if (!silent)
-                    await ReplyAsync("Why would you kick yourself?");
+                    await this.ReplyAsync("Why would you kick yourself?");
                 else
                     await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync("Why would you kick yourself?").GetAwaiter().GetResult().Channel).CloseAsync();
                 return;
@@ -118,7 +118,7 @@ namespace GladosV3.Module.Default
             if (UserMention.Hierarchy > moderator?.Hierarchy)
             {
                 if (!silent)
-                    await ReplyAsync($"Sorry, you can't kick {UserMention.Mention} as he's above you.");
+                    await this.ReplyAsync($"Sorry, you can't kick {UserMention.Mention} as he's above you.");
                 else
                     await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync($"Sorry, you can't kick {UserMention.Mention} as he's above you.").GetAwaiter().GetResult().Channel).CloseAsync();
                 return;
@@ -127,14 +127,14 @@ namespace GladosV3.Module.Default
             if (UserMention?.Hierarchy > Context.Guild.CurrentUser.Hierarchy)
             {
                 if (!silent)
-                    await ReplyAsync($"Sorry, I can't kick {UserMention.Mention} as he's above me.");
+                    await this.ReplyAsync($"Sorry, I can't kick {UserMention.Mention} as he's above me.");
                 else
                     await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync($"Sorry, I can't kick {UserMention.Mention} as he's above me.").GetAwaiter().GetResult().Channel).CloseAsync();
                 return;
             }
 
             if (UserMention?.Id == Context.Client.CurrentUser.Id)
-            { await ReplyAsync($"Ok, bye!"); await Context.Guild.LeaveAsync(); return; }
+            { await this.ReplyAsync($"Ok, bye!"); await Context.Guild.LeaveAsync(); return; }
             try
             {
                 await UserMention.SendMessageAsync($"You were kicked from {Context.Guild.Name} for \"{reason}\" by {Context.Client.CurrentUser.Username}#{Context.Client.CurrentUser.Discriminator}");
@@ -142,13 +142,13 @@ namespace GladosV3.Module.Default
                 await UserMention.KickAsync(
                     $"Kicked by {Context.Message.Author.Username}#{Context.Message.Author.Discriminator} | Reason: {reason}");
                 if (!silent)
-                    await ReplyAsync($"Bai bai {UserMention.Mention}! :wave:");
+                    await this.ReplyAsync($"Bai bai {UserMention.Mention}! :wave:");
                 else
                     await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync($"Bai bai {UserMention.Mention}! :wave:").GetAwaiter().GetResult().Channel).CloseAsync();
             }
             catch
             {
-                await ReplyAsync($"How? I seem that I unable to kick {UserMention.Mention}!");
+                await this.ReplyAsync($"How? I seem that I unable to kick {UserMention.Mention}!");
             }
         }
         [Command("ban")]
@@ -169,7 +169,7 @@ namespace GladosV3.Module.Default
             if (UserMention.Id == Context.User.Id)
             {
                 if (!silent)
-                    await ReplyAsync("Why would you ban yourself?");
+                    await this.ReplyAsync("Why would you ban yourself?");
                 else
                     await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync("Why would you ban yourself?").GetAwaiter().GetResult().Channel).CloseAsync();
                 return;
@@ -178,7 +178,7 @@ namespace GladosV3.Module.Default
             if (UserMention.Hierarchy > moderator?.Hierarchy)
             {
                 if (!silent)
-                    await ReplyAsync($"Sorry, you can't ban {UserMention.Mention} as he's above you.");
+                    await this.ReplyAsync($"Sorry, you can't ban {UserMention.Mention} as he's above you.");
                 else
                     await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync($"Sorry, you can't ban {UserMention.Mention} as he's above you.").GetAwaiter().GetResult().Channel).CloseAsync();
                 return;
@@ -187,28 +187,28 @@ namespace GladosV3.Module.Default
             if (UserMention?.Hierarchy > Context.Guild.CurrentUser.Hierarchy)
             {
                 if (!silent)
-                    await ReplyAsync($"Sorry, I can't ban {UserMention.Mention} as he's above me.");
+                    await this.ReplyAsync($"Sorry, I can't ban {UserMention.Mention} as he's above me.");
                 else
                     await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync($"Sorry, I can't ban {UserMention.Mention} as he's above me.").GetAwaiter().GetResult().Channel).CloseAsync();
                 return;
             }
 
             if (UserMention?.Id == Context.Client.CurrentUser.Id)
-            { await ReplyAsync($"Ok, bye!"); await Context.Guild.LeaveAsync(); return; }
+            { await this.ReplyAsync($"Ok, bye!"); await Context.Guild.LeaveAsync(); return; }
             try
             {
                 await UserMention.SendMessageAsync($"You were banned from {Context.Guild.Name} for \"{reason}\" by {Context.Client.CurrentUser.Username}#{Context.Client.CurrentUser.Discriminator}");
                 await Context.Guild.AddBanAsync(UserMention, 0,
                     $"Banned by {Context.Message.Author.Username}#{Context.Message.Author.Discriminator} | Reason: {reason}");
                 if (!silent)
-                    await ReplyAsync($"Begone {UserMention.Mention}!");
+                    await this.ReplyAsync($"Begone {UserMention.Mention}!");
                 else
                     await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync($"Begone {UserMention.Mention}!").GetAwaiter().GetResult().Channel).CloseAsync();
 
             }
             catch
             {
-                await ReplyAsync($"How? I seem that I unable to ban {UserMention.Mention}!");
+                await this.ReplyAsync($"How? I seem that I unable to ban {UserMention.Mention}!");
             }
         }
         [Command("ban")]
@@ -229,7 +229,7 @@ namespace GladosV3.Module.Default
             if (userid == Context.User.Id)
             {
                 if (!silent)
-                    await ReplyAsync("Why would you ban yourself?");
+                    await this.ReplyAsync("Why would you ban yourself?");
                 else
                     await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync("Why would you ban yourself?").GetAwaiter().GetResult().Channel).CloseAsync();
                 return;
@@ -240,7 +240,7 @@ namespace GladosV3.Module.Default
             if (user.Hierarchy > moderator?.Hierarchy)
             {
                 if (!silent)
-                    await ReplyAsync($"Sorry, you can't ban {user.Mention} as he's above you.");
+                    await this.ReplyAsync($"Sorry, you can't ban {user.Mention} as he's above you.");
                 else
                     await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync($"Sorry, you can't ban {user.Mention} as he's above you.").GetAwaiter().GetResult().Channel).CloseAsync();
                 return;
@@ -249,28 +249,28 @@ namespace GladosV3.Module.Default
             if (user?.Hierarchy > Context.Guild.CurrentUser.Hierarchy)
             {
                 if (!silent)
-                    await ReplyAsync($"Sorry, I can't ban {user.Mention} as he's above me.");
+                    await this.ReplyAsync($"Sorry, I can't ban {user.Mention} as he's above me.");
                 else
                     await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync($"Sorry, I can't ban {user.Mention} as he's above me.").GetAwaiter().GetResult().Channel).CloseAsync();
                 return;
             }
 
             if (user?.Id == Context.Client.CurrentUser.Id)
-            { await ReplyAsync($"Ok, bye!"); await Context.Guild.LeaveAsync(); return; }
+            { await this.ReplyAsync($"Ok, bye!"); await Context.Guild.LeaveAsync(); return; }
             try
             {
                 await user.SendMessageAsync($"You were banned from {Context.Guild.Name} for \"{reason}\" by {Context.Client.CurrentUser.Username}#{Context.Client.CurrentUser.Discriminator}");
                 await Context.Guild.AddBanAsync(user, 0,
                     $"Banned by {Context.Message.Author.Username}#{Context.Message.Author.Discriminator} | Reason: {reason}");
                 if (!silent)
-                    await ReplyAsync($"Begone {user.Mention}!");
+                    await this.ReplyAsync($"Begone {user.Mention}!");
                 else
                     await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync($"Begone {user.Mention}!").GetAwaiter().GetResult().Channel).CloseAsync();
 
             }
             catch
             {
-                await ReplyAsync($"How? I seem that I unable to ban {user.Mention}!");
+                await this.ReplyAsync($"How? I seem that I unable to ban {user.Mention}!");
             }
         }
         [Command("hackban")]
@@ -291,7 +291,7 @@ namespace GladosV3.Module.Default
             if (userid == Context.User.Id)
             {
                 if (!silent)
-                    await ReplyAsync("Why would you ban yourself?");
+                    await this.ReplyAsync("Why would you ban yourself?");
                 else
                     await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync("Why would you ban yourself?").GetAwaiter().GetResult().Channel).CloseAsync();
                 return;
@@ -301,7 +301,7 @@ namespace GladosV3.Module.Default
             if (user != null)
             {
                 if (!silent)
-                    await ReplyAsync("User is in this server!");
+                    await this.ReplyAsync("User is in this server!");
                 else
                     await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult().SendMessageAsync("User is in this server!").GetAwaiter().GetResult().Channel).CloseAsync();
                 return;
@@ -316,16 +316,16 @@ namespace GladosV3.Module.Default
                 if (normaluser != null)
                 {
                     if (!silent)
-                        await ReplyAsync($"Begone {normaluser.Mention}!");
+                        await this.ReplyAsync($"Begone {normaluser.Mention}!");
                     else
-                        await ((IDMChannel) Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult()
+                        await ((IDMChannel)Context.Message.Author.GetOrCreateDMChannelAsync().GetAwaiter().GetResult()
                                 .SendMessageAsync($"Begone {normaluser.Mention}!").GetAwaiter().GetResult().Channel)
                             .CloseAsync();
                 }
             }
             catch
             {
-                await ReplyAsync($"How? I seem that I unable to ban {normaluser.Mention}!");
+                await this.ReplyAsync($"How? I seem that I unable to ban {normaluser.Mention}!");
             }
         }
 
@@ -340,7 +340,7 @@ namespace GladosV3.Module.Default
                 await Context.Message.DeleteAsync();
                 text = text.Replace("--s", "");
             }
-            await ReplyAsync(text);
+            await this.ReplyAsync(text);
         }
     }
 }

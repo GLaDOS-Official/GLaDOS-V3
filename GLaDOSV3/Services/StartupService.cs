@@ -5,7 +5,6 @@ using Discord.WebSocket;
 using GladosV3.Helpers;
 using System;
 using System.Data;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -26,10 +25,10 @@ namespace GladosV3.Services
             IServiceProvider provider,
             BotSettingsHelper<string> botSettingsHelper)
         {
-            _discord = discord;
-            _commands = commands;
-            _provider = provider;
-            _botSettingsHelper = botSettingsHelper;
+            this._discord = discord;
+            this._commands = commands;
+            this._provider = provider;
+            this._botSettingsHelper = botSettingsHelper;
         }
 
         private Task<string> AskNotNull(string question)
@@ -53,12 +52,12 @@ namespace GladosV3.Services
             await SqLite.Connection.CreateTableAsync("BotSettings", "`ID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, `name` TEXT, `value` TEXT");
             Console.WriteLine("Hello user! Looks like your starting this bot for the first time! You'll need to enter some values to start this bot.");
             Console.Write("Please enter your default bot prefix: ");
-            string input = await AskNotNull("Please enter your default bot prefix: ");
+            string input = await this.AskNotNull("Please enter your default bot prefix: ");
             await SqLite.Connection.AddRecordAsync("BotSettings", "name,value", new[] { "prefix", input });
-            input = await AskNotNull("Perfect. Now please enter the name of the bot: ");
+            input = await this.AskNotNull("Perfect. Now please enter the name of the bot: ");
             await SqLite.Connection.AddRecordAsync("BotSettings", "name,value", new[] { "name", input });
             await SqLite.Connection.AddRecordAsync("BotSettings", "name,value", new[] { "maintenance", "" });
-            input = await AskNotNull("Very good. Now add your user ID: ");
+            input = await this.AskNotNull("Very good. Now add your user ID: ");
             await SqLite.Connection.AddRecordAsync("BotSettings", "name,value", new[] { "ownerID", input });
             Console.WriteLine("Now you'll can enter co-owners user IDs, this is totally optional (Press enter to skip).");
             Console.WriteLine("If you decide to add any, put them in format \"userID1,userID2\" without quotation marks.");
@@ -67,25 +66,25 @@ namespace GladosV3.Services
             await SqLite.Connection.AddRecordAsync("BotSettings", "name,value", new[] { "co-owners", input });
             await SqLite.Connection.AddRecordAsync("BotSettings", "name,value", new[] { "discord_game", "" });
             await SqLite.Connection.AddRecordAsync("BotSettings", "name,value", new[] { "discord_status", "Online" });
-            input = await AskNotNull("Ok! Now the final thing! Enter your bot token: ");
+            input = await this.AskNotNull("Ok! Now the final thing! Enter your bot token: ");
             await SqLite.Connection.AddRecordAsync("BotSettings", "name,value", new[] { "tokens_discord", input });
         }
         public async Task StartAsync(string[] args)
         {
             SqLite.Start();
 
-            await FirstStartup(args.Contains("--resetdb"));
-            Console.Title = _botSettingsHelper["name"];
+            await this.FirstStartup(args.Contains("--resetdb"));
+            Console.Title = this._botSettingsHelper["name"];
             Console.Clear();
             //Console.SetWindowSize(150, 35);
             Console.WriteLine("This bot is using a database to store it's settings. Add --resetdb to reset the configuration (token, owners, etc..).");
-            string discordToken = _botSettingsHelper["tokens_discord"];     // Get the discord token from the config file
-            string gameTitle = _botSettingsHelper["discord_game"]; // Get bot's game status
-            await _discord.SetGameAsync(gameTitle); // set bot's game status
+            string discordToken = this._botSettingsHelper["tokens_discord"];     // Get the discord token from the config file
+            string gameTitle = this._botSettingsHelper["discord_game"]; // Get bot's game status
+            await this._discord.SetGameAsync(gameTitle); // set bot's game status
             try
             {
-                await _discord.LoginAsync(TokenType.Bot, discordToken, true); // Login to discord
-                await _discord.StartAsync(); // Connect to the websocket
+                await this._discord.LoginAsync(TokenType.Bot, discordToken, true); // Login to discord
+                await this._discord.StartAsync(); // Connect to the websocket
             }
             catch (HttpException ex) // Some error checking
             {
@@ -99,8 +98,8 @@ namespace GladosV3.Services
                 Task.Delay(10000).Wait();
                 Environment.Exit(0);
             }
-            await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), _provider);     // Load commands and modules into the command service
-            await new ExtensionLoadingService(_discord, _commands, (BotSettingsHelper<string>)_botSettingsHelper, _provider).Load().ConfigureAwait(false);
+            await this._commands.AddModulesAsync(Assembly.GetEntryAssembly(), this._provider);     // Load commands and modules into the command service
+            await new ExtensionLoadingService(this._discord, this._commands, this._botSettingsHelper, this._provider).Load().ConfigureAwait(false);
         }
     }
 }

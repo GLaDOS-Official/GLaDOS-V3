@@ -20,10 +20,8 @@ namespace GladosV3.Helpers
         /// <summary>
         /// Map a native function to a delegate, function name must match delegate name
         /// </summary>
-        public static T GetFunction<T>(IntPtr module)
-        {
-            return GetFunction<T>(module, typeof(T).Name);
-        }
+        public static T GetFunction<T>(IntPtr module) => GetFunction<T>(module, typeof(T).Name);
+
         /// <summary>
         /// Get the pointer to a module
         /// </summary>

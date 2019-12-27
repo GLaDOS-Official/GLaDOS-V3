@@ -1,14 +1,10 @@
-﻿using Discord;
-using Discord.WebSocket;
-using System;
+﻿using Discord.WebSocket;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace GladosV3.Module.ServerBackup.Models
 {
-    
-    class BackupRole
+    internal class BackupRole
     {
         public string RoleName { get; set; }
         public List<ulong> RoleMembers { get; set; }
@@ -20,13 +16,13 @@ namespace GladosV3.Module.ServerBackup.Models
         public BackupRole(SocketRole r)
         {
             if (r == null) return;
-            this.RoleName = r.Name;
-            this.RoleMembers = r.Members.Select(m => m.Id).ToList();
-            this.RawColour = r.Color.RawValue;
-            this.GuildPermissions = r.Permissions.RawValue;
-            this.Position = r.Position;
-            this.Hoisted = r.IsHoisted;
-            this.AllowMention = r.IsMentionable;
+            RoleName = r.Name;
+            RoleMembers = r.Members.Select(m => m.Id).ToList();
+            RawColour = r.Color.RawValue;
+            GuildPermissions = r.Permissions.RawValue;
+            Position = r.Position;
+            Hoisted = r.IsHoisted;
+            AllowMention = r.IsMentionable;
         }
     }
 }

@@ -2,8 +2,6 @@
 using Discord.WebSocket;
 using GladosV3.Helpers;
 using System;
-using System.Reflection;
-using System.Runtime.Loader;
 
 namespace GladosV3
 {

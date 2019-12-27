@@ -23,12 +23,12 @@ namespace GladosV3.Services
         public static List<GladosModuleStruct> extensions = new List<GladosModuleStruct>();
         public ExtensionLoadingService(DiscordSocketClient discord = null, CommandService commands = null, BotSettingsHelper<string> config = null, IServiceProvider provider = null)
         {
-            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainOnAssemblyResolve;
-            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += CurrentDomainOnAssemblyResolve;
-            _discord = discord;
-            _commands = commands;
-            _config = config;
-            _provider = provider;
+            AppDomain.CurrentDomain.AssemblyResolve += this.CurrentDomainOnAssemblyResolve;
+            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += this.CurrentDomainOnAssemblyResolve;
+            this._discord = discord;
+            this._commands = commands;
+            this._config = config;
+            this._provider = provider;
             if (!Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Dependencies")))
                 Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "Dependencies"));
             if (!Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Modules")))
@@ -36,7 +36,7 @@ namespace GladosV3.Services
             if (discord != null) return;
             foreach (var assemblyName in Directory.GetFiles(Path.Combine(Directory.GetCurrentDirectory(), "Dependencies")))
             {
-                if (!IsValidCLRFile(assemblyName)) continue;
+                if (!this.IsValidCLRFile(assemblyName)) continue;
                 var asm = Assembly.LoadFile(assemblyName);
                 dependencies.Add(asm.FullName, asm);
             }
@@ -82,7 +82,7 @@ namespace GladosV3.Services
                 {
                     try
                     {
-                        Assembly asm = ValidFile(file);
+                        Assembly asm = this.ValidFile(file);
                         if (asm == null) continue;
                         Type asmType = asm.GetTypes().Where(type => type.IsClass && type.Name == "ModuleInfo").Distinct().First(); //create type
                         ConstructorInfo asmConstructor = asmType.GetConstructor(Type.EmptyTypes);  // get extension's constructor
@@ -106,7 +106,7 @@ namespace GladosV3.Services
             if (new FileInfo(file).Length == 0) return null; // file is empty!
             try
             {
-                if (!IsValidCLRFile(file)) return null; // file is not .NET assembly
+                if (!this.IsValidCLRFile(file)) return null; // file is not .NET assembly
                 return Assembly.LoadFile(file);
             }
             catch (Exception) { return null; }
@@ -121,12 +121,12 @@ namespace GladosV3.Services
                     //TODO: remove validfile, cause it causes Assembly.Load (makes Unload worthless)
                     /*Assembly asm = ValidFile(file);
                     if (asm == null) continue;*/
-                    GladosModuleStruct module =  new GladosModuleStruct(file, _discord, _commands, _config, _provider);
+                    GladosModuleStruct module = new GladosModuleStruct(file, this._discord, this._commands, this._config, this._provider);
                     module.Initialize();
                     if (module.loadFailed) continue;
-                    module.PreLoad(_discord, _commands, _config, _provider);
-                    var count = _commands.AddModulesAsync(module.appAssembly, module._provider).GetAwaiter().GetResult().Count();
-                    module.PostLoad(_discord, _commands, _config, _provider);
+                    module.PreLoad(this._discord, this._commands, this._config, this._provider);
+                    var count = this._commands.AddModulesAsync(module.appAssembly, module._provider).GetAwaiter().GetResult().Count();
+                    module.PostLoad(this._discord, this._commands, this._config, this._provider);
 
                     extensions.Add(module);
                     var modules = module.appAssembly.GetTypes().Where(type => type.IsClass && !type.IsSpecialName && type.IsPublic)
@@ -213,57 +213,48 @@ namespace GladosV3.Services
         private readonly string _path;
         public GladosModuleStruct(string path, DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider) : base(isCollectible: true)
         {
-            _discord = discord;
-            _commands = commands;
-            _config = config;
-            _provider = provider;
-            _resolver = new AssemblyDependencyResolver(path);
-            _path = path;
+            this._discord = discord;
+            this._commands = commands;
+            this._config = config;
+            this._provider = provider;
+            this._resolver = new AssemblyDependencyResolver(path);
+            this._path = path;
             GC.SuppressFinalize(this);
         }
 
         public void Initialize()
         {
-            if (appAssembly == null) appAssembly = Assembly.LoadFile(_path);
-            var asmType = appAssembly.GetTypes().Where(type => type.IsClass && type.Name == "ModuleInfo").Distinct().First(); //create type
+            if (this.appAssembly == null) this.appAssembly = Assembly.LoadFile(this._path);
+            var asmType = this.appAssembly.GetTypes().Where(type => type.IsClass && type.Name == "ModuleInfo").Distinct().First(); //create type
             MethodInfo getInterface = asmType.GetMethod("GetModule", BindingFlags.Static | BindingFlags.Public);
-            module = (IGladosModule)getInterface.Invoke(null, null);
-            moduleName = module.Name();
-            moduleAuthor = module.Author();
-            moduleVersion = module.Version();
+            this.module = (IGladosModule)getInterface.Invoke(null, null);
+            this.moduleName = this.module.Name();
+            this.moduleAuthor = this.module.Author();
+            this.moduleVersion = this.module.Version();
 
-            if (string.IsNullOrWhiteSpace(moduleName)) loadFailed = true; // class doesn't have Name string
-            if (string.IsNullOrWhiteSpace(moduleVersion)) loadFailed = true; // class doesn't have Version string
-            if (string.IsNullOrWhiteSpace(moduleAuthor)) loadFailed = true; // class doesn't have Author string
-            if (loadFailed) { this.Unload(); return; }
-            asmName = new AssemblyName(moduleName) { CodeBase = _path };
+            if (string.IsNullOrWhiteSpace(this.moduleName)) this.loadFailed = true; // class doesn't have Name string
+            if (string.IsNullOrWhiteSpace(this.moduleVersion)) this.loadFailed = true; // class doesn't have Version string
+            if (string.IsNullOrWhiteSpace(this.moduleAuthor)) this.loadFailed = true; // class doesn't have Author string
+            if (this.loadFailed) { this.Unload(); return; }
+            this.asmName = new AssemblyName(this.moduleName) { CodeBase = _path };
         }
 
         protected override Assembly Load(AssemblyName name)
         {
-            string assemblyPath = _resolver.ResolveAssemblyToPath(name);
+            string assemblyPath = this._resolver.ResolveAssemblyToPath(name);
             if (assemblyPath != null)
             {
-                return LoadFromAssemblyPath(assemblyPath);
+                return this.LoadFromAssemblyPath(assemblyPath);
             }
 
             return null;
         }
-        public void PreLoad(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider)
-        {
-            module.PreLoad(discord, commands, config, provider);
-        }
-        public void PostLoad(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider)
-        {
-            module.PostLoad(discord, commands, config, provider);
-        }
-        public List<Type> GetServices()
-        {
-            return module.Services.ToList();
-        }
-        ~GladosModuleStruct()
-        {
-            module?.Unload(_discord, _commands, _config, _provider);
-        }
+        public void PreLoad(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider) => this.module.PreLoad(discord, commands, config, provider);
+
+        public void PostLoad(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider) => this.module.PostLoad(discord, commands, config, provider);
+
+        public List<Type> GetServices() => this.module.Services.ToList();
+
+        ~GladosModuleStruct() => this.module?.Unload(this._discord, this._commands, this._config, this._provider);
     }
 }
