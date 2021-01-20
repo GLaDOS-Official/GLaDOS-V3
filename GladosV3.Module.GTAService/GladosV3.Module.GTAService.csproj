@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Discord.InteractivityAddon" Version="2.2.0-rc5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GLaDOSV3\GladosV3.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Dependencies\" />
+  </ItemGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\GLaDOSV3\$(OutDir)\Modules\"></Copy>
+    <Copy SourceFiles="Dependencies\Discord.InteractivityAddon.dll" DestinationFolder="..\GLaDOSV3\$(OutDir)\Dependencies"></Copy>
+  </Target>
+</Project>
