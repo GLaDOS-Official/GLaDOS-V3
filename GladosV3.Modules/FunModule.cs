@@ -1,11 +1,11 @@
 ﻿using Discord;
 using Discord.Commands;
 using GladosV3.Attributes;
+using GladosV3.Helpers;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace GladosV3.Module.Default
@@ -23,11 +23,11 @@ namespace GladosV3.Module.Default
             http.DefaultRequestHeaders.Add("User-Agent",
                 "Mozilla/5.0 (Linux; Android 5.0; SM-G920A) AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)"); // we are GoogleBot
             http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            var result = http.GetAsync($"https://catfact.ninja/fact?max_length=2000").GetAwaiter().GetResult()
+            var result = http.GetAsync(new Uri("https://catfact.ninja/fact?max_length=2000")).GetAwaiter().GetResult()
                 .Content.ReadAsStringAsync().GetAwaiter()
                 .GetResult();
             JObject fact = JObject.Parse(result);
-            await this.ReplyAsync(fact["fact"].Value<string>());
+            await this.ReplyAsync(fact["fact"].Value<string>()).ConfigureAwait(false);
         }
         [Command("illegal")]
         [Remarks("illegal <thing>")]
@@ -35,6 +35,9 @@ namespace GladosV3.Module.Default
         [Timeout(2, 45, Measure.Seconds)]
         public async Task Illegal([Remainder]string word)
         {
+            return;
+            //TODO: fix this
+#if false
             if (!new Regex("^[a-zA-Z\\s]{0,10}$").IsMatch(word))
             {
                 await this.ReplyAsync("You cannot use non-standard unicode characters and it cannot be longer than 10 characters!"); return;
@@ -47,12 +50,12 @@ namespace GladosV3.Module.Default
             http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             await http.PostAsync("https://is-now-illegal.firebaseio.com/queue/tasks.json",
                 new StringContent(new JObject(new JProperty("task", "gif"), new JProperty("word", word.ToUpper()))
-                    .ToString()));
-            await Task.Delay(5000);
-            var result = http.GetAsync($"https://is-now-illegal.firebaseio.com/gifs/{word.ToUpper()}.json").GetAwaiter()
-                .GetResult().Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    .ToString())).ConfigureAwait(true).;
+            await Task.Delay(5000).ConfigureAwait(false);
+            var result = await (await http.GetAsync($"https://is-now-illegal.firebaseio.com/gifs/{word.ToUpper()}.json")).Content.ReadAsStringAsync();
             JObject legal = JObject.Parse(result);
-            await msg.ModifyAsync(properties => properties.Content = legal["url"].Value<string>().Replace(" ", "%20"));
+            await msg.ModifyAsync(properties => properties.Content = legal["url"].Value<string>().Replace(" ", "%20", StringComparison.InvariantCulture)).ConfigureAwait(false);
+#endif
         }
         [Command("bunny")]
         [Remarks("bunny")]
@@ -64,11 +67,11 @@ namespace GladosV3.Module.Default
             http.DefaultRequestHeaders.Add("User-Agent",
                 "Mozilla/5.0 (Linux; Android 5.0; SM-G920A) AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)"); // we are GoogleBot
             http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            var result = http.GetAsync("https://api.bunnies.io/v2/loop/random/?media=gif,poster,mp4").GetAwaiter().GetResult()
+            var result = http.GetAsync(new Uri("https://api.bunnies.io/v2/loop/random/?media=gif,poster,mp4")).GetAwaiter().GetResult()
                 .Content.ReadAsStringAsync().GetAwaiter().GetResult();
             JObject bunny = JObject.Parse(result);
             await this.ReplyAsync(
-                $"Here's your bunny! {bunny["media"]["gif"].Value<string>()}");
+                $"Here's your bunny! {bunny["media"]["gif"].Value<string>()}").ConfigureAwait(false);
         }
         [Command("cat")]
         [Remarks("cat")]
@@ -80,11 +83,11 @@ namespace GladosV3.Module.Default
             http.DefaultRequestHeaders.Add("User-Agent",
                 "Mozilla/5.0 (Linux; Android 5.0; SM-G920A) AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)"); // we are GoogleBot
             http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/x-httpd-php"));
-            var result = http.GetAsync("http://aws.random.cat/meow").GetAwaiter().GetResult()
+            var result = http.GetAsync(new Uri("http://aws.random.cat/meow")).GetAwaiter().GetResult()
                 .Content.ReadAsStringAsync().GetAwaiter().GetResult();
             JObject cat = JObject.Parse(result);
             await this.ReplyAsync(
-                $"Here's your cat! {cat["file"].Value<string>()}");
+                $"Here's your cat! {cat["file"].Value<string>()}").ConfigureAwait(false);
         }
         [Command("dog")]
         [Remarks("dog")]
@@ -96,11 +99,11 @@ namespace GladosV3.Module.Default
             http.DefaultRequestHeaders.Add("User-Agent",
                 "Mozilla/5.0 (Linux; Android 5.0; SM-G920A) AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)"); // we are GoogleBot
             http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            var result = http.GetAsync("https://dog.ceo/api/breeds/image/random").GetAwaiter().GetResult()
+            var result = http.GetAsync(new Uri("https://dog.ceo/api/breeds/image/random")).GetAwaiter().GetResult()
                 .Content.ReadAsStringAsync().GetAwaiter().GetResult();
             JObject dog = JObject.Parse(result);
             await this.ReplyAsync(
-                $"Here's your dog! {dog["message"].Value<string>()}");
+                $"Here's your dog! {dog["message"].Value<string>()}").ConfigureAwait(false);
         }
         [Command("urban")]
         [Remarks("urban")]
@@ -108,11 +111,12 @@ namespace GladosV3.Module.Default
         [Timeout(3, 15, Measure.Seconds)]
         public async Task Urban([Remainder] string word)
         {
+            word = await Tools.EscapeMentionsAsync(Context.Guild, Context.Channel, word).ConfigureAwait(true);
             using var http = new HttpClient();
             http.DefaultRequestHeaders.Add("User-Agent",
-                "Mozilla/5.0 (Linux; Android 5.0; SM-G920A) AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)"); // we are GoogleBot
+                                           "Mozilla/5.0 (Linux; Android 5.0; SM-G920A) AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)"); // we are GoogleBot
             http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            var result = await http.GetStringAsync($"http://api.urbandictionary.com/v0/define?term={word}").ConfigureAwait(false);
+            var result = await http.GetStringAsync(new Uri($"http://api.urbandictionary.com/v0/define?term={word}")).ConfigureAwait(true);
             JObject dictionary = JObject.Parse(result);
             EmbedBuilder builder = new EmbedBuilder
             {
@@ -137,7 +141,7 @@ namespace GladosV3.Module.Default
                     x.IsInline = false;
                     x.Value = "Not found";
                 });
-                await Context.Channel.SendMessageAsync(embed: builder.Build());
+                await Context.Channel.SendMessageAsync(embed: builder.Build()).ConfigureAwait(false);
                 return;
             }
             builder.AddField(x =>
@@ -170,7 +174,7 @@ namespace GladosV3.Module.Default
                 x.IsInline = true;
                 x.Value = $"[Click to View]({dictionary["list"].First["permalink"].ToString()})";
             });
-            await Context.Channel.SendMessageAsync(embed: builder.Build());
+            await Context.Channel.SendMessageAsync(embed: builder.Build()).ConfigureAwait(false);
         }
         [Command("8ball")]
         [Remarks("8ball <question>")]
@@ -185,7 +189,7 @@ namespace GladosV3.Module.Default
                 ":8ball: My sources say no", ":8ball: You may rely on it", ":8ball: Cannot predict now",
                 ":8ball: Concentrate and ask again", ":8ball: Ask again later", ":8ball: As I see it, yes"
             };
-            await this.ReplyAsync(answers[this.rnd.Next(answers.Length)]);
+            await this.ReplyAsync(answers[this.rnd.Next(answers.Length)]).ConfigureAwait(false);
         }
     }
 }

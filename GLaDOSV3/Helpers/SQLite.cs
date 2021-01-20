@@ -7,7 +7,7 @@ namespace GladosV3.Helpers
 {
     public static class SqLite
     {
-        public static string DirPath = Path.Combine(Directory.GetCurrentDirectory(), "Database.db");
+        private static readonly string DirPath = Path.Combine(Directory.GetCurrentDirectory(), "Database.db");
         public static SQLiteConnection Connection = new SQLiteConnection($"Data Source={DirPath}");
         /// <summary>
         ///  Returns a bool if a table exists.
@@ -43,7 +43,7 @@ namespace GladosV3.Helpers
         /// </summary>
         public static Task SetValueAsync<T>(this SQLiteConnection connection, string tableName, string parameter, T value, string filter = "")
         {
-            string sql = $"UPDATE {tableName} SET {parameter}='{value.ToString()}'";
+            string sql = $"UPDATE {tableName} SET {parameter}='{value}'";
             if (!string.IsNullOrEmpty(filter))
                 sql += $" {filter}";
             using (SQLiteCommand command = new SQLiteCommand(sql, connection))
@@ -56,7 +56,7 @@ namespace GladosV3.Helpers
         public static Task<DataTable> GetValuesAsync(this SQLiteConnection connection, string tableName, string filter = "")
         {
             string sql = $"SELECT * FROM {tableName}";
-            DataTable dt = new DataTable();
+            using DataTable dt = new DataTable();
             if (!string.IsNullOrEmpty(filter))
                 sql += $" {filter}";
             using (SQLiteDataAdapter reader = new SQLiteDataAdapter(sql, connection))
@@ -84,13 +84,14 @@ namespace GladosV3.Helpers
             if (!Connection.TableExistsAsync("BlacklistedServers").GetAwaiter().GetResult())
                 Connection.CreateTableAsync("BlacklistedServers", "`guildid` INTEGER, `date` TEXT, `reason` TEXT");
         }
+
         /// <summary>
         /// Adds a new row into a table.
         /// </summary>
         public static Task AddRecordAsync<T>(this SQLiteConnection connection, string tablename, string values, T[] items, string filter = "")
         {
-            string result = "";
-            for (int i = 1; i <= items.Length; i++)
+            string result = string.Empty;
+            for (int i = 1; i <= items?.Length; i++)
             {
                 result += $"@val{i},";
             }
@@ -116,6 +117,19 @@ namespace GladosV3.Helpers
             using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                 command.ExecuteNonQuery();
             return Task.CompletedTask;
+        }
+        /// <summary>
+        /// Returns true if table exists
+        /// </summary>
+        public static Task<bool> RecordExistsAsync(this SQLiteConnection connection, string tablename, string filter = "")
+        {
+            string sql = $"SELECT 1 FROM {tablename}";
+            if (!string.IsNullOrEmpty(filter)) sql += $" {filter}";
+            using DataTable dt  = new DataTable();
+            using (SQLiteDataAdapter reader = new SQLiteDataAdapter(sql, connection))
+                reader.Fill(dt);
+            dt.TableName = tablename;
+            return Task.FromResult(dt.Rows.Count != 0);
         }
         /// <summary>
         ///  Executes SQL command

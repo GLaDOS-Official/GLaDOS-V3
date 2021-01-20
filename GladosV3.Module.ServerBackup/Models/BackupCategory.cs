@@ -11,7 +11,7 @@ namespace GladosV3.Module.ServerBackup.Models
         public BackupCategory(SocketCategoryChannel c, ref int channelId) : base(c, ref channelId)
         {
             if (c == null) return;
-            int fuck = channelId;
+            var fuck = channelId;
             TextChannels = c.Channels.Where((f, c) => f is SocketTextChannel).OrderBy(c => c.Id).Select(c => new BackupTextChannel((SocketTextChannel)c, ref fuck)).ToList();
             VoiceChannels = c.Channels.Where((f, c) => f is SocketVoiceChannel).OrderBy(c => c.Id).Select(c => new BackupAudioChannel((SocketVoiceChannel)c, ref fuck)).ToList();
             channelId = fuck;

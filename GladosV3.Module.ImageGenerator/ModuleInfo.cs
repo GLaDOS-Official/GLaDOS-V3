@@ -4,6 +4,7 @@ using GladosV3.Helpers;
 using System;
 using System.Reflection;
 using System.Runtime.Loader;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace GladosV3.Module.ImageGeneration
 {
@@ -13,11 +14,11 @@ namespace GladosV3.Module.ImageGeneration
 
         public string Version() => "0.0.0.1";
 
-        public string UpdateUrl() => null;
+        public Uri UpdateUrl() => null;
 
         public string Author() => "BlackOfWorld#8125";
 
-        public Type[] Services => new[] { typeof(GeneratorService) };
+        public Type[] Services(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceCollection provider) => new[] { typeof(GeneratorService) };
         private static volatile ModuleInfo singleton;
         public static IGladosModule GetModule()
         {

@@ -4,21 +4,22 @@ using GladosV3.Helpers;
 using System;
 using System.Reflection;
 using System.Runtime.Loader;
+using Microsoft.Extensions.DependencyInjection;
 using Victoria;
 
 namespace GladosV3.Module.Music
 {
-    public class ModuleInfo : GladosV3.IGladosModule
+    public class ModuleInfo : IGladosModule
     {
         public string Name() => "Music";
 
         public string Version() => "0.0.0.1";
 
-        public string UpdateUrl() => null;
+        public Uri UpdateUrl() => null;
 
         public string Author() => "BlackOfWorld#8125";
 
-        public Type[] Services => new Type[] { typeof(LavaRestClient), typeof(LavaSocketClient), typeof(AudioService) };
+        public Type[] Services(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceCollection provider) => new Type[] { typeof(LavaNode), typeof(AudioService), typeof(LavaConfig) };
         private static volatile ModuleInfo singleton;
         public static IGladosModule GetModule()
         {

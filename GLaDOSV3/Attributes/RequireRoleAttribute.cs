@@ -15,10 +15,11 @@ namespace GladosV3.Attributes
 
         public override async Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
-            var baseResult = await base.CheckPermissionsAsync(context, command, services);
-            if (baseResult.IsSuccess && ((IGuildUser)context.User).RoleIds.Contains(this._requiredRole))
-                return PreconditionResult.FromSuccess();
-            return baseResult;
+            if (context == null) return PreconditionResult.FromError("oof");
+            var baseResult = await base.CheckPermissionsAsync(context, command, services).ConfigureAwait(true);
+            return baseResult.IsSuccess && ((IGuildUser)context.User).RoleIds.Contains(this._requiredRole)
+                ? PreconditionResult.FromSuccess()
+                : baseResult;
         }
     }
 }

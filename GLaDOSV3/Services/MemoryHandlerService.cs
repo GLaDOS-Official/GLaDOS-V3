@@ -9,7 +9,7 @@ namespace GladosV3.Services
         public static void Start()
         {
             Tools.WriteColorLine(ConsoleColor.Cyan, "[MemoryHandler] Creating thread");
-            Thread thread = new Thread(new ThreadStart(MemoryThread)) { Name = "Memory releasing thread" };
+            Thread thread = new Thread(MemoryThread) { Name = "Memory releasing thread" };
             Tools.WriteColorLine(ConsoleColor.Cyan, "[MemoryHandler] Starting thread");
             thread.Start();
             Tools.WriteColorLine(ConsoleColor.Cyan, "[MemoryHandler] Thread started");

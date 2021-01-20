@@ -8,6 +8,7 @@ namespace GladosV3.Module.ServerBackup.Models
         public string Reason { get; set; }
         public BackupBan(RestBan b)
         {
+            if (b == null) return;
             Id = b.User.Id;
             Reason = b.Reason;
         }

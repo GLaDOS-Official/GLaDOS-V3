@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace GladosV3.Helpers
 {
-    public class PInvokes // Original source found: https://pastebin.com/7qtiPv3A
+    public static class PInvokes // Original source found: https://pastebin.com/7qtiPv3A
     {
         /// <summary>
         /// Map a native function to a delegate
@@ -28,10 +28,10 @@ namespace GladosV3.Helpers
         public static IntPtr GetModule(string name)
         {
             foreach (var module in typeof(Assembly).Assembly.GetModules(true))
-                if (module.Name.ToLowerInvariant() == name.ToLowerInvariant())
+                if (module.Name.ToUpperInvariant() == name.ToUpperInvariant())
                     return Marshal.GetHINSTANCE(module);
             foreach (ProcessModule module in Process.GetCurrentProcess().Modules)
-                if (module.ModuleName.ToLowerInvariant() == name.ToLowerInvariant())
+                if (module.ModuleName.ToUpperInvariant() == name.ToUpperInvariant())
                     return module.BaseAddress;
             return GetModulePtr(name);
         }
@@ -42,15 +42,15 @@ namespace GladosV3.Helpers
             return Marshal.GetDelegateForFunctionPointer(ptr, typeof(T));
         }
 
-        [DllImport("kernel32.dll", EntryPoint = "LoadLibrary", SetLastError = true)]
+        [DllImport("kernel32.dll", EntryPoint = "LoadLibrary", SetLastError = true, CharSet = CharSet.Unicode)]
         private static extern IntPtr GetModulePtr(string libraryFile);
 
-        [DllImport("kernel32.dll", EntryPoint = "GetProcAddress", SetLastError = true)]
+        [DllImport("kernel32.dll", EntryPoint = "GetProcAddress", SetLastError = true, CharSet = CharSet.Unicode)]
         private static extern IntPtr GetFunctionPtr(IntPtr hModule, string procedureName);
     }
-    public class PInvokes_DllImport
+    public static class PInvokes_DllImport
     {
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [DllImport("kernel32.dll", EntryPoint = "SetDllDirectory", SetLastError = true, CharSet = CharSet.Unicode)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool SetDllDirectory(string lpPathName);
 

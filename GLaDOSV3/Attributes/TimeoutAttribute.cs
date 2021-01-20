@@ -76,13 +76,10 @@ namespace GladosV3.Attributes
 
             timeout.TimesInvoked++;
 
-            if (timeout.TimesInvoked <= this._invokeLimit)
-            {
-                this._tracker[key] = timeout;
-                return Task.FromResult(PreconditionResult.FromSuccess());
-            }
+            if (timeout.TimesInvoked > this._invokeLimit) return Task.FromResult(PreconditionResult.FromError("You're currently in timeout."));
+            this._tracker[key] = timeout;
+            return Task.FromResult(PreconditionResult.FromSuccess());
 
-            return Task.FromResult(PreconditionResult.FromError("You're currently in timeout."));
         }
 
         private class CommandTimeout

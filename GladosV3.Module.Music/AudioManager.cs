@@ -1,166 +1,181 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using Newtonsoft.Json;
 using System.Linq;
+using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Victoria;
-using Victoria.Entities;
-using SearchResult = Victoria.Entities.SearchResult;
+using Victoria.Enums;
+using Victoria.EventArgs;
+using Victoria.Responses.Rest;
 
 namespace GladosV3.Module.Music
 {
     public class AudioService
     {
         public static AudioService service;
-        private readonly LavaSocketClient _lavaClient;
-        private readonly DiscordSocketClient _socketClient;
-        private readonly LavaRestClient _lavaRestClient;
-        public AudioService(LavaRestClient lavaRestClient, LavaSocketClient lavaSocketClient, DiscordSocketClient socketClient)
+        private readonly LavaNode lavaNode;
+        private readonly DiscordSocketClient socketClient;
+        public AudioService(LavaNode lavaNode, DiscordSocketClient socketClient)
         {
-            this._lavaClient = lavaSocketClient;
-            this._socketClient = socketClient;
-            this._lavaRestClient = lavaRestClient;
-            lavaSocketClient.OnTrackFinished += this.LavaSocketClient_OnTrackFinished;
-            socketClient.Ready += this.SocketClient_Ready;
-            this._socketClient.UserVoiceStateUpdated += (user, old, _new) =>
+            this.lavaNode = lavaNode;
+            this.socketClient = socketClient;
+            lavaNode.OnTrackEnded += this.LavaNodeOnOnTrackEnded;
+            socketClient.Disconnected += exception => this.lavaNode.DisconnectAsync();
+            socketClient.Ready += () => this.lavaNode.ConnectAsync();
+            this.socketClient.UserVoiceStateUpdated += (user, old, _) =>
             {
-                if (old.VoiceChannel == null)
-                    return Task.CompletedTask;
-                var player = this._lavaClient.GetPlayer(old.VoiceChannel.Guild.Id);
-                if (player is null)
-                    return Task.CompletedTask;
-                if (player.VoiceChannel.Id == old.VoiceChannel.Id && old.VoiceChannel.Users.Count <= 1)
-                    this._lavaClient.DisconnectAsync(old.VoiceChannel);
+                if (old.VoiceChannel == null) return Task.CompletedTask;
+                var player = this.GetPlayer(old.VoiceChannel.Guild);
+                if (player is null) return Task.CompletedTask;
+                if (player.VoiceChannel.Id == old.VoiceChannel.Id && old.VoiceChannel.Users.Count <= 1) this.lavaNode.LeaveAsync(old.VoiceChannel);
                 return Task.CompletedTask;
             };
 
         }
 
-        public LavaPlayer GetPlayer(ulong guildId) => this._lavaClient.GetPlayer(guildId);
 
-        public async Task ConnectAsync(SocketVoiceChannel voiceChannel, ITextChannel textChannel)
-            => await this._lavaClient.ConnectAsync(voiceChannel, textChannel);
+        public LavaPlayer GetPlayer(IGuild guild) => this.lavaNode.HasPlayer(guild) ? this.lavaNode.GetPlayer(guild) : null;
 
-        public async Task LeaveAsync(SocketVoiceChannel voiceChannel)
-            => await this._lavaClient.DisconnectAsync(voiceChannel);
-        public async Task<string> PlayAsync(string query, ulong guildId)
+        public async Task<string> ConnectAsync(SocketVoiceChannel voiceChannel, ITextChannel textChannel)
         {
-            var _player = this._lavaClient.GetPlayer(guildId);
-            if (_player == null) return "Player error. Please contact the bot owner.";
-            SearchResult results;
+            if (!this.lavaNode.IsConnected) return "Player is offline. Please contact the bot owner.";
+            if (voiceChannel is null) return "You need to connect to a voice channel.";
+            await this.lavaNode.JoinAsync(voiceChannel, textChannel);
+            return $"Connected to {voiceChannel.Name}! 🔈";
+        }
+
+        public async Task<string> LeaveAsync(SocketVoiceChannel voiceChannel)
+        {
+            if (!this.lavaNode.IsConnected) return "Player is offline. Please contact the bot owner.";
+            if (voiceChannel is null) return "Please join the channel the bot is in to make it leave.";
+            await this.lavaNode.LeaveAsync(voiceChannel);
+            return $"Leaving {voiceChannel.Name}! 👋";
+        }
+
+        private static async Task<string> GetYoutubeId(string url)
+        {
+            Regex r = new Regex(".*((youtu.be\\/)|(v\\/)|(\\/u\\/\\w\\/)|(embed\\/)|(watch\\?))\\??v?=?([^#\\&\\?]*).*", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+            Match match = r.Match(url);
+            return (match.Success && match.Groups[7].Length == 11) ? match.Groups[7].Value : url;
+        }
+        public async Task<string> PlayAsync(string query, IGuild guild)
+        {
+            if (!this.lavaNode.IsConnected) return "Player is offline. Please contact the bot owner.";
+            var player = this.GetPlayer(guild);
+            if (player == null) return "Player error. Please contact the bot owner.";
+            if (player.Queue.Count > 35) return "Queue is full!";
+            SearchResponse results;
             try
             {
-                results = await this._lavaRestClient.SearchSoundcloudAsync(query);
+                if (query.StartsWith("https://soundcloud.com")) results = await this.lavaNode.SearchSoundCloudAsync(query.Remove(0, 23));
+                else if (query.StartsWith("https://music.youtube.com/watch?v=") || query.StartsWith("https://www.youtube.com/watch?v=") || query.StartsWith("https://youtu.be/")) { results = await this.lavaNode.SearchYouTubeAsync(query); if (results.Tracks.Count == 0) results = await this.lavaNode.SearchYouTubeAsync(await GetYoutubeId(query)); }
+                else results = await this.lavaNode.SearchAsync(query);
             }
-            catch (JsonReaderException)
+            catch (HttpRequestException)
             {
-                await this._lavaClient.DisconnectAsync(_player.VoiceChannel);
                 return "Player is offline. Please contact the bot owner.";
             }
 
-            if (results.LoadType == LoadType.NoMatches || results.LoadType == LoadType.LoadFailed) results = await this._lavaRestClient.SearchSoundcloudAsync(query);
-            if (results.LoadType == LoadType.NoMatches || results.LoadType == LoadType.LoadFailed) return "No song found on YT or SC.";
+            if (results.LoadStatus == LoadStatus.NoMatches || results.LoadStatus == LoadStatus.LoadFailed) results = await this.lavaNode.SearchYouTubeAsync(query);
+            if (results.LoadStatus == LoadStatus.NoMatches || results.LoadStatus == LoadStatus.LoadFailed || results.Tracks.Count == 0) return "No song found on YT or SC.";
             var track = results.Tracks.FirstOrDefault();
-            if (_player.Queue.Count > 35) return "Queue is full!";
-            if (_player.IsPlaying)
+            if (player.PlayerState == PlayerState.Playing || player.PlayerState == PlayerState.Paused)
             {
-                _player.Queue.Enqueue(track);
+                player.Queue.Enqueue(track);
                 return $"{track.Title} has been added to the queue.";
             }
-            else
-            {
-                await _player.PlayAsync(track);
-                return $"Now Playing: {track.Title}";
-            }
+            await player.PlayAsync(track);
+            return $"Now Playing: `{track.Title}` by `{track.Author}`";
         }
 
-        public async Task<string> StopAsync(ulong guildId)
+        public async Task<string> StopAsync(IGuild guild)
         {
-            var _player = this._lavaClient.GetPlayer(guildId);
-            if (_player is null)
+            if (!this.lavaNode.IsConnected) return "Player is offline. Please contact the bot owner.";
+            var player = this.GetPlayer(guild);
+            if (player is null)
                 return "Error with player. Please contact the bot owner.";
-            await _player.StopAsync();
-            return "Music playback Stopped.";
+            await player.StopAsync();
+            player.Queue.Clear();
+            return "Music playback stopped.";
         }
 
-        public async Task<string> SkipAsync(ulong guildId)
+        public async Task<string> SkipAsync(IGuild guild)
         {
-            var _player = this._lavaClient.GetPlayer(guildId);
-            if (_player is null || _player.Queue.Items.Count() is 0)
-                return "There's nothing left in the queue!'";
+            if (!this.lavaNode.IsConnected) return "Player is offline. Please contact the bot owner.";
+            var player = this.GetPlayer(guild);
+            if (player is null || player.Queue.Count() is 0)
+                return "There's nothing left in the queue!";
 
-            var oldTrack = _player.CurrentTrack;
-            await _player.SkipAsync();
-            return $"Skiped: {oldTrack.Title}\nNow Playing: {_player.CurrentTrack.Title}";
+            var oldTrack = player.Track;
+            await player.SkipAsync();
+            return $"Skipped: {oldTrack.Title}\nNow Playing: {player.Track.Title}";
         }
 
-        public async Task<string> SetVolumeAsync(int vol, ulong guildId)
+        public async Task<string> SetVolumeAsync(ushort vol, IGuild guild)
         {
-            var _player = this._lavaClient.GetPlayer(guildId);
-            if (_player is null)
+            if (!this.lavaNode.IsConnected) return "Player is offline. Please contact the bot owner.";
+            var player = this.GetPlayer(guild);
+            if (player is null)
                 return "Player isn't playing.";
 
-            if (vol > 150 || vol <= 2)
-            {
-                return "Please use range between 2 - 150";
-            }
+            if (vol > 250 || vol <= 10) return "Please use range between 10 - 250";
 
-            await _player.SetVolumeAsync(vol);
+            await player.UpdateVolumeAsync(vol);
             return $"Volume set to: {vol}";
         }
 
-        public async Task<string> PauseOrResumeAsync(ulong guildId)
+        public async Task<string> PauseOrResumeAsync(IGuild guild)
         {
-            var _player = this._lavaClient.GetPlayer(guildId);
-            if (_player is null)
+            if (!this.lavaNode.IsConnected) return "Player is offline. Please contact the bot owner.";
+            var player = this.GetPlayer(guild);
+            if (player is null)
                 return "Player isn't playing.";
 
-            if (!_player.IsPaused)
+            if (player.PlayerState != PlayerState.Paused)
             {
-                await _player.PauseAsync();
+                await player.PauseAsync();
                 return "Player paused.";
             }
-            await _player.ResumeAsync();
+            await player.ResumeAsync();
             return "Playback resumed.";
         }
 
-        public async Task<string> ResumeAsync(ulong guildId)
+        public async Task<string> ResumeAsync(IGuild guild)
         {
-            var _player = this._lavaClient.GetPlayer(guildId);
-            if (_player is null)
-                return "Player isn't playing.";
+            if (!this.lavaNode.IsConnected) return "Player is offline. Please contact the bot owner.";
+            var player = this.GetPlayer(guild);
+            if (player is null) return "Player isn't playing.";
 
-            if (!_player.IsPaused) return "Player is not paused.";
-            await _player.ResumeAsync();
+            if (player.PlayerState == PlayerState.Playing) return "Player is not paused.";
+            await player.ResumeAsync();
             return "Playback resumed.";
 
         }
-        public Task<string> QueueCMD(ulong guildId)
+        public Task<string> QueueCMD(IGuild guild)
         {
-            var _player = this._lavaClient.GetPlayer(guildId);
-            if (_player is null || !_player.IsPlaying)
+            if (!this.lavaNode.IsConnected) return Task.FromResult("Player is offline. Please contact the bot owner.");
+            var player = this.GetPlayer(guild);
+            if (player is null || player.PlayerState != PlayerState.Playing)
                 return Task.FromResult("Player isn't playing.");
-            string msg = $"Queue:\n```1. {_player.CurrentTrack.Title} by {_player.CurrentTrack.Author} on {_player.CurrentTrack.Provider}";
-            var r = _player.Queue.Items;
-            int i = 2;
-            msg = r.Cast<LavaTrack>().Aggregate(msg, (current, e) => current + $"\n{i++}. {e.Title} by {e.Author} on {e.Provider}");
+            var msg = $"Queue:\n```1. {player.Track.Title} by {player.Track.Author}";
+            var i = 2;
+            msg = player.Queue.Cast<LavaTrack>().Aggregate(msg, (current, e) => current + $"\n{i++}. {e.Title} by {e.Author}");
             msg += "\n```";
             return Task.FromResult(msg);
         }
-        private async Task LavaSocketClient_OnTrackFinished(LavaPlayer player, LavaTrack track, TrackEndReason reason)
+        private async Task LavaNodeOnOnTrackEnded(TrackEndedEventArgs args)
         {
-            if (!reason.ShouldPlayNext())
+            if (!args.Reason.ShouldPlayNext())
                 return;
 
-            if (!player.Queue.TryDequeue(out var item) || !(item is LavaTrack nextTrack))
+            if (!args.Player.Queue.TryDequeue(out var item) || !(item is LavaTrack nextTrack))
             {
-                await player.TextChannel.SendMessageAsync("There are no more tracks in the queue.");
+                await args.Player.TextChannel.SendMessageAsync("There are no more tracks in the queue.");
                 return;
             }
-            await player.PlayAsync(nextTrack);
-            await player.TextChannel.SendMessageAsync($"Now Playing: {player.CurrentTrack.Title} by {player.CurrentTrack.Author}");
+            await args.Player.PlayAsync(nextTrack);
+            await args.Player.TextChannel.SendMessageAsync($"Now Playing: {args.Player.Track.Title} by {args.Player.Track.Author}");
         }
-
-        private async Task SocketClient_Ready() => await this._lavaClient.StartAsync(this._socketClient);
     }
 }

@@ -12,6 +12,7 @@ namespace GladosV3.Helpers
 {
     public sealed class Eval
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1051:Do not declare visible instance fields", Justification = "<Pending>")]
         public class Globals
         {
             public SocketUserMessage Message => Context.Message;
@@ -19,9 +20,11 @@ namespace GladosV3.Helpers
             public SocketGuild Guild => Context.Guild;
             public SocketUser User => Context.Message.Author;
             public BotSettingsHelper<string> Config => new BotSettingsHelper<string>();
+
             public DiscordSocketClient Client => Context.Client;
-            public Tools Tools => new Tools();
-            public SocketCommandContext Context { get; private set; }
+            public Tools Tools = new Tools();
+            public SocketCommandContext Context { get; }
+
             public SQLiteConnection SQLConnection = SqLite.Connection;
 
             public Globals(SocketCommandContext ctx) => Context = ctx;
@@ -38,24 +41,20 @@ namespace GladosV3.Helpers
             {
                 ScriptOptions options = ScriptOptions.Default.WithReferences(AppDomain.CurrentDomain.GetAssemblies().Where(asm => !asm.IsDynamic && !string.IsNullOrWhiteSpace(asm.Location))).WithImports(imports).WithEmitDebugInformation(true);
                 Script result = CSharpScript.Create(cScode, options, typeof(Globals));
-                string returnVal = result.RunAsync(new Globals(ctx)).GetAwaiter().GetResult().ReturnValue?.ToString();
+                var returnVal = result.RunAsync(new Globals(ctx)).GetAwaiter().GetResult().ReturnValue?.ToString();
                 BotSettingsHelper<string> r = new BotSettingsHelper<string>();
-                string token = r["tokens_discord"].ToString();
-                if (!string.IsNullOrWhiteSpace(returnVal) && returnVal.Contains(token))
-                {
-                    returnVal = returnVal?.Replace(token,
-                        "Nah, no token leak 4 u.");
-                }
+                var token = r["tokens_discord"];
+                if (!string.IsNullOrWhiteSpace(returnVal) && returnVal.Contains(token, StringComparison.Ordinal)) returnVal = returnVal?.Replace(token, "Nah, no token leak 4 u.", StringComparison.OrdinalIgnoreCase);
 
-                return !string.IsNullOrWhiteSpace(returnVal) ? await Task.FromResult($"**Executed!**{Environment.NewLine}Output: ```{string.Join(Environment.NewLine, returnVal)}```").ConfigureAwait(true) : await Task.FromResult("**Executed!** *No output.*");
+                return !string.IsNullOrWhiteSpace(returnVal) ? await Task.FromResult($"**Executed!**{Environment.NewLine}Output: ```{string.Join(Environment.NewLine, returnVal)}```").ConfigureAwait(true) : await Task.FromResult("**Executed!** *No output.*").ConfigureAwait(false);
             }
             catch (CompilationErrorException e)
             {
-                return await Task.FromResult($"**Compiler error**{Environment.NewLine}Output: ```{string.Join(Environment.NewLine, e.Diagnostics)}```");
+                return $"**Compiler error**\nOutput: ```{string.Join('\n', e.Diagnostics)}```";
             }
             catch (Exception e)
             {
-                return await Task.FromResult($"**Exception!** {e.Message}\n{e.StackTrace}");
+                return $"**Exception!** {e.Message}\n{e.StackTrace}";
             }
         }
     }

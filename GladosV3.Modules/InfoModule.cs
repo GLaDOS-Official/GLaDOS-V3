@@ -6,6 +6,7 @@ using GladosV3.Helpers;
 using Microsoft.Extensions.PlatformAbstractions;
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -17,7 +18,7 @@ namespace GladosV3.Module.Default
     [Name("Info")]
     public class InfoModule : ModuleBase<SocketCommandContext>
     {
-        private static string infoMessage;
+        private static string _infoMessage;
         private static DiscordSocketClient _client;
         private readonly Thread t = new Thread(new ThreadStart(RefreshMessage));
         private static BotSettingsHelper<string> _botSettingsHelper;
@@ -28,58 +29,58 @@ namespace GladosV3.Module.Default
             {
                 static string ToFileSize2(double size)
                 {
-                    int scale = 1024;
+                    var scale = 1024;
                     var kb = 1 * scale;
                     var mb = kb * scale;
-                    long gb = mb * scale;
-                    long tb = gb * scale;
+                    var gb = mb * scale;
+                    var tb = gb * scale;
 
                     if (size < kb)
                         return size + " Bytes";
                     if (size < mb)
-                        return (size / kb).ToString("0.## KB");
+                        return (size / kb).ToString("0.## KB", CultureInfo.InvariantCulture);
                     if (size < gb)
-                        return (size / mb).ToString("0.## MB");
+                        return (size / mb).ToString("0.## MB", CultureInfo.InvariantCulture);
                     // ReSharper disable once ConvertIfStatementToReturnStatement
                     if (size < tb)
-                        return (size / gb).ToString("0.## GB");
+                        return (size / gb).ToString("0.## GB", CultureInfo.InvariantCulture);
 
-                    return (size / tb).ToString("0.## TB");
+                    return (size / tb).ToString("0.## TB", CultureInfo.InvariantCulture);
                 }
 
                 static float GetCpuUsage()
                 {
-                    var cpuCounter = new PerformanceCounter("Process", "% Processor Time",
+                    using var cpuCounter = new PerformanceCounter("Process", "% Processor Time",
                         Process.GetCurrentProcess().ProcessName); //, Process.GetCurrentProcess().ProcessName,true
                     cpuCounter.NextValue();
                     Thread.Sleep(1000);
                     return cpuCounter.NextValue();
                 }
-                infoMessage = (
+                _infoMessage = (
                     $"{Format.Bold("Info")}\n" +
-                    $"- Library: Discord.Net ({DiscordConfig.APIVersion.ToString()})\n" +
-                    $"- Runtime: {PlatformServices.Default.Application.RuntimeFramework.Identifier.Replace("App", string.Empty)} {PlatformServices.Default.Application.RuntimeFramework.Version} {(IntPtr.Size * 8).ToString()}-bit\n" +
-                    $"- System: {RuntimeInformation.OSDescription} {RuntimeInformation.ProcessArchitecture.ToString().ToLower()}\n" +
+                    $"- Library: Discord.Net ({DiscordConfig.APIVersion.ToString(CultureInfo.InvariantCulture)})\n" +
+                    $"- Runtime: {PlatformServices.Default.Application.RuntimeFramework.Identifier.Replace("App", string.Empty, StringComparison.OrdinalIgnoreCase)} {PlatformServices.Default.Application.RuntimeFramework.Version} {(IntPtr.Size * 8).ToString(CultureInfo.InvariantCulture)}-bit\n" +
+                    $"- System: {RuntimeInformation.OSDescription} {RuntimeInformation.ProcessArchitecture.ToString().ToUpperInvariant()}\n" +
                     $"- Up-time: {(DateTime.Now - Process.GetCurrentProcess().StartTime):d\'d \'hh\'h \'mm\'m \'ss\'s\'}\n" +
-                    $"- Heartbeat: {_client.Latency.ToString()} ms\n" +
-                    $"- Thread running: {Process.GetCurrentProcess().Threads.OfType<ProcessThread>().Count(t => t.ThreadState == System.Diagnostics.ThreadState.Running).ToString()} out of {Process.GetCurrentProcess().Threads.Count.ToString()}\n" +
+                    $"- Heartbeat: {_client.Latency.ToString(CultureInfo.InvariantCulture)} ms\n" +
+                    $"- Thread running: {Process.GetCurrentProcess().Threads.OfType<ProcessThread>().Count(t => t.ThreadState == System.Diagnostics.ThreadState.Running).ToString(CultureInfo.InvariantCulture)} out of {Process.GetCurrentProcess().Threads.Count.ToString(CultureInfo.InvariantCulture)}\n" +
                     $"- RAM usage: {ToFileSize2(Process.GetCurrentProcess().PagedMemorySize64)}\n" +
-                    $"- CPU usage: {GetCpuUsage():N1}%\n" +
+                    $"- CPU usage: {(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"{GetCpuUsage():N1}%" : "Can not determine CPU usage 😦")}\n" +
                     $"- Heap Size: {ToFileSize2(GC.GetTotalMemory(true))}\n" +
-                    $"- Owner of the bot: <@{ulong.Parse(_botSettingsHelper["ownerID"]).ToString()}>\n" +
+                    $"- Owner of the bot: <@{ulong.Parse(_botSettingsHelper["ownerID"], CultureInfo.InvariantCulture).ToString(CultureInfo.InvariantCulture)}>\n" +
                     $"- Version: {FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion}\n" +
                     "- Author of the bot: <@419568355771416577>\n\n" +
 
                     $"{Format.Bold("Stats")}\n" +
-                    $"- Servers: {_client.Guilds.Count.ToString()}\n"
+                    $"- Servers: {_client.Guilds.Count.ToString(CultureInfo.InvariantCulture)}\n"
                 );
                 Thread.Sleep(60000);
             }
         }
         public InfoModule(DiscordSocketClient socketClient, BotSettingsHelper<string> botSettingsHelper)
         {
-            if (_client != null && _botSettingsHelper != null) return;
-            _botSettingsHelper = botSettingsHelper;
+            if (_client != null && InfoModule._botSettingsHelper != null) return;
+            InfoModule._botSettingsHelper = botSettingsHelper;
             _client = socketClient;
             this.t.Start();
         }
@@ -88,16 +89,16 @@ namespace GladosV3.Module.Default
         [Remarks("info")]
         public async Task Info()
         {
-            IDMChannel DM = await Context.Message.Author.GetOrCreateDMChannelAsync();
+            IDMChannel dm = await Context.Message.Author.GetOrCreateDMChannelAsync().ConfigureAwait(true);
             if (Context.Guild != null)
             {
-                infoMessage += $"- Channels: {Context.Guild.Channels.Count} (in {Context.Guild.Name})\n" +
+                _infoMessage += $"- Channels: {Context.Guild.Channels.Count} (in {Context.Guild.Name})\n" +
                            $"- Users: {Context.Guild.Users.Count} (in {Context.Guild.Name})\n";
             }
-            infoMessage += $"- Channels: {Context.Client.Guilds.Sum(guild => guild.Channels.Count)} (total)\n" +
+            _infoMessage += $"- Channels: {Context.Client.Guilds.Sum(guild => guild.Channels.Count)} (total)\n" +
                            $"- Users: {Context.Client.Guilds.Sum(guild => guild.Users.Count)} (total)\n";
-            await DM.SendMessageAsync(infoMessage);
-            await DM.CloseAsync();
+            await dm.SendMessageAsync(_infoMessage).ConfigureAwait(false);
+            await dm.CloseAsync().ConfigureAwait(false);
         }
 
         [Command("ping")]
@@ -112,8 +113,8 @@ namespace GladosV3.Module.Default
             var usual = (sw.ElapsedMilliseconds > 2500 || Context.Client.Latency > 5000) ? "there could be something wrong." : "there should be nothing wrong.";
             await message.ModifyAsync(delegate (MessageProperties properties)
             {
-                properties.Content = $"🏓 Pong!\n👂 Response time: {sw.ElapsedMilliseconds.ToString()}ms.\n❤ Websocket heartbeat: {Context.Client.Latency}ms.\n This means that {usual}";
-            });
+                properties.Content = $"🏓 Pong!\n👂 Response time: {sw.ElapsedMilliseconds.ToString(CultureInfo.InvariantCulture)}ms.\n❤ Websocket heartbeat: {Context.Client.Latency}ms.\n This means that {usual}";
+            }).ConfigureAwait(false);
         }
 
         [Command("invite")]
@@ -136,9 +137,9 @@ namespace GladosV3.Module.Default
                     "For Mod usage higher perms are needed!\n" +
                     $"[Click to Invite](https://discordapp.com/oauth2/authorize?client_id={Context.Client.CurrentUser.Id}&scope=bot&permissions={GuildPermissions.All.RawValue})"
             };
-            IDMChannel dm = await Context.Message.Author.GetOrCreateDMChannelAsync();
-            await dm.SendMessageAsync("", false, eb.Build());
-            await dm.CloseAsync();
+            IDMChannel dm = await Context.Message.Author.GetOrCreateDMChannelAsync().ConfigureAwait(true);
+            await dm.SendMessageAsync("", false, eb.Build()).ConfigureAwait(false);
+            await dm.CloseAsync().ConfigureAwait(false);
         }
 
         [Command("user")]
@@ -153,12 +154,14 @@ namespace GladosV3.Module.Default
                 var userInfo = user ?? Context.User;
                 var avatarUrl = userInfo.GetAvatarUrl() ??
                                 userInfo.GetDefaultAvatarUrl();
+                //var oof = userInfo.ActiveClients.Any(r => r == ClientType.Mobile);
+                //TODO: make this simpler for mobile
                 var eb = new EmbedBuilder
                 {
                     Color = new Color(4, 97, 247),
                     ThumbnailUrl = (avatarUrl),
                     Title = $"{userInfo.Username}#{userInfo.Discriminator}",
-                    Description = $"Created on {userInfo.CreatedAt.ToString().Remove(userInfo.CreatedAt.ToString().Length - 6)}. That is {(int)(DateTime.Now.ToUniversalTime().Subtract(userInfo.CreatedAt.DateTime).TotalDays)} days ago!", //{(int)(DateTime.Now.Subtract(Context.Guild.CreatedAt.DateTime).TotalDays)}
+                    Description = $"Created on {userInfo.CreatedAt.ToString(CultureInfo.InvariantCulture).Remove(userInfo.CreatedAt.ToString(CultureInfo.InvariantCulture).Length - 6)}. That is {(int)(DateTime.Now.ToUniversalTime().Subtract(userInfo.CreatedAt.DateTime).TotalDays)} days ago!", //{(int)(DateTime.Now.Subtract(Context.Guild.CreatedAt.DateTime).TotalDays)}
                     Footer = new EmbedFooterBuilder
                     {
                         Text = $"Requested by {Context.User.Username}#{Context.User.Discriminator} | ID: {Context.User.Id}",
@@ -186,7 +189,7 @@ namespace GladosV3.Module.Default
                 {
                     x.Name = "ID";
                     x.IsInline = true;
-                    x.Value = userInfo.Id.ToString();
+                    x.Value = userInfo.Id.ToString(CultureInfo.InvariantCulture);
                 });
                 if (Context.Guild != null)
                 {
@@ -224,15 +227,13 @@ namespace GladosV3.Module.Default
                             x.Value =
                                 $"{socketUser?.JoinedAt.ToString().Remove(socketUser.JoinedAt.ToString().Length - 6)}\n({(int)DateTime.Now.ToUniversalTime().Subtract(((DateTimeOffset)socketUser?.JoinedAt).DateTime).TotalDays} days ago)";
                     });
-                    string permissions = "";
-                    int take = 0;
+                    var permissions = string.Empty;
                     var list = (userInfo as SocketGuildUser)?.GuildPermissions.ToList();
                     list?.ForEach(x =>
                     {
                         if (list.Contains(GuildPermission.Administrator))
                         { permissions = "Administrator"; return; }
-                        permissions += x.ToString() + ", ";
-                        take++;
+                        permissions += x + ", ";
                         if (list.Last() == x)
                             permissions = permissions.Remove(permissions.Length - 2);
                     });
@@ -244,7 +245,7 @@ namespace GladosV3.Module.Default
                     });
                     eb.AddField(x =>
                     {
-                        string roles = "";
+                        var roles = string.Empty;
 
                         if (socketUser != null && socketUser.Roles.Count > 1)
                         {
@@ -264,8 +265,10 @@ namespace GladosV3.Module.Default
                         x.Value = $"{(string.IsNullOrWhiteSpace(roles) ? "*none*" : $"{roles}")}";
                     });
                 }
+                for (var i = 0; i <= Tools.RoundToDividable<int>(eb.Fields.Count, 3) - eb.Fields.Count; i++)
+                    eb.AddBlankField(true);
 
-                await Context.Channel.SendMessageAsync("", false, eb.Build());
+                await Context.Channel.SendMessageAsync("", false, eb.Build()).ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -284,13 +287,13 @@ namespace GladosV3.Module.Default
             Context.Guild.GetUser(Context.Client.CurrentUser.Id).GuildPermissions.ToList();
             try
             {
-                var avatarURL = Context.Guild.IconUrl ?? "http://ravegames.net/ow_userfiles/themes/theme_image_22.jpg";
+                var avatarUrl = Context.Guild.IconUrl ?? "http://ravegames.net/ow_userfiles/themes/theme_image_22.jpg";
                 var eb = new EmbedBuilder
                 {
                     Color = new Color(4, 97, 247),
-                    ThumbnailUrl = (avatarURL),
+                    ThumbnailUrl = (avatarUrl),
                     Title = $"{Context.Guild.Name} ({Context.Guild.Id})",
-                    Description = $"Created on {Context.Guild.CreatedAt.ToString().Remove(Context.Guild.CreatedAt.ToString().Length - 6)}. That's {Math.Round(DateTime.Now.ToUniversalTime().Subtract(Context.Guild.CreatedAt.DateTime).TotalDays)} days ago!",
+                    Description = $"Created on {Context.Guild.CreatedAt.ToString(CultureInfo.InvariantCulture).Remove(Context.Guild.CreatedAt.ToString(CultureInfo.InvariantCulture).Length - 6)}. That's {Math.Round(DateTime.Now.ToUniversalTime().Subtract(Context.Guild.CreatedAt.DateTime).TotalDays)} days ago!",
                     Footer = new EmbedFooterBuilder
                     {
                         Text = $"Requested by {Context.User.Username}#{Context.User.Discriminator} | Guild ID: {Context.Guild.Id}",
@@ -308,21 +311,21 @@ namespace GladosV3.Module.Default
                 {
                     x.Name = "Members";
                     x.IsInline = true;
-                    x.Value = $"{(Context.Guild.Users.Count(u => u.Status != UserStatus.Invisible && u.Status != UserStatus.Offline)).ToString()} / {(Context.Guild).MemberCount}";
+                    x.Value = $"{(Context.Guild.Users.Count(u => u.Status != UserStatus.Invisible && u.Status != UserStatus.Offline)).ToString(CultureInfo.InvariantCulture)} / {(Context.Guild).MemberCount}";
                 });
 
                 eb.AddField(x =>
                 {
                     x.Name = "Region";
                     x.IsInline = true;
-                    x.Value = Context.Guild.VoiceRegionId.ToUpper();
+                    x.Value = Context.Guild.VoiceRegionId.ToUpper(CultureInfo.InvariantCulture);
                 });
 
                 eb.AddField(x =>
                 {
                     x.Name = "Roles";
                     x.IsInline = true;
-                    x.Value = "" + Context.Guild.Roles.Count;
+                    x.Value = string.Empty + Context.Guild.Roles.Count;
                 });
 
                 eb.AddField(x =>
@@ -343,14 +346,14 @@ namespace GladosV3.Module.Default
                 {
                     x.Name = "Total Emojis";
                     x.IsInline = true;
-                    x.Value = $"{(Context.Guild.Emotes.Count == 0 ? "Anti-emoji" : Context.Guild.Emotes.Count.ToString())}";
+                    x.Value = $"{(Context.Guild.Emotes.Count == 0 ? "Anti-emoji" : Context.Guild.Emotes.Count.ToString(CultureInfo.InvariantCulture))}";
                 });
 
                 eb.AddField(x =>
                 {
                     x.Name = "Avatar Url";
                     x.IsInline = true;
-                    x.Value = $"[Click to view]({avatarURL})";
+                    x.Value = $"[Click to view]({avatarUrl})";
                 });
                 if (Context.Guild.Emotes.Count > 0)
                 {
@@ -359,7 +362,7 @@ namespace GladosV3.Module.Default
                         x.Name = "Emojis";
                         x.IsInline = false;
 
-                        string val = "";
+                        var val = string.Empty;
 
                         foreach (var e in Context.Guild.Emotes)
                         {
@@ -369,7 +372,7 @@ namespace GladosV3.Module.Default
                         x.Value = (string.IsNullOrWhiteSpace(val) ? "*none*" : val);
                     });
                 }
-                await Context.Channel.SendMessageAsync("", false, eb.Build());
+                await Context.Channel.SendMessageAsync(embed: eb.Build()).ConfigureAwait(false);
             }
             catch (Exception e)
             {

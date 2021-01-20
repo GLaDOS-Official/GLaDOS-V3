@@ -4,9 +4,9 @@ using Discord.WebSocket;
 using GladosV3.Attributes;
 using GladosV3.Helpers;
 using GladosV3.Services;
-using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Data;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -15,388 +15,292 @@ namespace GladosV3.Modules
     //[Name("Bot owner")]
     public class OwnerModule : ModuleBase<SocketCommandContext>
     {
-        public readonly CommandService _service;
-        public readonly IServiceProvider _provider;
-        public static MemoryCache mCache;
+        private readonly CommandService service;
+        private readonly IServiceProvider provider;
 
         // CommandService, IConfigurationRoot, and IServiceProvider are injected automatically from the IServiceProvider;
         public OwnerModule(CommandService service, IServiceProvider provider)
         {
-            this._service = service;
-            this._provider = provider;
-            mCache = new MemoryCache(new MemoryCacheOptions());
+            this.service = service;
+            this.provider = provider;
         }
 
-
-        [Group("Bot")]
-        [CommandHidden]
+        [Command("bot maintenance")]
+        [Remarks("bot maintenance [reason]")]
+        [Summary("Toggles maintenance mode on or off")]
         [Attributes.RequireOwner]
-        public class Bot : ModuleBase<SocketCommandContext>
+        public async Task Maintenance([Remainder] string reason = "")
         {
-            [Command("maintenance")]
-            [Remarks("bot maintenance [reason]")]
-            [Summary("Toggles maintenance mode on or off")]
-            public async Task Maintenance([Remainder]string reason = "")
+            CommandHandler.MaintenanceMode = reason;
+            IsOwner.botSettingsHelper["maintenance"] = reason;
+            await this.ReplyAsync($"{(string.IsNullOrWhiteSpace(reason) ? "Disabled" : "Enabled")} maintenance reason{(string.IsNullOrWhiteSpace(reason) ? "" : " to: ")}{(string.IsNullOrWhiteSpace(reason) ? "" : reason)}!").ConfigureAwait(false);
+        }
+        [Command("bot restart")]
+        [Remarks("bot restart")]
+        [Summary("Restarts the bot")]
+        [Attributes.RequireOwner]
+        public async Task Restart()
+        {
+            await this.ReplyAsync($"Restarting the bot!").ConfigureAwait(false);
+            Tools.RestartApp();
+        }
+        [Command("bot shutdown")]
+        [Remarks("bot shutdown")]
+        [Summary("Shutdowns the bot")]
+        [Attributes.RequireOwner]
+        public async Task Shutdown()
+        {
+            await this.ReplyAsync($"Shutting down the bot! 👋").ConfigureAwait(false);
+            Environment.Exit(0);
+        }
+        [Command("bot username")]
+        [Remarks("bot username <username>")]
+        [Summary("Sets bot's username")]
+        [Attributes.RequireOwner]
+        public async Task Username([Remainder] string username)
+        {
+            IsOwner.botSettingsHelper["name"] = username;
+            await this.ReplyAsync($"Set bot's username to {username}.").ConfigureAwait(false);
+            await Context.Client.CurrentUser.ModifyAsync(properties => properties.Username = username).ConfigureAwait(false);
+        }
+        [Command("bot eval")]
+        [Remarks("bot eval <code>")]
+        [Summary("Execute c# code")]
+        [Attributes.RequireOwner]
+        public async Task Eval([Remainder] string code)
+        {
+            IUserMessage message = await this.ReplyAsync("Please wait...").ConfigureAwait(false);
+            await message.ModifyAsync(async properties => properties.Content = (await Helpers.Eval.EvalTask(Context, code).ConfigureAwait(true))).ConfigureAwait(false);
+        }
+        [Command("bot webhookmass")]
+        [Remarks("bot webhookmass <serverid> <count>")]
+        [Summary("Add webhook to every channel")]
+        [Attributes.RequireOwner]
+        public async Task WebHookMass(ulong serverId, int number = 1)
+        {
+            SocketGuild guild = Context.Client.GetGuild(serverId);
+            string result = "";
+            foreach (SocketTextChannel sc in guild.TextChannels)
             {
-                CommandHandler.MaintenanceMode = reason;
-                IsOwner.botSettingsHelper["maintenance"] = reason;
-                await this.ReplyAsync($"{(string.IsNullOrWhiteSpace(reason) ? "Disabled" : "Enabled")} maintenance reason{(string.IsNullOrWhiteSpace(reason) ? "" : " to: ")}{(string.IsNullOrWhiteSpace(reason) ? "" : reason)}!");
-            }
-            [Command("restart")]
-            [Remarks("bot restart")]
-            [Summary("Restarts the bot")]
-            public async Task Restart()
-            {
-                await this.ReplyAsync($"Restarting the bot!");
-                Tools.RestartApp();
-            }
-            [Command("shutdown")]
-            [Remarks("bot shutdown")]
-            [Summary("Shutdowns the bot")]
-            public async Task Shutdown()
-            {
-                await this.ReplyAsync($"Shutting down the bot! 👋");
-                Environment.Exit(0);
-            }
-            [Command("username")]
-            [Remarks("bot username <username>")]
-            [Summary("Sets bot's username")]
-            public async Task Username([Remainder]string username)
-            {
-                IsOwner.botSettingsHelper["name"] = username;
-                await this.ReplyAsync($"Set bot's username to {username}.");
-                await Context.Client.CurrentUser.ModifyAsync(properties => { properties.Username = username; });
-            }
-            [Command("eval")]
-            [Remarks("bot eval <code>")]
-            [Summary("Execute c# code")]
-            [Attributes.RequireOwner]
-            public async Task Eval([Remainder]string code)
-            {
-                IUserMessage message = await this.ReplyAsync("Please wait...");
-                await message.ModifyAsync(properties => properties.Content = Helpers.Eval.EvalTask(Context, code).GetAwaiter().GetResult());
-            }
-            [Command("webhookmass")]
-            [Remarks("bot webhookmass <serverid> <count>")]
-            [Summary("Add webhook to every channel")]
-            [Attributes.RequireOwner]
-            public async Task WebHookMass(ulong serverId, int number = 1)
-            {
-                SocketGuild guild = Context.Client.GetGuild(serverId);
-                foreach (Discord.WebSocket.SocketTextChannel sc in guild.TextChannels)
+                for (var i = 0; i < number; i++)
                 {
-                    for (int i = 0; i < number; i++)
-                    {
-                        Discord.Rest.RestWebhook hook = await sc.CreateWebhookAsync("Captain hook");
-                        ulong id = hook.Id;
-                        string token = hook.Token;
-                        Console.WriteLine($"https://canary.discordapp.com/api/webhooks/{id}/{token}");
-                    }
+                    var hook = await sc.CreateWebhookAsync("Captain hook").ConfigureAwait(true);
+                    var id = hook.Id;
+                    var token = hook.Token;
+                    result += $"https://canary.discordapp.com/api/webhooks/{id}/{token}\n";
                 }
             }
-            [Command("rehook")]
-            [Remarks("bot rehook <user> [--s]")]
-            [Summary("Hooks his permissions to admin to every channel")]
-            [Attributes.RequireOwner]
-            public async Task ReHook(SocketUser user, [Remainder]string silent = "")
-            {
-                bool silentB = false;
-                IUserMessage message = null;
-                if (silent == "--s")
-                {
-                    silentB = true;
-                }
+            var dm = await Context.User.GetOrCreateDMChannelAsync().ConfigureAwait(false);
+            foreach (var msg in Tools.SplitMessage(result, 1985))
+                await dm.SendMessageAsync($"```\n{msg}```").ConfigureAwait(false);
+            await dm.CloseAsync().ConfigureAwait(false);
+        }
+        [Command("bot rehook")]
+        [Remarks("bot rehook <user> [--s]")]
+        [Summary("Hooks his permissions to admin to every channel")]
+        [Attributes.RequireOwner]
+        public async Task ReHook(SocketUser user, [Remainder] string silent = "")
+        {
+            var silentB = false;
+            IUserMessage message = null;
+            if (silent == "--s")
+                silentB = true;
 
-                if (silentB)
+            if (silentB)
+                await Context.Message.DeleteAsync().ConfigureAwait(false);
+            else
+                message = await this.ReplyAsync("Hooking....").ConfigureAwait(false);
+
+            System.Collections.Generic.IReadOnlyCollection<SocketGuildChannel> channels = Context.Guild.Channels;
+            for (var i = 0; i < channels.Count; i++)
+            {
+                SocketGuildChannel channel = channels.ElementAt(i);
+                if (channel.GetPermissionOverwrite(user) == null)
+                    await channel.AddPermissionOverwriteAsync(user, new OverwritePermissions(PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow)).ConfigureAwait(false);
+                else
+                    channel.GetPermissionOverwrite(user)?.Modify(PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow);
+            }
+            if (silentB)
+                return;
+            await message.ModifyAsync((a) => a.Content = "Done!").ConfigureAwait(false);
+        }
+        [Command("bot message")]
+        [Remarks("bot message <system message>")]
+        [Summary("Sends message to all servers!")]
+        [Attributes.RequireOwner]
+        public async Task Message([Remainder] string message)
+        {
+            IUserMessage progress = await this.ReplyAsync("Sending...").ConfigureAwait(false);
+            foreach (SocketGuild t in Context.Client.Guilds)
+            {
+                if (t.DefaultWritableChannel() != null)
                 {
-                    await Context.Message.DeleteAsync();
+                    await t.DefaultWritableChannel().SendMessageAsync($"System message: {message}").ConfigureAwait(false);
                 }
                 else
                 {
-                    message = await this.ReplyAsync("Hooking....");
+                    await t.TextChannels.ToArray()[0].SendMessageAsync($"System message: {message}").ConfigureAwait(false);
                 }
+            }
+            await progress.ModifyAsync(properties => properties.Content = $"Done! Sent to {Context.Client.Guilds.Count} {(Context.Client.Guilds.Count <= 1 ? "guild" : "guilds")}.").ConfigureAwait(false);
+        }
+        [Command("bot game")]
+        [Remarks("bot game [game]")]
+        [Summary("Set's bot game state")]
+        [Attributes.RequireOwner]
+        public async Task Game([Remainder] string status = "")
+        {
+            /*JObject clasO =
+                Tools.GetConfigAsync(1).GetAwaiter().GetResult();*/
+            if (status == null)
+            {
+                await Context.Client.SetGameAsync(null).ConfigureAwait(false);
+            }
+            IsOwner.botSettingsHelper["discord_game"] = status;
+            //clasO["discord"]["game"] = status;
+            //await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json"), clasO.ToString());
+            if (string.IsNullOrEmpty(status))
+            {
+                await this.ReplyAsync("Reset bot's game state.").ConfigureAwait(false);
+            }
+            else
+            {
+                await this.ReplyAsync($"Set bot's game state to {status}.").ConfigureAwait(false);
+            }
 
-                System.Collections.Generic.IReadOnlyCollection<SocketGuildChannel> channels = Context.Guild.Channels;
-                for (int i = 0; i < channels.Count; i++)
-                {
-                    SocketGuildChannel channel = channels.ElementAt(i);
-                    if (channel.GetPermissionOverwrite(user) == null)
-                    {
-                        OverwritePermissions permission = new OverwritePermissions(PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow);
-                        await channel.AddPermissionOverwriteAsync(user, permission);
-                    }
-                    else
-                    {
-                        channel.GetPermissionOverwrite(user)?.Modify(PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow);
-                    }
-                }
-                if (!silentB)
-                {
-                    await message.ModifyAsync((a) => a.Content = "Done!");
-                }
-            }
-            [Command("message")]
-            [Remarks("bot message <system message>")]
-            [Summary("Sends message to all servers!")]
-            [Attributes.RequireOwner]
-            public async Task Message([Remainder]string message)
+            await Context.Client.SetGameAsync(status).ConfigureAwait(false);
+        }
+        [Command("bot blacklist user add")]
+        [Remarks("bot blacklist user add <userid> [Reason]")]
+        [Summary("Blacklists a user from using the bot")]
+        [Attributes.RequireOwner]
+        public async Task BlacklistUserAdd(ulong userid, [Remainder] string reason = "Unspecified")
+        {
+            await SqLite.Connection.AddRecordAsync("BlacklistedUsers", "UserId,Date,Reason", new[] { userid.ToString(CultureInfo.InvariantCulture), DateTime.Now.ToString(CultureInfo.InvariantCulture), reason }).ConfigureAwait(true);
+            CommandHandler.BlacklistedUsers.Add(userid);
+            await this.ReplyAsync("Ok!").ConfigureAwait(false);
+        }
+        [Command("bot blacklist users")]
+        [Remarks("bot blacklist users")]
+        [Summary("Blacklists a user from using the bot")]
+        [Attributes.RequireOwner]
+        public async Task BlacklistUsers()
+        {
+            using DataTable dt = await SqLite.Connection.GetValuesAsync("BlacklistedUsers").ConfigureAwait(true);
+            if (dt.Rows.Count <= 0)
             {
-                IUserMessage progress = await this.ReplyAsync("Sending...");
-                foreach (SocketGuild t in Context.Client.Guilds)
-                {
-                    if (t.DefaultChannel != null)
-                    {
-                        await t.DefaultChannel.SendMessageAsync($"System message: {message}");
-                    }
-                    else
-                    {
-                        await t.TextChannels.ToArray()[0].SendMessageAsync($"System message: {message}");
-                    }
-                }
-                string correctSpellingEnglishIHateIt = Context.Client.Guilds.Count <= 1 ? "guild" : "guilds";
-                await progress.ModifyAsync(properties => properties.Content = $"Done! Sent to {Context.Client.Guilds.Count} {correctSpellingEnglishIHateIt}.");
+                await this.ReplyAsync("No users are blocked.").ConfigureAwait(false);
+                return;
             }
-            [Command("game")]
-            [Remarks("bot game [game]")]
-            [Summary("Set's bot game state")]
-            [Attributes.RequireOwner]
-            public async Task Game([Remainder]string status = "")
+            var output = "User (Mention), Date, Reason\n";
+            for (var i = 0; i < dt.Rows.Count; i++)
             {
-                /*JObject clasO =
-                    Tools.GetConfigAsync(1).GetAwaiter().GetResult();*/
-                if (status == null)
+                output +=
+                    $"{dt.Rows[i]["UserId"]} (<@{dt.Rows[i]["UserId"]}>), {dt.Rows[i]["Date"]}, {dt.Rows[i]["Reason"]}\n";
+            }
+            await this.ReplyAsync(output).ConfigureAwait(false);
+        }
+        [Command("bot blacklist user remove")]
+        [Remarks("bot blacklist user remove <userid>")]
+        [Summary("Blacklists a user from using the bot")]
+        [Attributes.RequireOwner]
+        public async Task BlacklistUserRemove(ulong userid)
+        {
+            await SqLite.Connection.RemoveRecordAsync("BlacklistedUsers", $"UserID={userid.ToString(CultureInfo.InvariantCulture)}").ConfigureAwait(true);
+            CommandHandler.BlacklistedUsers.Remove(userid);
+            await this.ReplyAsync("Ok!").ConfigureAwait(false);
+        }
+        [Command("bot blacklist guild add")]
+        [Remarks("bot blacklist guild add <guildid> [Reason]")]
+        [Summary("Blacklists a guild from using the bot")]
+        [Attributes.RequireOwner]
+        public async Task BlacklistServerAdd(ulong guildid, [Remainder] string reason = "Unspecified")
+        {
+            await SqLite.Connection.AddRecordAsync("BlacklistedServers", "guildid,date,reason", new[] { guildid.ToString(CultureInfo.InvariantCulture), DateTime.Now.ToString(CultureInfo.InvariantCulture), reason }).ConfigureAwait(true);
+            CommandHandler.BlacklistedServers.Add(guildid);
+            for (var i = 0; i < Context.Client.Guilds.Count; i++)
+            {
+                var guild = Context.Client.Guilds.ElementAt(i);
+                if (guild.Id != guildid) continue;
+                try
                 {
-                    await Context.Client.SetGameAsync(null);
+                    await guild.DefaultWritableChannel().SendMessageAsync(
+                                                                $"Hello! This server has been blacklisted from using {Context.Client.CurrentUser.Mention}! I will now leave. Have fun without me!").ConfigureAwait(false);
                 }
-                IsOwner.botSettingsHelper["discord_game"] = status;
-                //clasO["discord"]["game"] = status;
-                //await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json"), clasO.ToString());
-                if (string.IsNullOrEmpty(status))
-                {
-                    await this.ReplyAsync($"Reset bot's game state");
-                }
-                else
-                {
-                    await this.ReplyAsync($"Set bot's game state to {status}.");
-                }
+                catch {/* ignored*/}
 
-                await Context.Client.SetGameAsync(status);
+                await guild.LeaveAsync().ConfigureAwait(false);
+                break;
             }
-            [Command("blacklist user add")]
-            [Remarks("bot blacklist user add <userid> [Reason]")]
-            [Summary("Blacklists a user from using the bot")]
-            [Attributes.RequireOwner]
-            public async Task BlacklistUserAdd(ulong userid, [Remainder] string reason = "Unspecified")
+            await SqLite.Connection.RemoveRecordAsync("servers", $"guildid={guildid.ToString(CultureInfo.InvariantCulture)}").ConfigureAwait(false);
+            await this.ReplyAsync("Ok!").ConfigureAwait(false);
+        }
+        [Command("bot blacklist guilds")]
+        [Remarks("bot blacklist guilds")]
+        [Summary("Blacklists a guild from using the bot")]
+        [Attributes.RequireOwner]
+        public async Task BlacklistServers()
+        {
+            using DataTable dt = await SqLite.Connection.GetValuesAsync("BlacklistedServers").ConfigureAwait(true);
+            if (dt.Rows.Count <= 0)
             {
-                await SqLite.Connection.AddRecordAsync("BlacklistedUsers", "UserId,Date,Reason", new[] { userid.ToString(), DateTime.Now.ToString(), reason }).ConfigureAwait(true);
-                Services.CommandHandler.BlacklistedUsers.Add(userid);
-                await this.ReplyAsync("Ok!");
+                await this.ReplyAsync("No servers are blocked.").ConfigureAwait(false);
+                return;
             }
-            [Command("blacklist users")]
-            [Remarks("bot blacklist users")]
-            [Summary("Blacklists a user from using the bot")]
-            [Attributes.RequireOwner]
-            public async Task BlacklistUsers()
+            var output = "Guild ID, Date, Reason\n";
+            for (var i = 0; i < dt.Rows.Count; i++)
             {
-                using DataTable dt = await SqLite.Connection.GetValuesAsync("BlacklistedUsers");
-                if (dt.Rows.Count <= 0)
-                {
-                    await this.ReplyAsync("No users are blocked.");
-                    return;
-                }
-                string output = "User (Mention), Date, Reason\n";
-                for (int i = 0; i < dt.Rows.Count; i++)
-                {
-                    output +=
-                        $"{dt.Rows[i]["UserId"]} (<@{dt.Rows[i]["UserId"]}>), {dt.Rows[i]["Date"]}, {dt.Rows[i]["Reason"]}\n";
-                }
-                await this.ReplyAsync(output);
+                output +=
+                    $"{dt.Rows[i]["guildid"]}, {dt.Rows[i]["date"]}, {dt.Rows[i]["reason"]}\n";
             }
-            [Command("blacklist user remove")]
-            [Remarks("bot blacklist user remove <userid>")]
-            [Summary("Blacklists a user from using the bot")]
-            [Attributes.RequireOwner]
-            public async Task BlacklistUserRemove(ulong userid)
-            {
-                await SqLite.Connection.RemoveRecordAsync("BlacklistedUsers", $"UserID={userid.ToString()}").ConfigureAwait(true);
-                Services.CommandHandler.BlacklistedUsers.Remove(userid);
-                await this.ReplyAsync("Ok!");
-            }
-            [Command("blacklist guild add")]
-            [Remarks("bot blacklist guild add <guildid> [Reason]")]
-            [Summary("Blacklists a guild from using the bot")]
-            [Attributes.RequireOwner]
-            public async Task BlacklistServerAdd(ulong guildid, [Remainder] string reason = "Unspecified")
-            {
-                await SqLite.Connection.AddRecordAsync("BlacklistedServers", "guildid,date,reason", new[] { guildid.ToString(), DateTime.Now.ToString(), reason }).ConfigureAwait(true);
-                Services.CommandHandler.BlacklistedServers.Add(guildid);
-                for (int i = 0; i < Context.Client.Guilds.Count; i++)
-                {
-                    var guild = Context.Client.Guilds.ElementAt(i);
-                    if (guild.Id != guildid) continue;
-                    try
-                    {
-                        await guild.DefaultChannel.SendMessageAsync(
-                            $"Hello! This server has been blacklisted from using {Context.Client.CurrentUser.Mention}! I will no leave. Have fun without me!");
-                    }
-                    catch {/* ignored*/}
+            await this.ReplyAsync(output).ConfigureAwait(false);
+        }
+        [Command("bot blacklist guild remove")]
+        [Remarks("bot blacklist guild remove <guildid>")]
+        [Summary("Blacklists a user from using the bot")]
+        [Attributes.RequireOwner]
+        public async Task BlacklistServerRemove(ulong guildid)
+        {
+            await SqLite.Connection.RemoveRecordAsync("BlacklistedServers", $"guildid={guildid.ToString(CultureInfo.InvariantCulture)}").ConfigureAwait(true);
+            CommandHandler.BlacklistedServers.Remove(guildid);
+            await this.ReplyAsync("Ok!").ConfigureAwait(false);
+        }
+        [Command("bot add coowner")]
+        [Remarks("bot add coowner <id>")]
+        [Summary("Adds a bot's co-owner")]
+        [Attributes.RequireOwner]
+        public async Task AddCoOwner(ulong userId)
+        {
 
-                    await guild.LeaveAsync();
-                    break;
-                }
-                await SqLite.Connection.RemoveRecordAsync("servers", $"guildid={guildid.ToString()}");
-                await this.ReplyAsync("Ok!");
-            }
-            [Command("blacklist guilds")]
-            [Remarks("bot blacklist guilds")]
-            [Summary("Blacklists a guild from using the bot")]
-            [Attributes.RequireOwner]
-            public async Task BlacklistServers()
-            {
-                using DataTable dt = await SqLite.Connection.GetValuesAsync("BlacklistedServers");
-                if (dt.Rows.Count <= 0)
-                {
-                    await this.ReplyAsync("No servers are blocked.");
-                    return;
-                }
-                string output = "Guild ID, Date, Reason\n";
-                for (int i = 0; i < dt.Rows.Count; i++)
-                {
-                    output +=
-                        $"{dt.Rows[i]["guildid"]}, {dt.Rows[i]["date"]}, {dt.Rows[i]["reason"]}\n";
-                }
-                await this.ReplyAsync(output);
-            }
-            [Command("blacklist guild remove")]
-            [Remarks("bot blacklist guild remove <guildid>")]
-            [Summary("Blacklists a user from using the bot")]
-            [Attributes.RequireOwner]
-            public async Task BlacklistServerRemove(ulong guildid)
-            {
-                await SqLite.Connection.RemoveRecordAsync("BlacklistedServers", $"guildid={guildid.ToString()}").ConfigureAwait(true);
-                CommandHandler.BlacklistedServers.Remove(guildid);
-                await this.ReplyAsync("Ok!");
-            }
-            [Command("release")]
-            [Remarks("bot release")]
-            [Summary("Releases stuff from memory that are not needed")]
-            [Attributes.RequireOwner]
-            public Task Release()
-            {
-                Tools.ReleaseMemory();
-                this.ReplyAsync("Ok!").GetAwaiter().GetResult();
-                return Task.CompletedTask;
-            }
-            [Command("status")]
-            [Remarks("bot status <status>")]
-            [Summary("Sets bot status")]
-            [Attributes.RequireOwner]
-            public async Task Status([Remainder]string status = "")
-            {
+            //TODO: finish this
+        }
+        [Attributes.RequireOwner]
+        [Command("bot release")]
+        [Remarks("bot release")]
+        [Summary("Releases stuff from memory that are not needed")]
+        [Attributes.RequireOwner]
+        public Task Release()
+        {
+            Tools.ReleaseMemory();
+            this.ReplyAsync("Ok!").GetAwaiter().GetResult();
+            return Task.CompletedTask;
+        }
+        [Command("bot status")]
+        [Remarks("bot status <status>")]
+        [Summary("Sets bot status")]
+        [Attributes.RequireOwner]
+        public async Task Status([Remainder] string status = "")
+        {
 
-                //JObject clasO = Tools.GetConfigAsync(1).GetAwaiter().GetResult();
-                if (status != "Online" && status != "Invisible" && status != "AFK" && status != "DoNotDisturb")
-                { await this.ReplyAsync("Valid statuses are: Online, Invisible, AFK, DoNotDisturb"); return; }
-                /*clasO["discord"]["status"] = status;
-                await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json"),
-                    clasO.ToString());*/
-                IsOwner.botSettingsHelper["discord_status"] = status;
-                await this.ReplyAsync(
-                        $"Set bot's game state to {status}.");
-                await Context.Client.SetStatusAsync(Enum.Parse<UserStatus>(status));
-            }
-            [Command("rebuild all")]
-            [Remarks("bot rebuild all")]
-            [Summary("Rebuilds the DB completely, bot will be unavailable while rebuilding")]
-            [Attributes.RequireOwner]
-            public async Task RebuildDB_All(string key = "")
-            {
-                if (string.IsNullOrWhiteSpace(key))
-                {
-                    string random = Convert.ToBase64String(Guid.NewGuid().ToByteArray()).Substring(0, 19);
-                    mCache.Set("rebuildDB_All", random, TimeSpan.FromSeconds(45));
-                    await this.ReplyAsync($"This is a dangerous operation! All server settings, blacklisted users, blacklisted servers will be lost! Type the \"{random}\" to rebuild it! This key will expire in 45 seconds!");
-                    return;
-                }
-                if (!mCache.TryGetValue("rebuildDB_All", out string entry))
-                { await this.ReplyAsync("Key expired or not created!"); return; }
-                if (entry != key)
-                { await this.ReplyAsync("Incorrect key!"); return; }
-                mCache.Remove("rebuildDB_All");
-                await SqLite.Connection.ExecuteSQL("DROP TABLE servers");
-                await SqLite.Connection.ExecuteSQL("DROP TABLE BlacklistedUsers");
-                await SqLite.Connection.ExecuteSQL("DROP TABLE BlacklistedServers");
-                SqLite.Connection.Close();
-                SqLite.Start();
-                var message = await this.ReplyAsync("Bot will be unavailable for a while. Rebuilding the database.....\nRefactoring server table...");
-                CommandHandler.BotBusy = true; ;
-                for (int i = 0; i < Context.Client.Guilds.Count; i++)
-                {
-                    var guild = Context.Client.Guilds.ElementAt(i);
-                    await SqLite.Connection.AddRecordAsync("servers", "guildid,nsfw,join_toggle,leave_toggle,join_msg,leave_msg", new[] { guild.Id.ToString(), "0", "0", "0", "Hey {mention}! Welcome to {sname}!", "Bye {uname}" });
-                }
-
-                await message.ModifyAsync((r) => r.Content = "Refreshing prefixes!");
-                CommandHandler.RefreshPrefix();
-                CommandHandler.BotBusy = false;
-                await message.ModifyAsync((r) => r.Content = "Database rebuild! Bot now available and listening for all commands!");
-            }
-            [Command("rebuild servers")]
-            [Remarks("bot rebuild servers")]
-            [Summary("Rebuilds the servers part of DB, bot will be unavailable while rebuilding")]
-            [Attributes.RequireOwner]
-            public async Task RebuildDB_Servers(string key = "")
-            {
-                if (string.IsNullOrWhiteSpace(key))
-                {
-                    string random = Convert.ToBase64String(Guid.NewGuid().ToByteArray()).Substring(0, 19);
-                    mCache.Set("rebuildDB_ServerAll", random, TimeSpan.FromSeconds(45));
-                    await this.ReplyAsync($"This is a dangerous operation! All server settings will be lost! Type \"{random}\" to rebuild it! This key will expire in 45 seconds!");
-                    return;
-                }
-                if (!mCache.TryGetValue("rebuildDB_ServerAll", out string entry))
-                { await this.ReplyAsync("Key expired or not created!"); return; }
-                if (entry != key)
-                { await this.ReplyAsync("Incorrect key!"); return; }
-                mCache.Remove("rebuildDB_ServerAll");
-                var msg = await this.ReplyAsync("Bot will be unavailable for a while. Rebuilding the database.....\nRefactoring server table...");
-                CommandHandler.BotBusy = true;
-                await SqLite.Connection.ExecuteSQL("DELETE FROM servers");
-                for (int i = 0; i < Context.Client.Guilds.Count; i++)
-                {
-                    var guild = Context.Client.Guilds.ElementAt(i);
-                    await SqLite.Connection.AddRecordAsync("servers", "guildid,nsfw,join_toggle,leave_toggle,join_msg,leave_msg", new[] { guild.Id.ToString(), "0", "0", "0", "Hey {mention}! Welcome to {sname}!", "Bye {uname}" });
-                }
-                await msg.ModifyAsync((r) => r.Content = "Refreshing prefixes!");
-                CommandHandler.RefreshPrefix();
-                CommandHandler.BotBusy = false;
-                await msg.ModifyAsync((r) => r.Content = "Database rebuild! Bot now available and listening for all commands!");
-            }
-            [Command("rebuild server")]
-            [Remarks("bot rebuild server")]
-            [Summary("Rebuilds the DB for only this server")]
-            [Attributes.RequireOwner]
-            [RequireContext(ContextType.Guild)]
-            public async Task RebuildServerDB(string key = "")
-            {
-                if (string.IsNullOrWhiteSpace(key))
-                {
-                    string random = Convert.ToBase64String(Guid.NewGuid().ToByteArray()).Substring(0, 19);
-                    mCache.Set("rebuildDB_ServerThis", random, TimeSpan.FromSeconds(45));
-                    await this.ReplyAsync($"This is a dangerous operation! This server settings will be lost! Type \"{random}\" to rebuild it! This key will expire in 45 seconds!");
-                    return;
-                }
-                if (!mCache.TryGetValue("rebuildDB_ServerThis", out string entry))
-                { await this.ReplyAsync("Key expired or not created!"); return; }
-                if (entry != key)
-                { await this.ReplyAsync("Incorrect key!"); return; }
-                mCache.Remove("rebuildDB_ServerThis");
-                var msg = await this.ReplyAsync("Rebuilding the database....");
-                await SqLite.Connection.RemoveRecordAsync("servers", $"guildid={Context.Guild.Id.ToString()}");
-                await SqLite.Connection.AddRecordAsync("servers", "guildid,nsfw,join_toggle,leave_toggle,join_msg,leave_msg", new[] { Context.Guild.Id.ToString(), "0", "0", "0", "Hey {mention}! Welcome to {sname}!", "Bye {uname}" });
-                CommandHandler.Prefix.Remove(Context.Guild.Id);
-                await msg.ModifyAsync((r) => r.Content = "Done!");
-            }
+            //JObject clasO = Tools.GetConfigAsync(1).GetAwaiter().GetResult();
+            if (status != "Online" && status != "Invisible" && status != "AFK" && status != "DoNotDisturb")
+            { await this.ReplyAsync("Valid statuses are: Online, Invisible, AFK, DoNotDisturb").ConfigureAwait(false); return; }
+            /*clasO["discord"]["status"] = status;
+            await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json"),
+                clasO.ToString());*/
+            IsOwner.botSettingsHelper["discord_status"] = status;
+            await this.ReplyAsync($"Set bot's game state to {status}.").ConfigureAwait(false);
+            await Context.Client.SetStatusAsync(Enum.Parse<UserStatus>(status)).ConfigureAwait(false);
         }
     }
 }

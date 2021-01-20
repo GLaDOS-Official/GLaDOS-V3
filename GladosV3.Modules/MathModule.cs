@@ -19,16 +19,16 @@ namespace GladosV3.Module.Default
         {
             try
             {
-                math = math.Replace("PI", "pi");
+                math = math?.Replace("PI", "pi", StringComparison.OrdinalIgnoreCase).Replace(",","", StringComparison.OrdinalIgnoreCase); 
                 var done = new Expression(math).calculate();
                 if (double.IsNaN(done))
                     throw new FormatException("idk");
                 await this.ReplyAsync(
-                    $"Math is solved! The output is: {double.Parse(done.ToString(string.Empty), NumberStyles.Float).ToString("N3", CultureInfo.CreateSpecificCulture("en-US"))}");
+                    $"Math is solved! The output is: {done}").ConfigureAwait(false);
             }
             catch (FormatException)
             {
-                await this.ReplyAsync($@"**Error:** Impossible to solve!");
+                await this.ReplyAsync($@"**Error:** Impossible to solve!").ConfigureAwait(false);
             }
         }
     }

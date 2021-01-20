@@ -16,37 +16,39 @@ namespace GladosV3
 {
     public sealed class Program
     {
-        public static void Main(string[] args)
-            => StartAsync(args).GetAwaiter().GetResult();
-
-
+        public static void Main(string[] args)  
+            =>  StartAsync(args).GetAwaiter().GetResult();
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
         public static async Task StartAsync(string[] args)
         {
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.White;
             Directory.SetCurrentDirectory(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)));
-            var PInvokeDir = Path.Combine(Directory.GetCurrentDirectory(), "PInvoke\\");
-            if (!Directory.Exists(PInvokeDir))
-            { Console.WriteLine("PInvoke directory doesn't exist! Creating!"); Directory.CreateDirectory(PInvokeDir); }
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !PInvokes_DllImport.SetDllDirectory(PInvokeDir)) Console.WriteLine($"Failed to call SetDllDirectory PInvoke! Last error code: {System.Runtime.InteropServices.Marshal.GetLastWin32Error()}");
+            var pInvokeDir = Path.Combine(Directory.GetCurrentDirectory(), "PInvoke\\");
+            if (!Directory.Exists(pInvokeDir))
+            { Console.WriteLine("PInvoke directory doesn't exist! Creating!"); Directory.CreateDirectory(pInvokeDir); }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !PInvokes_DllImport.SetDllDirectory(pInvokeDir)) Console.WriteLine($"Failed to call SetDllDirectory PInvoke! Last error code: {Marshal.GetLastWin32Error()}");
             Tools.ReleaseMemory();
             LoggingService.Begin();
             /*if(!IsValidJson())
             { await Task.Delay(10000); return; }*/
-
-            var services = new ServiceCollection()      // Begin building the service provider
-                .AddSingleton(new DiscordSocketClient(new DiscordSocketConfig     // Add the discord client to the service provider
+            var client =
+                new DiscordSocketClient(new DiscordSocketConfig // Add the discord client to the service provider
                 {
-                    LogLevel = LogSeverity.Verbose,
+                    LogLevel           = LogSeverity.Verbose,
                     RateLimitPrecision = RateLimitPrecision.Millisecond,
-                    ExclusiveBulkDelete = true,   // Disable firing message delete event on bulk delete event (bulk delete event will still be fired)
+                    ExclusiveBulkDelete =
+                        true, // Disable firing message delete event on bulk delete event (bulk delete event will still be fired)
 #if DEBUG
-                    RestClientProvider = DefaultRestClientProvider.Create(useProxy: true),
-                    WebSocketProvider = DefaultWebSocketProvider.Create(new WebProxy("127.0.0.1", 8888)),
+                    RestClientProvider = DefaultRestClientProvider.Create(true),
+                    WebSocketProvider  = DefaultWebSocketProvider.Create(new WebProxy("127.0.0.1", 8888)),
 #endif
-                    MessageCacheSize = 0,    // Tell Discord.Net to NOT CACHE! This will also disable MessageUpdated event
+                    MessageCacheSize =
+                        0,                                   // Tell Discord.Net to NOT CACHE! This will also disable MessageUpdated event
                     DefaultRetryMode = RetryMode.AlwaysRetry // Always believe
-                }))
+                });
+            var services = new ServiceCollection()      // Begin building the service provider
+                .AddSingleton(client)
                 .AddSingleton(new CommandService(new CommandServiceConfig     // Add the command service to the service provider
                 {
                     DefaultRunMode = RunMode.Async,     // Force all commands to run async
@@ -60,22 +62,18 @@ namespace GladosV3
                 .AddSingleton<OnLogonService>()     // Execute commands after websocket connects
                 .AddSingleton<ClientEvents>()       // Discord client events
                 .AddSingleton<IPLoggerProtection>()       // IP logging service
-                .AddSingleton<BotSettingsHelper<string>>()
-                ;//.AddSingleton(_config);
-            foreach (var item in new ExtensionLoadingService().GetServices().GetAwaiter().GetResult())
-            {
+                .AddSingleton<BotSettingsHelper<string>>();
+            foreach (var item in (await new ExtensionLoadingService().GetServices(client, services).ConfigureAwait(true))) 
                 services.AddSingleton(item);
-            }
             var provider = services.BuildServiceProvider();     // Create the service provide
-
             provider.GetRequiredService<LoggingService>();      // Initialize the logging service, client events, startup service, on discord log on service, command handler and system message
             provider.GetRequiredService<ClientEvents>();
             provider.GetRequiredService<OnLogonService>();
-            await provider.GetRequiredService<StartupService>().StartAsync(args);
+            await provider.GetRequiredService<StartupService>().StartAsync(args).ConfigureAwait(false);
             provider.GetRequiredService<CommandHandler>();
             provider.GetRequiredService<IPLoggerProtection>();
             MemoryHandlerService.Start();
-            await Task.Delay(-1);     // Prevent the application from closing
+            await Task.Delay(-1).ConfigureAwait(true);     // Prevent the application from closing
         }
     }
 }

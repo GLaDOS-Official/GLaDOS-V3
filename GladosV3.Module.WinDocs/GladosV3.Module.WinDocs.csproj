@@ -9,9 +9,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Octokit" Version="0.48.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\GLaDOSV3\GladosV3.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Dependencies\" />
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\GLaDOSV3\$(OutDir)\Modules\"></Copy>
+    <Copy SourceFiles="Dependencies\Octokit.dll" DestinationFolder="..\GLaDOSV3\$(OutDir)\Dependencies"></Copy>
   </Target>
 </Project>

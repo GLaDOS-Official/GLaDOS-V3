@@ -14,6 +14,7 @@ namespace GladosV3.Module.ServerBackup.Models
         public DateTimeOffset Timestamp { get; set; }
         public BackupEmbed[] Embeds { get; set; }
         public bool HasAttachments { get; set; }
+        public bool IsPinned { get; set; }
         public BackupChatMessage(IMessage msg)
         {
             if (msg == null) return;
@@ -24,6 +25,7 @@ namespace GladosV3.Module.ServerBackup.Models
             Timestamp = msg.Timestamp;
             HasAttachments = msg.Attachments.Count > 0;
             Embeds = msg.Embeds.Where(e => e.Type == EmbedType.Rich).Select(e => new BackupEmbed(((SocketTextChannel)msg.Channel).Guild, e)).ToArray();
+            IsPinned = msg.IsPinned;
         }
     }
 }

@@ -2,50 +2,47 @@
 using Discord.WebSocket;
 using GladosV3.Helpers;
 using System;
-using System.IO;
 using System.Threading.Tasks;
 
 namespace GladosV3.Services
 {
     public class OnLogonService
     {
-        private readonly DiscordSocketClient _discord;
-        private readonly BotSettingsHelper<string> _botSettingsHelper;
+        private readonly DiscordSocketClient discord;
+        private readonly BotSettingsHelper<string> botSettingsHelper;
 
         // DiscordSocketClient, CommandService, and IConfigurationRoot are injected automatically from the IServiceProvider
         public OnLogonService(
             DiscordSocketClient discord,
             BotSettingsHelper<string> botSettingsHelper)
         {
-            this._discord = discord;
-            this._discord.Connected += this.Connected;
-            this._botSettingsHelper = botSettingsHelper;
+            if (discord == null) return;
+            this.discord = discord;
+            this.discord.Connected += this.Connected;
+            this.botSettingsHelper = botSettingsHelper;
         }
 
         private async Task Connected()
         {
-            await this.IsMfaEnabled();
-            await this.GetUserFromConfigAsync();
+            await this.IsMfaEnabled().ConfigureAwait(false);
+            await this.GetUserFromConfigAsync().ConfigureAwait(false);
 
-            if (this._botSettingsHelper["discord_status"] != "online")
+            if (this.botSettingsHelper["discord_status"] != "online")
             {
-                if (Enum.TryParse(typeof(UserStatus), this._botSettingsHelper["discord_status"], true, out var status))
-                    await this._discord.SetStatusAsync((UserStatus)status);
+                if (Enum.TryParse(typeof(UserStatus), this.botSettingsHelper["discord_status"], true, out var status))
+                    await this.discord.SetStatusAsync((UserStatus)status).ConfigureAwait(false);
                 else
                     await LoggingService.Log(LogSeverity.Warning, "Client status",
-                        "Could not parse status string from config.json!");
+                        "Could not parse status string from database!").ConfigureAwait(false);
             }
 
-            if (this._discord.CurrentUser.Activity?.Name != this._botSettingsHelper["discord_game"])
-                await this._discord.SetGameAsync(this._botSettingsHelper["discord_game"]);
-            var pfpPath = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "avatar.img");
-            if (File.Exists(pfpPath))
-                await this._discord.CurrentUser.ModifyAsync((f) => f.Avatar = new Image(pfpPath));
+            if (this.discord.CurrentUser.Activity?.Name != this.botSettingsHelper["discord_game"])
+                await this.discord.SetGameAsync(this.botSettingsHelper["discord_game"]).ConfigureAwait(false);
         }
         private Task<bool> IsMfaEnabled()
         {
-            if (this._discord.CurrentUser == null) return Task.FromResult(false);
-            if (this._discord.CurrentUser.IsMfaEnabled) return Task.FromResult(true);
+            if (this.discord.CurrentUser == null) return Task.FromResult(false);
+            if (this.discord.CurrentUser.IsMfaEnabled) return Task.FromResult(true);
             LoggingService.Log(LogSeverity.Warning, "Bot",
                 "MFA is disabled! Mod usage on MFA enabled server won't work!",
                 null).GetAwaiter();
@@ -53,18 +50,15 @@ namespace GladosV3.Services
         }
         private async Task GetUserFromConfigAsync()
         {
-            if (this._discord.CurrentUser == null) return;
-            if (this._discord.CurrentUser.Username != this._botSettingsHelper["name"])
+            if (this.discord.CurrentUser == null) return;
+            if (this.discord.CurrentUser.Username != this.botSettingsHelper["name"])
             {
-                await this._discord.CurrentUser.ModifyAsync(u => u.Username = this._botSettingsHelper["name"]);
-                foreach (SocketGuild guild in this._discord.Guilds)
+                await this.discord.CurrentUser.ModifyAsync(u => u.Username = this.botSettingsHelper["name"]).ConfigureAwait(false);
+                foreach (SocketGuild guild in this.discord.Guilds)
                 {
-                    var me = guild.GetUser(this._discord.CurrentUser.Id);
-                    if (me.Nickname == this._botSettingsHelper["name"]) continue;
-                    await me.ModifyAsync(x =>
-                    {
-                        x.Nickname = this._botSettingsHelper["name"];
-                    });
+                    var me = guild.GetUser(this.discord.CurrentUser.Id);
+                    if (me.Nickname == this.botSettingsHelper["name"]) continue;
+                    await me.ModifyAsync(x => x.Nickname = this.botSettingsHelper["name"]).ConfigureAwait(false);
                 }
             }
         }

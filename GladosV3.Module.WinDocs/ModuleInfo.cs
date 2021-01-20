@@ -6,11 +6,11 @@ using System.Reflection;
 using System.Runtime.Loader;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace GladosV3.Module.Default
+namespace GladosV3.Module.WinDocs
 {
     public class ModuleInfo : IGladosModule
     {
-        public string Name() => "Default";
+        public string Name() => "ServerBackup";
 
         public string Version() => "0.0.0.1";
 
@@ -44,6 +44,6 @@ namespace GladosV3.Module.Default
         public static void OnPluginUnloadingRequested(AssemblyLoadContext obj)
         { }
 
-        public Type[] Services(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceCollection provider) => new Type[] { typeof(InfoModule), typeof(WelcomeService) };
+        public Type[] Services(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceCollection provider) => Array.Empty<Type>();
     }
 }

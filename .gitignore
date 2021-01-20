@@ -255,3 +255,6 @@ paket-files/
 .idea/
 *.sln.iml
 /GLaDOSV3/DateCompiled.cs
+lavalink/logs/
+GLaDOSV3/database.db
+GladosV3.Module.GTAService/

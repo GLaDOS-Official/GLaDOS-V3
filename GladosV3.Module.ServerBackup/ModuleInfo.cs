@@ -4,6 +4,7 @@ using GladosV3.Helpers;
 using System;
 using System.Reflection;
 using System.Runtime.Loader;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace GladosV3.Module.ServerBackup
 {
@@ -13,7 +14,7 @@ namespace GladosV3.Module.ServerBackup
 
         public string Version() => "0.0.0.1";
 
-        public string UpdateUrl() => null;
+        public Uri UpdateUrl() => null;
 
         public string Author() => "BlackOfWorld#8125";
 
@@ -43,6 +44,6 @@ namespace GladosV3.Module.ServerBackup
         public static void OnPluginUnloadingRequested(AssemblyLoadContext obj)
         { }
 
-        public Type[] Services => Array.Empty<Type>();
+        public Type[] Services(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceCollection provider) => Array.Empty<Type>();
     }
 }

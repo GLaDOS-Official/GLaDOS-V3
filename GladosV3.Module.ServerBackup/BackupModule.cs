@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.Commands;
-using Discord.Net.Rest;
 using Discord.Rest;
 using Discord.Webhook;
 using Discord.WebSocket;
@@ -53,8 +52,7 @@ namespace GladosV3.Module.ServerBackup
             }
             finally
             {
-                if (writer != null)
-                    writer.Close();
+                writer?.Close();
             }
         }
         public static T ReadFromJsonFile<T>(string filePath) where T : new()
@@ -72,8 +70,7 @@ namespace GladosV3.Module.ServerBackup
             }
             finally
             {
-                if (reader != null)
-                    reader.Close();
+                reader?.Close();
             }
         }
 
@@ -103,8 +100,8 @@ namespace GladosV3.Module.ServerBackup
 
             // load roles
             foreach (var role in Context.Guild.Roles) { if (!role.IsEveryone && !role.IsManaged) await role.DeleteAsync(); }
-            foreach (var role in b.Roles.OrderBy(x => x.Position)) await Context.Guild.CreateRoleAsync(role.RoleName, new GuildPermissions(role.GuildPermissions), new Color(role.RawColour), role.Hoisted, role.AllowMention);
-            // load everyoen role perms
+            foreach (var role in b.Roles.OrderByDescending(x => x.Position)) await Context.Guild.CreateRoleAsync(role.RoleName, new GuildPermissions(role.GuildPermissions), new Color(role.RawColour), role.Hoisted, role.AllowMention);
+            // load everyone role perms
             await Context.Guild.EveryoneRole.ModifyAsync(f => f.Permissions = new GuildPermissions(b.EveryonePerms));
 
             // load channels
@@ -113,13 +110,13 @@ namespace GladosV3.Module.ServerBackup
             foreach (var category in b.Categories.OrderBy(x => x.Position))
             {
                 var cCat = await Context.Guild.CreateCategoryChannelAsync(category.Name, (f) => f.Position = category.Position);
-                category.Permissions.Select((f, b) => cCat.AddPermissionOverwriteAsync(Context.Guild.Roles.FirstOrDefault(x => x.Name == f.PRole), new OverwritePermissions(f.AChannelPermissions, f.DChannelPermissions)));
-                foreach (var (c, channel) in from c in category.TextChannels.OrderBy(x => x.Position) let channel = Context.Guild.CreateTextChannelAsync(c.Name, p => { p.CategoryId = cCat.Id; ; p.IsNsfw = c.IsNSFW; p.Topic = c.Topic; p.SlowModeInterval = c.Slowmode; p.Position = c.Position; }).GetAwaiter().GetResult() select (c, channel)) { c.Permissions.Select((f, b) => channel.AddPermissionOverwriteAsync(Context.Guild.Roles.FirstOrDefault(x => x.Name == f.PRole), new OverwritePermissions(f.AChannelPermissions, f.DChannelPermissions))); if (c.IsHidden) backupMessages.Add(channel.Id, await BackupGuild.GenChannelHiddenMessage()); else backupMessages.Add(channel.Id, c.LastMessages); }
-                foreach (var (c, channel) in from c in category.VoiceChannels.OrderBy(x => x.Position) let channel = Context.Guild.CreateVoiceChannelAsync(c.Name, p => { p.CategoryId = cCat.Id; p.UserLimit = c.UserLimit; p.Bitrate = c.Bitrate; p.Position = c.Position; }).GetAwaiter().GetResult() select (c, channel)) c.Permissions.Select((f, b) => channel.AddPermissionOverwriteAsync(Context.Guild.Roles.FirstOrDefault(x => x.Name == f.PRole), new OverwritePermissions(f.AChannelPermissions, f.DChannelPermissions)));
+                category.Permissions.ForEach(f => cCat.AddPermissionOverwriteAsync(Context.Guild.Roles.FirstOrDefault(x => x.Name == f.RoleName), new OverwritePermissions(f.AllowPermissions, f.DenyPermissions)));
+                foreach (var (c, channel) in from c in category.TextChannels.OrderBy(x => x.Position) let channel = Context.Guild.CreateTextChannelAsync(c.Name, p => { p.CategoryId = cCat.Id; ; p.IsNsfw = c.IsNSFW; p.Topic = c.Topic; p.SlowModeInterval = c.Slowmode; p.Position = c.Position; }).GetAwaiter().GetResult() select (c, channel)) { c.Permissions.Select((f, b) => channel.AddPermissionOverwriteAsync(Context.Guild.Roles.FirstOrDefault(x => x.Name == f.RoleName), new OverwritePermissions(f.AllowPermissions, f.DenyPermissions))); if (c.IsHidden) backupMessages.Add(channel.Id, await BackupGuild.GenChannelHiddenMessage()); else backupMessages.Add(channel.Id, c.LastMessages); }
+                foreach (var (c, channel) in from c in category.VoiceChannels.OrderBy(x => x.Position) let channel = Context.Guild.CreateVoiceChannelAsync(c.Name, p => { p.CategoryId = cCat.Id; p.UserLimit = c.UserLimit; p.Bitrate = c.Bitrate; p.Position = c.Position; }).GetAwaiter().GetResult() select (c, channel)) c.Permissions.ForEach((f) => channel.AddPermissionOverwriteAsync(Context.Guild.Roles.FirstOrDefault(x => x.Name == f.RoleName), new OverwritePermissions(f.AllowPermissions, f.DenyPermissions)));
             }
 
-            foreach (var (c, channel) in from c in b.TextChannels.OrderBy(x => x.Position) let channel = Context.Guild.CreateTextChannelAsync(c.Name, p => { p.IsNsfw = c.IsNSFW; p.Topic = c.Topic; p.SlowModeInterval = c.Slowmode; p.Position = c.Position; }).GetAwaiter().GetResult() select (c, channel)) { c.Permissions.Select((f, b) => channel.AddPermissionOverwriteAsync(Context.Guild.Roles.FirstOrDefault(x => x.Name == f.PRole), new OverwritePermissions(f.AChannelPermissions, f.DChannelPermissions))); if (c.IsHidden) backupMessages.Add(channel.Id, await BackupGuild.GenChannelHiddenMessage()); else backupMessages.Add(channel.Id, c.LastMessages); }
-            foreach (var (c, channel) in from c in b.VoiceChannels.OrderBy(x => x.Position) let channel = Context.Guild.CreateVoiceChannelAsync(c.Name, p => { p.UserLimit = c.UserLimit; p.Bitrate = c.Bitrate; p.Position = c.Position; }).GetAwaiter().GetResult() select (c, channel)) c.Permissions.Select((f, b) => channel.AddPermissionOverwriteAsync(Context.Guild.Roles.FirstOrDefault(x => x.Name == f.PRole), new OverwritePermissions(f.AChannelPermissions, f.DChannelPermissions)));
+            foreach (var (c, channel) in from c in b.TextChannels.OrderBy(x => x.Position) let channel = Context.Guild.CreateTextChannelAsync(c.Name, p => { p.IsNsfw = c.IsNSFW; p.Topic = c.Topic; p.SlowModeInterval = c.Slowmode; p.Position = c.Position; }).GetAwaiter().GetResult() select (c, channel)) { c.Permissions.Select((f, b) => channel.AddPermissionOverwriteAsync(Context.Guild.Roles.FirstOrDefault(x => x.Name == f.RoleName), new OverwritePermissions(f.AllowPermissions, f.DenyPermissions))); if (c.IsHidden) backupMessages.Add(channel.Id, await BackupGuild.GenChannelHiddenMessage()); else backupMessages.Add(channel.Id, c.LastMessages); }
+            foreach (var (c, channel) in from c in b.VoiceChannels.OrderBy(x => x.Position) let channel = Context.Guild.CreateVoiceChannelAsync(c.Name, p => { p.UserLimit = c.UserLimit; p.Bitrate = c.Bitrate; p.Position = c.Position; }).GetAwaiter().GetResult() select (c, channel)) c.Permissions.ForEach((f) => channel.AddPermissionOverwriteAsync(Context.Guild.Roles.FirstOrDefault(x => x.Name == f.RoleName), new OverwritePermissions(f.AllowPermissions, f.DenyPermissions)));
 
             //get system and afk channel
             Optional<ulong?> systemId = null;
@@ -137,18 +134,14 @@ namespace GladosV3.Module.ServerBackup
             // fix channel topics
             foreach (var channel in Context.Guild.TextChannels) await channel.ModifyAsync(async f => f.Topic = (await BackupGuild.FixId(Context.Guild, channel.Topic, true)));
 
-            foreach (var channel in Context.Guild.TextChannels) await this.SendMessagesToChannelAsync(backupMessages, channel);
+            Parallel.ForEach(Context.Guild.TextChannels, async t => await this.SendMessagesToChannelAsync(backupMessages, t));
+
+            await Context.User.SendMessageAsync("Your server has been fully restored!");
         }
         private async Task SendMessagesToChannelAsync(Dictionary<ulong, List<BackupChatMessage>> backupMessages, SocketTextChannel o)
         {
             var webhook = await o.CreateWebhookAsync("Message restorer");
-            var wc = new DiscordWebhookClient(webhook, new DiscordRestConfig()
-            {
-                DefaultRetryMode = RetryMode.AlwaysRetry,
-                LogLevel = LogSeverity.Verbose,
-                RateLimitPrecision = RateLimitPrecision.Millisecond,
-                RestClientProvider = DefaultRestClientProvider.Create(true)
-            });
+            var wc = new DiscordWebhookClient(webhook);
             wc.Log += Services.LoggingService.OnLogAsync;
             if (!backupMessages.TryGetValue(o.Id, out var messages)) return;
             foreach (var message in messages)
@@ -158,10 +151,15 @@ namespace GladosV3.Module.ServerBackup
             retry:
                 try
                 {
+                    ulong msgId = 0;
                     if (message.HasAttachments)
-                        await wc.SendFileAsync(new MemoryStream(Array.Empty<byte>(), false), "FILE_LOST", string.IsNullOrWhiteSpace(message.Text) ? null : message.Text, false, embeds, user == null ? message.Author : user.Username, user == null ? message.AuthorPic : (user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl()));
+                        msgId = await wc.SendFileAsync(new MemoryStream(Array.Empty<byte>(), false), "FILE_LOST", string.IsNullOrWhiteSpace(message.Text) ? null : message.Text, false, embeds, user == null ? message.Author : user.Username, user == null ? message.AuthorPic : (user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl()));
                     else
-                        await wc.SendMessageAsync(string.IsNullOrWhiteSpace(message.Text) ? null : (await BackupGuild.FixId(Context.Guild, message.Text, true)), false, embeds, user == null ? message.Author : user.Username, user == null ? message.AuthorPic : (user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl()));
+                        msgId = await wc.SendMessageAsync(string.IsNullOrWhiteSpace(message.Text) ? null : (await BackupGuild.FixId(Context.Guild, message.Text, true)), false, embeds, user == null ? message.Author : user.Username, user == null ? message.AuthorPic : (user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl()));
+                    if (!message.IsPinned) continue;
+                    await ((RestUserMessage)await o.GetMessageAsync(msgId)).PinAsync();
+                    var oof = (await o.GetMessagesAsync(1).FlattenAsync()).First();
+                    if (oof.Type == MessageType.ChannelPinnedMessage) await oof.DeleteAsync().ConfigureAwait(false);
                 }
                 catch (Exception) { await Task.Delay(8500); goto retry; }
             }

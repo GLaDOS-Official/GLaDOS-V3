@@ -11,22 +11,16 @@ namespace GladosV3.Services
 {
     public class LoggingService
     {
-        private readonly DiscordSocketClient _discord;
-        private readonly CommandService _commands;
-
-        public static Task Log(LogSeverity severity, string source, string message, Exception exception = null) =>
-            OnLogAsync(new LogMessage(severity, source, message, exception));
+        public static Task Log(LogSeverity severity, string source, string message, Exception exception = null) => OnLogAsync(new LogMessage(severity, source, message, exception));
         private static string LogDirectory => Path.Combine(AppContext.BaseDirectory, "logs");
         private static string LogFile => Path.Combine(LogDirectory, $"{DateTime.UtcNow:yyyy-MM-dd}.txt");
-        private static readonly ObservableCollection<string> logs = new ObservableCollection<string>();
+        private static readonly ObservableCollection<string> Logs = new ObservableCollection<string>();
         // DiscordSocketClient and CommandService are injected automatically from the IServiceProvider
-        public LoggingService(DiscordSocketClient discord, CommandService commands, bool init = true)
+        public LoggingService(DiscordSocketClient discord, CommandService commands)
         {
-            this._discord = discord;
-            this._commands = commands;
-            if (!init) return;
-            this._discord.Log += OnLogAsync;
-            this._commands.Log += OnLogAsync;
+            if (discord == null || commands == null) return;
+            discord.Log += OnLogAsync;
+            commands.Log += OnLogAsync;
         }
         public static void Begin()
         {
@@ -39,11 +33,11 @@ namespace GladosV3.Services
             if (!File.Exists(LogFile))               // Create today's log file if it doesn't exist
                 File.Create(LogFile).Dispose();
             string logText = $"{DateTime.UtcNow:hh:mm:ss} [{msg.Severity}] {msg.Source}: {msg.Exception?.ToString() ?? msg.Message}";
-            logs.Add(logText);
-            if (logs.Count >= 60)
+            Logs.Add(logText);
+            if (Logs.Count >= 60)
             {
-                File.AppendAllText(LogFile, string.Join(Environment.NewLine, logs));  // Write the log text to a file
-                logs.Clear();
+                File.AppendAllText(LogFile, string.Join(Environment.NewLine, Logs));  // Write the log text to a file
+                Logs.Clear();
             }
             switch (msg.Severity) // Write the log text to the console
             {

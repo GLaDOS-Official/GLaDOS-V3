@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using GladosV3.Services;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -13,18 +14,17 @@ namespace GladosV3.Module.ImageGeneration
 {
     public class GeneratorService
     {
-        private IDisposable typing;
-        public bool fail;
-        private const string htmlSplit = " ";
+        public bool Fail;
+        private const string HtmlSplit = " ";
         public GeneratorService()
         {
-            if (!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Binaries\\wkhtmltoimage.exe"))) { LoggingService.Log(LogSeverity.Error, "ImageGenerator", "wkhtmltoimage.exe not found!"); this.fail = true; };
+            if (!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Binaries\\wkhtmltoimage.exe"))) { LoggingService.Log(LogSeverity.Error, "ImageGenerator", "wkhtmltoimage.exe not found!"); this.Fail = true; };
         }
         public Task<MemoryStream> Shit(string[] items, ICommandContext context)
         {
+            IDisposable typing = context.Channel.EnterTypingState();
             try
             {
-                this.typing = context.Channel.EnterTypingState();
                 string item = items.Aggregate(string.Empty, (current, type) => current + type + ", ");
                 string html = File.ReadAllTextAsync(Path.Combine(Directory.GetCurrentDirectory(),
                     "images\\shit.html")).GetAwaiter().GetResult().Replace("REPLACEWITHITEM", item.Remove(item.Length - 2)).Replace("REPLACECORRECTPLURAL", items.Length > 1 ? "are" : "is");
@@ -33,14 +33,14 @@ namespace GladosV3.Module.ImageGeneration
             }
             finally
             {
-                this.typing.Dispose();
+                typing.Dispose();
             }
         }
         public Task<MemoryStream> Delete(string item, ICommandContext context)
         {
+            IDisposable typing = context.Channel.EnterTypingState();
             try
             {
-                this.typing = context.Channel.EnterTypingState();
                 string html = File.ReadAllTextAsync(Path.Combine(Directory.GetCurrentDirectory(),
                     "images\\delete.html")).GetAwaiter().GetResult().Replace("REPLACEWITHITEM", item);
                 var jpgBytes = Exec(html).GetAwaiter().GetResult();
@@ -48,14 +48,15 @@ namespace GladosV3.Module.ImageGeneration
             }
             finally
             {
-                this.typing.Dispose();
+                typing.Dispose();
             }
         }
         public Task<MemoryStream> MinecraftAchivementGet(string text, ICommandContext context)
         {
+            IDisposable typing = context.Channel.EnterTypingState();
             try
             {
-                this.typing = context.Channel.EnterTypingState();
+                //TODO: maybe do this locally?
                 var randoms = new[] { 29, 20, 1, 21, 13, 18, 17, 9, 31, 22, 23, 2, 11, 19, 24, 25, 14, 12, 33, 34, 32, 3, 35, 37, 38, 7, 10, 39, 4, 5, 30, 8, 16, 28 };
                 using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://www.minecraftskinstealer.com/achievement/a.php?i={randoms[new Random().Next(randoms.Length)]}&h=Achievement+Get%21&t={text}").GetAwaiter().GetResult();
@@ -63,98 +64,98 @@ namespace GladosV3.Module.ImageGeneration
             }
             finally
             {
-                this.typing.Dispose();
+                typing.Dispose();
             }
         }
         public Task<MemoryStream> Threats(ICommandContext context, string url)
         {
+            IDisposable typing = context.Channel.EnterTypingState();
             try
             {
-                this.typing = context.Channel.EnterTypingState();
                 using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?url={(url.Replace(".gif", ".png"))}&type=threats&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
             finally
             {
-                this.typing.Dispose();
+                typing.Dispose();
             }
         }
         public Task<MemoryStream> Baguette(ICommandContext context, string url)
         {
+            IDisposable typing = context.Channel.EnterTypingState();
             try
             {
-                this.typing = context.Channel.EnterTypingState();
                 using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?url={(url.Replace(".gif", ".png"))}&type=baguette&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
             finally
             {
-                this.typing.Dispose();
+                typing.Dispose();
             }
         }
         public Task<MemoryStream> Clyde(ICommandContext context, string clyde)
         {
+            IDisposable typing = context.Channel.EnterTypingState();
             try
             {
-                this.typing = context.Channel.EnterTypingState();
                 using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?text={clyde}&type=clyde&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
             finally
             {
-                this.typing.Dispose();
+                typing.Dispose();
             }
         }
         public Task<MemoryStream> Relationship(ICommandContext context, IUser user2)
         {
+            IDisposable typing = context.Channel.EnterTypingState();
             try
             {
-                this.typing = context.Channel.EnterTypingState();
                 using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?user1={(context.Message.Author.GetAvatarUrl().Replace(".gif", ".png"))}&user2={(user2.GetAvatarUrl().Replace(".gif", ".png"))}&type=ship&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
             finally
             {
-                this.typing.Dispose();
+                typing.Dispose();
             }
         }
         public Task<MemoryStream> Captcha(ICommandContext context, string url, string username)
         {
+            IDisposable typing = context.Channel.EnterTypingState();
             try
             {
-                this.typing = context.Channel.EnterTypingState();
                 using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?url={url}&username={username}&type=captcha&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
             finally
             {
-                this.typing.Dispose();
+                typing.Dispose();
             }
         }
         public Task<MemoryStream> WhoWouldWin(ICommandContext context, IUser user2)
         {
+            IDisposable typing = context.Channel.EnterTypingState();
             try
             {
-                this.typing = context.Channel.EnterTypingState();
                 using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?user1={(context.Message.Author.GetAvatarUrl().Replace(".gif", ".png"))}&user2={(user2.GetAvatarUrl().Replace(".gif", ".png"))}&type=whowouldwin&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
             finally
             {
-                this.typing.Dispose();
+                typing.Dispose();
             }
         }
         public Task<MemoryStream> ChangeMyMind(ICommandContext context, string cmm)
         {
+            IDisposable typing = context.Channel.EnterTypingState();
             try
             {
-                this.typing = context.Channel.EnterTypingState();
                 if (cmm.Length >= 100) cmm = cmm.Substring(0, 100);
                 using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?text={cmm}&type=changemymind&raw=1").GetAwaiter().GetResult();
@@ -162,44 +163,45 @@ namespace GladosV3.Module.ImageGeneration
             }
             finally
             {
-                this.typing.Dispose();
+                typing.Dispose();
             }
         }
         public Task<MemoryStream> Jpegify(ICommandContext context, string url)
         {
+            IDisposable typing = context.Channel.EnterTypingState();
             try
             {
-                this.typing = context.Channel.EnterTypingState();
                 using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?url={(url.Replace(".gif", ".png"))}&type=jpeg&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
             finally
             {
-                this.typing.Dispose();
+                typing.Dispose();
             }
         }
         public Task<MemoryStream> Lolice(ICommandContext context, string url)
         {
+            IDisposable typing = context.Channel.EnterTypingState();
             try
             {
-                this.typing = context.Channel.EnterTypingState();
                 using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?url={(url.Replace(".gif", ".png"))}&type=lolice&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
             finally
             {
-                this.typing.Dispose();
+                typing.Dispose();
             }
         }
         public Task<MemoryStream> Kannagen(ICommandContext context, string text)
         {
+            const int splitPerChar = 10;
+            const int splitPerUpperChar = 8;
+            IDisposable typing = context.Channel.EnterTypingState();
             try
             {
-                this.typing = context.Channel.EnterTypingState();
-                const int splitPerChar = 10;
-                const int splitPerUpperChar = 8;
+
                 if (text.Length >= 45) text = text.Substring(0, 45);
 
                 string[] split = text.Split(' ');
@@ -207,7 +209,7 @@ namespace GladosV3.Module.ImageGeneration
                 {
                     int splitNum = char.IsUpper(split[i][^1]) ? splitPerUpperChar : splitPerChar;
                     if (split[i].Length < splitNum) continue;
-                    for (int j = splitNum; j < split[i].Length; j += splitNum) split[i] = split[i].Insert(j, htmlSplit);
+                    for (int j = splitNum; j < split[i].Length; j += splitNum) split[i] = split[i].Insert(j, HtmlSplit);
                 }
                 string result = string.Join(' ', split);
 
@@ -217,72 +219,73 @@ namespace GladosV3.Module.ImageGeneration
             }
             finally
             {
-                this.typing.Dispose();
+                typing.Dispose();
             }
         }
         public Task<MemoryStream> IPhoneX(ICommandContext context, string url)
         {
+            IDisposable typing = context.Channel.EnterTypingState();
             try
             {
-                this.typing = context.Channel.EnterTypingState();
                 using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?url={(url.Replace(".gif", ".png"))}&type=iphonex&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
             finally
             {
-                this.typing.Dispose();
+                typing.Dispose();
             }
         }
         public Task<MemoryStream> Trap(ICommandContext context, IUser user)
         {
+            IDisposable typing = context.Channel.EnterTypingState();
             try
             {
-                this.typing = context.Channel.EnterTypingState();
                 using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?image={(user.GetAvatarUrl(size: 1024).Replace(".gif", ".png"))}&author={context.User.Username}&name={user.Username}&type=trap&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
             finally
             {
-                this.typing.Dispose();
+                typing.Dispose();
             }
         }
         public Task<MemoryStream> Trump(ICommandContext context, string trump)
         {
+            IDisposable typing = context.Channel.EnterTypingState();
             try
             {
-                if (trump.Length > 33) trump = trump.Insert(34, htmlSplit);
+                if (trump.Length > 33) trump = trump.Insert(34, HtmlSplit);
                 if (trump.Length >= 72) trump = trump.Substring(0, 72);
-                this.typing = context.Channel.EnterTypingState();
+
                 using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?text={trump}&type=trumptweet&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
             finally
             {
-                this.typing.Dispose();
+                typing.Dispose();
             }
         }
         public Task<MemoryStream> Deepfry(ICommandContext context, string url)
         {
+            IDisposable typing = context.Channel.EnterTypingState();
             try
             {
-                this.typing = context.Channel.EnterTypingState();
                 using HttpClient hc = new HttpClient();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?image={(url.Replace(".gif", ".png"))}&type=deepfry&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
             finally
             {
-                this.typing.Dispose();
+                typing.Dispose();
             }
         }
         public Task<MemoryStream> Magik(ICommandContext context, string url)
         {
+            IDisposable typing = context.Channel.EnterTypingState();
             try
             {
-                this.typing = context.Channel.EnterTypingState();
                 using HttpClient hc = new HttpClient();
                 Random rnd = new Random();
                 byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?image={(url.Replace(".gif", ".png"))}&type=magik&intensity={rnd.Next(10)}&raw=1").GetAwaiter().GetResult();
@@ -290,9 +293,30 @@ namespace GladosV3.Module.ImageGeneration
             }
             finally
             {
-                this.typing.Dispose();
+                typing.Dispose();
             }
         }
+        public Task<MemoryStream> Pat(ICommandContext context)
+        {
+            IDisposable typing = context.Channel.EnterTypingState();
+            // Zm6rTsQqetLvvqC1mzk2wJh542xZx9kfPYll
+            try
+            {
+
+                using HttpClient hc = new HttpClient();
+                hc.DefaultRequestHeaders.Add("clave", "Zm6rTsQqetLvvqC1mzk2wJh542xZx9kfPYll");
+                Random rnd = new Random();
+                JObject json = JObject.Parse(hc.GetStringAsync($"https://weez.pw/api/random/pat").GetAwaiter().GetResult());
+                if (!((bool)json["success"].ToObject(typeof(bool))) || string.IsNullOrWhiteSpace(json["link"].ToString())) return null;
+                var gifBytes = hc.GetByteArrayAsync(json["link"].ToString()).GetAwaiter().GetResult();
+                return Task.FromResult(new MemoryStream(gifBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
+        }
+
         public static async Task<byte[]> Exec(string html, int width = 0, int height = 0) // Custom wrapper!!!
         {
             var e = Process.Start(new ProcessStartInfo
@@ -303,7 +327,7 @@ namespace GladosV3.Module.ImageGeneration
                 RedirectStandardOutput = true,
                 RedirectStandardInput = true
             });
-            using (StreamWriter stream = e.StandardInput)
+            await using (StreamWriter stream = e.StandardInput)
             {
                 byte[] htmlcontent = Encoding.UTF8.GetBytes(html);
                 await stream.BaseStream.WriteAsync(htmlcontent, 0, htmlcontent.Length).ConfigureAwait(false);
@@ -311,7 +335,7 @@ namespace GladosV3.Module.ImageGeneration
                 await stream.BaseStream.FlushAsync().ConfigureAwait(false);
                 stream.Close();
             }
-            using (MemoryStream stream = new MemoryStream())
+            await using (MemoryStream stream = new MemoryStream())
             {
                 await e.StandardOutput.BaseStream.CopyToAsync(stream);
                 await e.StandardOutput.BaseStream.FlushAsync().ConfigureAwait(false);

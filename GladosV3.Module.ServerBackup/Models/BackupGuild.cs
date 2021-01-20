@@ -12,11 +12,11 @@ namespace GladosV3.Module.ServerBackup.Models
 {
     internal class BackupGuild
     {
-        public class UserC
+        internal class UserC
         {
             public ulong UserID { get; set; }
             public string Nickname { get; set; }
-            public UserC(SocketGuildUser u)
+            public UserC(IGuildUser u)
             {
                 if (u == null) return;
                 UserID = u.Id;
@@ -31,7 +31,7 @@ namespace GladosV3.Module.ServerBackup.Models
         public List<BackupBan> Bans { get; set; }
         public ulong EveryonePerms { get; set; }
         public List<UserC> Users { get; set; }
-        public DateTime LastSave { get; set; } = DateTime.Now;
+        public DateTime LastSave { get; } = DateTime.Now;
         public VerificationLevel VerificationLevel { get; set; }
         public byte[] Icon { get; set; }
         public byte[] SplashImage { get; set; }
@@ -45,7 +45,7 @@ namespace GladosV3.Module.ServerBackup.Models
         public int AFKChannelLocalId { get; set; }
         public BackupGuild() => this.SaveGuild(null).GetAwaiter();
         public BackupGuild(SocketCommandContext ctx) => this.SaveGuild(ctx).GetAwaiter().GetResult();
-        public static async Task<List<BackupChatMessage>> GenChannelHiddenMessage() =>
+        public static Task<List<BackupChatMessage>> GenChannelHiddenMessage() => Task.FromResult(
             new List<BackupChatMessage>(1) { new BackupChatMessage(null)
             {
                 Author    = "Server backup",
@@ -53,11 +53,11 @@ namespace GladosV3.Module.ServerBackup.Models
                 AuthorPic = "https://images.discordapp.net/avatars/536953835361665024/ea7664a628a7a4b772dd06ed81637334.png?size=512",
                 Text      = "This channel was unavailable or hidden during backup!",
                 Embeds    = Array.Empty<BackupEmbed>()
-            }};
+            }});
 
         public static async Task<SocketChannel> GetDiscordChannelFromLocalIdAsync(SocketGuild guild, int id)
         {
-            int localId = -1;
+            var localId = -1;
             foreach (var cat in guild.CategoryChannels.OrderBy(c => c.Id))
             {
                 if (++localId == id) return cat;
@@ -73,7 +73,7 @@ namespace GladosV3.Module.ServerBackup.Models
         public static async Task<int> DiscordChannelToLocalIdAsync(SocketGuild guild, SocketChannel channel)
         {
             if (channel == null) return -1;
-            int localId = -1;
+            var localId = -1;
             foreach (var cat in guild.CategoryChannels.OrderBy(c => c.Id))
             {
                 localId++;
@@ -107,46 +107,43 @@ namespace GladosV3.Module.ServerBackup.Models
             foreach (var category in Categories)
             {
                 if (check(category)) return category;
-                foreach (var text in category.TextChannels) if (check(text)) return text;
-                foreach (var voice in category.VoiceChannels) if (check(voice)) return voice;
+                foreach (var text in category.TextChannels.Where(text => check(text))) return text;
+                foreach (var voice in category.VoiceChannels.Where(voice => check(voice))) return voice;
             }
-            foreach (var text in TextChannels) if (check(text)) return text;
-            foreach (var voice in VoiceChannels) if (check(voice)) return voice;
-            return null;
+            foreach (var text in TextChannels.Where(text => check(text))) return text;
+            return VoiceChannels.FirstOrDefault(voice => check(voice));
         }
-        private static async Task<string> RegexIdFix(string pattern, string input, Func<string, Task<string>> callback)
+        private static async Task RegexIdFix(string pattern, string input, Func<string, Task<string>> callback)
         {
             Regex r = new Regex(pattern, RegexOptions.Compiled);
-            if (!r.IsMatch(input)) return input;
             foreach (Match m in r.Matches(input))
             {
                 if (!m.Success) continue;
                 if (m.Captures.Count == 0) continue;
-                string id = m.Groups[1].Value;
+                var id = m.Groups[1].Value;
                 input = await callback(id);
             }
-            return input;
         }
-        public static async Task<int> GetRoleId(SocketRole r)
+        public static Task<int> GetRoleId(SocketRole r)
         {
-            int id = -1;
+            var id = -1;
             foreach (var role in r.Guild.Roles.OrderBy(c => c.Position))
             {
                 if (role.IsEveryone || role.IsManaged) continue;
                 id++;
-                if (r.Id == role.Id) return id;
+                if (r.Id == role.Id) return Task.FromResult(id);
             }
-            return -1;
+            return Task.FromResult(-1);
         }
-        public static async Task<int> GetEmojiId(SocketGuild g, GuildEmote emote)
+        public static Task<int> GetEmojiId(SocketGuild g, GuildEmote emote)
         {
-            int id = -1;
+            var id = -1;
             foreach (var e in g.Emotes.OrderBy(c => c.Name))
             {
                 id++;
-                if (e.Id == emote.Id) return id;
+                if (e.Id == emote.Id) return Task.FromResult(id);
             }
-            return -1;
+            return Task.FromResult(-1);
         }
         public static async Task<string> FixId(SocketGuild guild, string s, bool revert = false)
         {
@@ -192,17 +189,16 @@ namespace GladosV3.Module.ServerBackup.Models
                 if (!ulong.TryParse(f, out var cId)) return s;
                 if (revert)
                 {
-                    int id = -1;
-                    GuildEmote emoji = null;
-                    foreach (var e in guild.Emotes.OrderBy(c => c.Name).Where(e => ++id == (int)cId).Select(e => e)) { emoji = e; break; }
-                    if (emoji == null) return s;
-                    s = s.Replace(f, $"{emoji.Id}");
+                    var id = -1;
+                    GuildEmote emote = guild.Emotes.OrderBy(c => c.Name).Where(e => ++id == (int)cId).Select(e => e).FirstOrDefault();
+                    if (emote == null) return s;
+                    s = s.Replace(f, $"{emote.Id}");
                 }
                 else
                 {
-                    var emoji = guild.Emotes.Where(f => f.Id == cId).FirstOrDefault();
-                    if (emoji == null) return s;
-                    s = s.Replace(f, $"{await GetEmojiId(guild, emoji)}");
+                    var emote = guild.Emotes.FirstOrDefault(f => f.Id == cId);
+                    if (emote == null) return s;
+                    s = s.Replace(f, $"{await GetEmojiId(guild, emote)}");
                 }
                 return s;
             });
@@ -213,7 +209,7 @@ namespace GladosV3.Module.ServerBackup.Models
             if (ctx == null) return;
             ServerName = ctx.Guild.Name;
             EveryonePerms = ctx.Guild.EveryoneRole.Permissions.RawValue;
-            int channelId = -1;
+            var channelId = -1;
             Categories = ctx.Guild.CategoryChannels.OrderBy(c => c.Id).Select(c => new BackupCategory(c, ref channelId)).ToList();
             TextChannels = ctx.Guild.TextChannels.Where(c => c.Category == null).OrderBy(c => c.Id).Select(c => new BackupTextChannel(c, ref channelId)).ToList();
             VoiceChannels = ctx.Guild.VoiceChannels.Where(c => c.Category == null).OrderBy(c => c.Id).Select(c => new BackupAudioChannel(c, ref channelId)).ToList();
