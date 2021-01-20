@@ -1,0 +1,29 @@
+name: Continuous integration
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Invoke MSBuild
+      run: Build/build.bat
+      shell: cmd
+    - uses: actions/upload-artifact@v1
+      with:
+        name: Windows
+        path: Build/release-windows.zip
+    - uses: actions/upload-artifact@v1
+      with:
+        name: Linux
+        path: Build/release-linux.zip
+    - uses: actions/upload-artifact@v1
+      with:
+        name: Portable
+        path: Build/release-portable.zip
+    - uses: actions/upload-artifact@v1
+      with:
+        name: All
+        path: Build/release-all.zip

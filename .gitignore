@@ -258,3 +258,5 @@ paket-files/
 lavalink/logs/
 GLaDOSV3/database.db
 GladosV3.Module.GTAService/
+
+Build/*.zip
