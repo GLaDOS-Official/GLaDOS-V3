@@ -2,6 +2,8 @@
 
 mkdir Build
 del /q /f /s .\Build
+dotnet nuget add source -n Discord.net https://www.myget.org/F/discord-net/api/v3/index.json
+dotnet restore ..\GladosV3.sln
 dotnet msbuild ..\GladosV3.sln /p:Configuration=Release "/p:Platform=x64"
 dotnet publish ..\GLaDOSV3\GladosV3.csproj -c Release -p:PublishSingleFile=true --self-contained true -r win-x64 -o .\Build\win-x64
 IF %ERRORLEVEL% NEQ 0 GOTO err
