@@ -9,8 +9,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Invoke MSBuild
-      run: Build/build.bat
+      run: build.bat
       shell: cmd
+      working-directory: Build
     - uses: actions/upload-artifact@v1
       with:
         name: Windows
