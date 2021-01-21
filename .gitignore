@@ -260,3 +260,5 @@ GLaDOSV3/database.db
 # GladosV3.Module.GTAService/
 
 Build/*.zip
+
+Build/release*

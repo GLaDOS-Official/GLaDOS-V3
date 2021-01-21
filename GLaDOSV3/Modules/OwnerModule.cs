@@ -70,7 +70,7 @@ namespace GladosV3.Modules
         public async Task Eval([Remainder] string code)
         {
             IUserMessage message = await this.ReplyAsync("Please wait...").ConfigureAwait(false);
-            await message.ModifyAsync(async properties => properties.Content = (await Helpers.Eval.EvalTask(Context, code).ConfigureAwait(true))).ConfigureAwait(false);
+            await message.ModifyAsync(async properties => properties.Content = await Helpers.Eval.EvalTask(Context, code).ConfigureAwait(true)).ConfigureAwait(false);
         }
         [Command("bot webhookmass")]
         [Remarks("bot webhookmass <serverid> <count>")]

@@ -23,7 +23,7 @@ namespace GladosV3
         {
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.White;
-            Directory.SetCurrentDirectory(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)));
+            Directory.SetCurrentDirectory(Path.GetDirectoryName(AppContext.BaseDirectory));
             var pInvokeDir = Path.Combine(Directory.GetCurrentDirectory(), "PInvoke\\");
             if (!Directory.Exists(pInvokeDir))
             { Console.WriteLine("PInvoke directory doesn't exist! Creating!"); Directory.CreateDirectory(pInvokeDir); }
@@ -41,7 +41,7 @@ namespace GladosV3
                         true, // Disable firing message delete event on bulk delete event (bulk delete event will still be fired)
 #if DEBUG
                     RestClientProvider = DefaultRestClientProvider.Create(true),
-                    WebSocketProvider  = DefaultWebSocketProvider.Create(new WebProxy("127.0.0.1", 8888)),
+                    WebSocketProvider  = DefaultWebSocketProvider.Create(/*new WebProxy("127.0.0.1", 8888)*/),
 #endif
                     MessageCacheSize =
                         0,                                   // Tell Discord.Net to NOT CACHE! This will also disable MessageUpdated event

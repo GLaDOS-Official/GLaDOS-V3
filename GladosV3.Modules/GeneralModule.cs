@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 namespace GladosV3.Module.Default
 {
     [Name("General")]
+    [RequireContext(ContextType.Guild)]
     public class GeneralModule : ModuleBase<SocketCommandContext>
     {
         private static MemoryCache mCache;
@@ -160,7 +161,7 @@ namespace GladosV3.Module.Default
             SqLite.Connection.Close();
             SqLite.Start();
             var message = await this.ReplyAsync("Bot will be unavailable for a while. Rebuilding the database.....\nRefactoring server table...").ConfigureAwait(true);
-            CommandHandler.BotBusy = true; ;
+            CommandHandler.BotBusy = true;
             for (var i = 0; i < Context.Client.Guilds.Count; i++)
             {
                 var guild = Context.Client.Guilds.ElementAt(i);
