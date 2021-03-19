@@ -152,7 +152,7 @@ namespace GladosV3.Services
         private Task MentionBomb(SocketUserMessage msg)
         {
             return Task.CompletedTask;
-            if (!(msg.Channel is SocketGuildChannel channel)) return Task.CompletedTask;
+            if (msg.Channel is not SocketGuildChannel channel) return Task.CompletedTask;
             if (channel.GetUser(msg.Author.Id).GuildPermissions.Has(GuildPermission.ManageGuild) || channel.GetUser(msg.Author.Id).GuildPermissions.Has(GuildPermission.Administrator)) return Task.CompletedTask;
             if (msg.MentionedUsers.Distinct().Count() < 5) return Task.CompletedTask;
             msg.DeleteAsync().GetAwaiter();

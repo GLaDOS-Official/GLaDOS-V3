@@ -8,8 +8,6 @@ namespace GladosV3.Attributes
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
     public class RequireUserPermissionAttribute : Discord.Commands.RequireUserPermissionAttribute
     {
-        public GuildPermission? GuildPermission { get; }
-        public ChannelPermission? ChannelPermission { get; }
         public RequireUserPermissionAttribute(ChannelPermission permission) : base(permission)
         {}
         public RequireUserPermissionAttribute(GuildPermission permission) : base(permission)

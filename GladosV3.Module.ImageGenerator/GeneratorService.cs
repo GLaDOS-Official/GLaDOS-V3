@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using GladosV3.Services;
+using ImageMagick;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics;
@@ -109,13 +110,16 @@ namespace GladosV3.Module.ImageGeneration
                 typing.Dispose();
             }
         }
-        public Task<MemoryStream> Relationship(ICommandContext context, IUser user2)
+        public Task<MemoryStream> Relationship(ICommandContext context, IUser user1, IUser user2)
         {
             IDisposable typing = context.Channel.EnterTypingState();
             try
             {
+                if (user2 == null) user2 = context.Client.CurrentUser;
+                string user1_url = (user1.GetAvatarUrl() ?? user1.GetDefaultAvatarUrl()).Replace(".gif", ".png");
+                string user2_url = (user2.GetAvatarUrl() ?? user2.GetDefaultAvatarUrl()).Replace(".gif", ".png");
                 using HttpClient hc = new HttpClient();
-                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?user1={(context.Message.Author.GetAvatarUrl().Replace(".gif", ".png"))}&user2={(user2.GetAvatarUrl().Replace(".gif", ".png"))}&type=ship&raw=1").GetAwaiter().GetResult();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?user1={user1_url}&user2={user2_url}&type=ship&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
             finally
@@ -137,13 +141,16 @@ namespace GladosV3.Module.ImageGeneration
                 typing.Dispose();
             }
         }
-        public Task<MemoryStream> WhoWouldWin(ICommandContext context, IUser user2)
+        public Task<MemoryStream> WhoWouldWin(ICommandContext context, IUser user1, IUser user2)
         {
             IDisposable typing = context.Channel.EnterTypingState();
             try
             {
+                if (user2 == null) user2 = context.Client.CurrentUser;
+                string user1_url = (user1.GetAvatarUrl() ?? user1.GetDefaultAvatarUrl()).Replace(".gif", ".png");
+                string user2_url = (user2.GetAvatarUrl() ?? user2.GetDefaultAvatarUrl()).Replace(".gif", ".png");
                 using HttpClient hc = new HttpClient();
-                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?user1={(context.Message.Author.GetAvatarUrl().Replace(".gif", ".png"))}&user2={(user2.GetAvatarUrl().Replace(".gif", ".png"))}&type=whowouldwin&raw=1").GetAwaiter().GetResult();
+                byte[] jpgBytes = hc.GetByteArrayAsync($"https://nekobot.xyz/api/imagegen?user1={user1_url}&user2={user2_url}&type=whowouldwin&raw=1").GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
             finally
@@ -296,19 +303,44 @@ namespace GladosV3.Module.ImageGeneration
                 typing.Dispose();
             }
         }
+        public Task<MemoryStream> Beautiful(ICommandContext context, string url)
+        {
+            IDisposable typing = context.Channel.EnterTypingState();
+            try
+            {
+                using var images = new MagickImageCollection();
+                using HttpClient hc = new HttpClient();
+                MagickImage image1 = new MagickImage($".\\Images\\beautiful.png");
+                MagickImage image2 = new MagickImage(hc.GetByteArrayAsync(url.Replace(".gif", ".png")).GetAwaiter().GetResult());
+                MagickImage image3 = new MagickImage(image2);
+                image1.Alpha(AlphaOption.Set);
+
+                image2.InterpolativeResize(90, 112 + 7, PixelInterpolateMethod.Bilinear);
+                image2.Page = new MagickGeometry("+256+20");
+                image3.InterpolativeResize(90, 105 + 7, PixelInterpolateMethod.Bilinear);
+                image3.Page = new MagickGeometry("+257+220");
+                images.Add(image3);
+                images.Add(image2);
+                images.Add(image1);
+                var result = images.Merge();
+                var stream = new MemoryStream();
+                result.Write(stream);
+                byte[] bytes;
+                bytes = stream.ToArray();
+                return Task.FromResult(new MemoryStream(bytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
+        }
         public Task<MemoryStream> Pat(ICommandContext context)
         {
             IDisposable typing = context.Channel.EnterTypingState();
-            // Zm6rTsQqetLvvqC1mzk2wJh542xZx9kfPYll
             try
             {
-
-                using HttpClient hc = new HttpClient();
-                hc.DefaultRequestHeaders.Add("clave", "Zm6rTsQqetLvvqC1mzk2wJh542xZx9kfPYll");
-                Random rnd = new Random();
-                JObject json = JObject.Parse(hc.GetStringAsync($"https://weez.pw/api/random/pat").GetAwaiter().GetResult());
-                if (!((bool)json["success"].ToObject(typeof(bool))) || string.IsNullOrWhiteSpace(json["link"].ToString())) return null;
-                var gifBytes = hc.GetByteArrayAsync(json["link"].ToString()).GetAwaiter().GetResult();
+                var gifBytes = NekosDevApi("sfw/gif/pat").GetAwaiter().GetResult();
+                if (gifBytes == null) return null;
                 return Task.FromResult(new MemoryStream(gifBytes));
             }
             finally
@@ -316,7 +348,99 @@ namespace GladosV3.Module.ImageGeneration
                 typing.Dispose();
             }
         }
-
+        public Task<MemoryStream> Kiss(ICommandContext context)
+        {
+            IDisposable typing = context.Channel.EnterTypingState();
+            try
+            {
+                var gifBytes = NekosDevApi("sfw/gif/kiss").GetAwaiter().GetResult();
+                if (gifBytes == null) return null;
+                return Task.FromResult(new MemoryStream(gifBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
+        }
+        public Task<MemoryStream> Tickle(ICommandContext context)
+        {
+            IDisposable typing = context.Channel.EnterTypingState();
+            try
+            {
+                var gifBytes = NekosDevApi("sfw/gif/tickle").GetAwaiter().GetResult();
+                if (gifBytes == null) return null;
+                return Task.FromResult(new MemoryStream(gifBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
+        }
+        public Task<MemoryStream> Poke(ICommandContext context)
+        {
+            IDisposable typing = context.Channel.EnterTypingState();
+            try
+            {
+                var gifBytes = NekosDevApi("sfw/gif/poke").GetAwaiter().GetResult();
+                if (gifBytes == null) return null;
+                return Task.FromResult(new MemoryStream(gifBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
+        }
+        public Task<MemoryStream> Slap(ICommandContext context)
+        {
+            IDisposable typing = context.Channel.EnterTypingState();
+            try
+            {
+                var gifBytes = NekosDevApi("sfw/gif/slap").GetAwaiter().GetResult();
+                if (gifBytes == null) return null;
+                return Task.FromResult(new MemoryStream(gifBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
+        }
+        public Task<MemoryStream> Cuddle(ICommandContext context)
+        {
+            IDisposable typing = context.Channel.EnterTypingState();
+            try
+            {
+                var gifBytes = NekosDevApi("sfw/gif/cuddle").GetAwaiter().GetResult();
+                if (gifBytes == null) return null;
+                return Task.FromResult(new MemoryStream(gifBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
+        }
+        public Task<MemoryStream> Hug(ICommandContext context)
+        {
+            IDisposable typing = context.Channel.EnterTypingState();
+            try
+            {
+                var gifBytes = NekosDevApi("sfw/gif/hug").GetAwaiter().GetResult();
+                if (gifBytes == null) return null;
+                return Task.FromResult(new MemoryStream(gifBytes));
+            }
+            finally
+            {
+                typing.Dispose();
+            }
+        }
+        public static async Task<byte[]> NekosDevApi(string path)
+        {
+            using HttpClient hc = new HttpClient();
+            JObject json = JObject.Parse(hc.GetStringAsync($"https://api.nekos.dev/api/v3/images/{path}").GetAwaiter().GetResult());
+            if (!(bool)json["data"]["status"]["success"].ToObject(typeof(bool))) return null;
+            if (string.IsNullOrWhiteSpace(json["data"]["response"]["url"].ToString())) return null;
+            var gifBytes = hc.GetByteArrayAsync(json["data"]["response"]["url"].ToString()).GetAwaiter().GetResult();
+            return gifBytes;
+        }
         public static async Task<byte[]> Exec(string html, int width = 0, int height = 0) // Custom wrapper!!!
         {
             var e = Process.Start(new ProcessStartInfo

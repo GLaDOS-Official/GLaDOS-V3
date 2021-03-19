@@ -20,6 +20,12 @@
 
   <ItemGroup>
     <Folder Include="Binaries\" />
+    <Folder Include="Dependencies\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Magick.NET-Q16-HDRI-AnyCPU" Version="7.23.2.1" />
+    <PackageReference Include="Magick.NET.Core" Version="6.1.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,7 +46,11 @@
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\GLaDOSV3\$(OutDir)\Modules\"></Copy>
     <Copy SourceFiles="Binaries\wkhtmltoimage.exe" DestinationFolder="..\GLaDOSV3\$(OutDir)\Binaries\"></Copy>
+    <Copy SourceFiles="Dependencies\Magick.NET.Core.dll" DestinationFolder="..\GLaDOSV3\$(OutDir)\Dependencies\"></Copy>
+    <Copy SourceFiles="Dependencies\Magick.NET-Q16-HDRI-AnyCPU.dll" DestinationFolder="..\GLaDOSV3\$(OutDir)\Dependencies\"></Copy>
+    <Copy SourceFiles="Images\beautiful.png" DestinationFolder="..\GLaDOSV3\$(OutDir)\Images\"></Copy>
     <Copy SourceFiles="Images\shit.html" DestinationFolder="..\GLaDOSV3\$(OutDir)\Images\"></Copy>
     <Copy SourceFiles="Images\delete.html" DestinationFolder="..\GLaDOSV3\$(OutDir)\Images\"></Copy>
+    <Exec Command="start /MIN /WAIT /I /D &quot;D:\Documents\Visual Studio 2019\Repos\GLaDOS-V3\GladosV3.Module.ImageGenerator\&quot; copy_runtime.bat &quot;..\GLaDOSV3\$(OutDir)runtimes&quot;" />
   </Target>
 </Project>

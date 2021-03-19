@@ -36,15 +36,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Discord.Net" Version="2.3.0-dev-20201223.7" />
+    <PackageReference Include="Discord.Net" Version="2.3.1-dev-20210210.1" />
     <PackageReference Include="Fizzler.Systems.HtmlAgilityPack" Version="1.2.1" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.29" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Compilers" Version="3.9.0-2.final" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.9.0-2.final" />
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.2">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.31" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Compilers" Version="3.9.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.9.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
@@ -55,7 +51,7 @@
     <PackageReference Include="System.Data.SQLite" Version="1.0.113.7" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.113.7" />
     <PackageReference Include="System.Data.SQLite.Linq" Version="1.0.113" />
-    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="5.0.0" />
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="5.0.1" />
   </ItemGroup>
 
   <ItemGroup>

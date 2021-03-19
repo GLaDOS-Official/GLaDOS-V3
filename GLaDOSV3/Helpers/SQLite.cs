@@ -90,6 +90,7 @@ namespace GladosV3.Helpers
         /// </summary>
         public static Task AddRecordAsync<T>(this SQLiteConnection connection, string tablename, string values, T[] items, string filter = "")
         {
+            if (string.IsNullOrWhiteSpace(tablename) || string.IsNullOrWhiteSpace(values) || items == null) return Task.CompletedTask;
             string result = string.Empty;
             for (int i = 1; i <= items?.Length; i++)
             {
