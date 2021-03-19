@@ -1,5 +1,5 @@
 @echo off
-
+set DOTNET_CLI_TELEMETRY_OPTOUT=1
 set GLADOSRELEASE=..\GLaDOSV3\bin\Release\net5.0
 
 mkdir Build
