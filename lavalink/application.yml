@@ -11,10 +11,10 @@ lavalink:
       youtube: true
       bandcamp: true
       soundcloud: true
-      twitch: true
-      vimeo: true
-      mixer: true
-      http: true
+      twitch: false
+      vimeo: false
+      mixer: false
+      http: false
       local: false
     bufferDurationMs: 400
     youtubePlaylistLoadLimit: 6 # Number of pages at 100 each
