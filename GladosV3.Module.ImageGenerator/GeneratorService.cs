@@ -323,7 +323,7 @@ namespace GladosV3.Module.ImageGeneration
                 images.Add(image2);
                 images.Add(image1);
                 var result = images.Merge();
-                var stream = new MemoryStream();
+                using var stream = new MemoryStream();
                 result.Write(stream);
                 byte[] bytes;
                 bytes = stream.ToArray();

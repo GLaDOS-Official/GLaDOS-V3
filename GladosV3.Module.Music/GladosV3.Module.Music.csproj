@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Victoria" Version="5.1.10" />
+    <PackageReference Include="Victoria" Version="5.1.11" />
   </ItemGroup>
 
   <ItemGroup>

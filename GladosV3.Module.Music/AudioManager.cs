@@ -16,9 +16,14 @@ namespace GladosV3.Module.Music
         public static AudioService service;
         private readonly LavaNode lavaNode;
         private readonly DiscordSocketClient socketClient;
-        public AudioService(LavaNode lavaNode, DiscordSocketClient socketClient)
+        public AudioService(DiscordSocketClient socketClient)
         {
-            this.lavaNode = lavaNode;
+            this.lavaNode = new LavaNode(socketClient, new LavaConfig
+            {
+                Hostname = "127.0.0.1",
+                Port = 9593,
+                SelfDeaf = true
+            });
             this.socketClient = socketClient;
             lavaNode.OnTrackEnded += this.LavaNodeOnOnTrackEnded;
             socketClient.Disconnected += exception => this.lavaNode.DisconnectAsync();

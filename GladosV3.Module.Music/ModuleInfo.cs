@@ -19,7 +19,8 @@ namespace GladosV3.Module.Music
 
         public string Author() => "BlackOfWorld#8125";
 
-        public Type[] Services(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceCollection provider) => new Type[] { typeof(LavaNode), typeof(AudioService), typeof(LavaConfig) };
+        public Type[] Services(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceCollection provider) => new Type[] { typeof(AudioService)};
+
         private static volatile ModuleInfo singleton;
         public static IGladosModule GetModule()
         {
