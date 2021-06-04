@@ -2,7 +2,6 @@
 using GladosV3.Attributes;
 using org.mariuszgromada.math.mxparser;
 using System;
-using System.Globalization;
 using System.Threading.Tasks;
 
 namespace GladosV3.Module.Default

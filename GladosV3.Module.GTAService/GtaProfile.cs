@@ -1,10 +1,6 @@
 ﻿using Discord.Commands;
 using GladosV3.Helpers;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace GladosV3.Module.GTAService

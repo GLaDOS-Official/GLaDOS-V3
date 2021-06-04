@@ -5,7 +5,6 @@ using System;
 using System.Reflection;
 using System.Runtime.Loader;
 using Microsoft.Extensions.DependencyInjection;
-using Victoria;
 
 namespace GladosV3.Module.Music
 {

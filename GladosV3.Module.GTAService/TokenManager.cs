@@ -1,21 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using System.Web;
 using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
-using GladosV3;
 using GladosV3.Helpers;
 using Interactivity;
-using Interactivity.Confirmation;
-using Interactivity.Pagination;
-using Interactivity.Selection;
 using ConnectionState = System.Data.ConnectionState;
 
 namespace GladosV3.Module.GTAService
