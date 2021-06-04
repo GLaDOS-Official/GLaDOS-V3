@@ -340,8 +340,7 @@ namespace GladosV3.Module.ImageGeneration
             try
             {
                 var gifBytes = NekosDevApi("sfw/gif/pat").GetAwaiter().GetResult();
-                if (gifBytes == null) return null;
-                return Task.FromResult(new MemoryStream(gifBytes));
+                return gifBytes == null ? null : Task.FromResult(new MemoryStream(gifBytes));
             }
             finally
             {
@@ -354,8 +353,7 @@ namespace GladosV3.Module.ImageGeneration
             try
             {
                 var gifBytes = NekosDevApi("sfw/gif/kiss").GetAwaiter().GetResult();
-                if (gifBytes == null) return null;
-                return Task.FromResult(new MemoryStream(gifBytes));
+                return gifBytes == null ? null : Task.FromResult(new MemoryStream(gifBytes));
             }
             finally
             {
@@ -368,8 +366,7 @@ namespace GladosV3.Module.ImageGeneration
             try
             {
                 var gifBytes = NekosDevApi("sfw/gif/tickle").GetAwaiter().GetResult();
-                if (gifBytes == null) return null;
-                return Task.FromResult(new MemoryStream(gifBytes));
+                return gifBytes == null ? null : Task.FromResult(new MemoryStream(gifBytes));
             }
             finally
             {
@@ -382,8 +379,7 @@ namespace GladosV3.Module.ImageGeneration
             try
             {
                 var gifBytes = NekosDevApi("sfw/gif/poke").GetAwaiter().GetResult();
-                if (gifBytes == null) return null;
-                return Task.FromResult(new MemoryStream(gifBytes));
+                return gifBytes == null ? null : Task.FromResult(new MemoryStream(gifBytes));
             }
             finally
             {
@@ -396,8 +392,7 @@ namespace GladosV3.Module.ImageGeneration
             try
             {
                 var gifBytes = NekosDevApi("sfw/gif/slap").GetAwaiter().GetResult();
-                if (gifBytes == null) return null;
-                return Task.FromResult(new MemoryStream(gifBytes));
+                return gifBytes == null ? null : Task.FromResult(new MemoryStream(gifBytes));
             }
             finally
             {
@@ -410,8 +405,7 @@ namespace GladosV3.Module.ImageGeneration
             try
             {
                 var gifBytes = NekosDevApi("sfw/gif/cuddle").GetAwaiter().GetResult();
-                if (gifBytes == null) return null;
-                return Task.FromResult(new MemoryStream(gifBytes));
+                return gifBytes == null ? null : Task.FromResult(new MemoryStream(gifBytes));
             }
             finally
             {
@@ -424,8 +418,7 @@ namespace GladosV3.Module.ImageGeneration
             try
             {
                 var gifBytes = NekosDevApi("sfw/gif/hug").GetAwaiter().GetResult();
-                if (gifBytes == null) return null;
-                return Task.FromResult(new MemoryStream(gifBytes));
+                return gifBytes == null ? null : Task.FromResult(new MemoryStream(gifBytes));
             }
             finally
             {

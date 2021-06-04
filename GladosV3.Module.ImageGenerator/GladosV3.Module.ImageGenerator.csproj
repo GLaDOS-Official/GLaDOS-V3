@@ -51,6 +51,6 @@
     <Copy SourceFiles="Images\beautiful.png" DestinationFolder="..\GLaDOSV3\$(OutDir)\Images\"></Copy>
     <Copy SourceFiles="Images\shit.html" DestinationFolder="..\GLaDOSV3\$(OutDir)\Images\"></Copy>
     <Copy SourceFiles="Images\delete.html" DestinationFolder="..\GLaDOSV3\$(OutDir)\Images\"></Copy>
-    <Exec Command="start /MIN /WAIT /I /D &quot;D:\Documents\Visual Studio 2019\Repos\GLaDOS-V3\GladosV3.Module.ImageGenerator\&quot; copy_runtime.bat &quot;..\GLaDOSV3\$(OutDir)runtimes&quot;" />
+    <Exec Command="start /MIN /WAIT /I /D &quot;$(ProjectDir)&quot; copy_runtime.bat &quot;..\GLaDOSV3\$(OutDir)runtimes&quot;" />
   </Target>
 </Project>
