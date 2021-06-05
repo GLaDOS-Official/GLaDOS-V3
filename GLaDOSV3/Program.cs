@@ -15,6 +15,8 @@ namespace GladosV3
 {
     public sealed class Program
     {
+        //TODO: use https://github.com/Quahu/Qmmands
+        //TODO: Make timeout attribute better
         public static void Main(string[] args)  
             =>  StartAsync(args).GetAwaiter().GetResult();
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
