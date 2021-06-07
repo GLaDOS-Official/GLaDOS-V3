@@ -8,7 +8,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace GladosV3.Module.ServerBackup.Models
+namespace GLaDOSV3.Module.ServerBackup.Models
 {
     internal class BackupGuild
     {

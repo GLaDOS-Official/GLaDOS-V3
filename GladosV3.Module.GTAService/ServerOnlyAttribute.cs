@@ -2,7 +2,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace GladosV3.Module.GTAService
+namespace GLaDOSV3.Module.GTAService
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
     public sealed class ServerOnlyAttribute : PreconditionAttribute

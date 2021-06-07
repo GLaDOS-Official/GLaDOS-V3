@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GLaDOSV3\GladosV3.csproj" />
+    <ProjectReference Include="..\GLaDOSV3\GLaDOSV3.csproj" />
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\GLaDOSV3\$(OutDir)\Modules\"></Copy>

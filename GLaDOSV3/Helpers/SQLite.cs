@@ -3,7 +3,7 @@ using System.Data.SQLite;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace GladosV3.Helpers
+namespace GLaDOSV3.Helpers
 {
     public static class SqLite
     {

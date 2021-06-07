@@ -1,7 +1,7 @@
 ﻿using Discord;
 using System.Net;
 
-namespace GladosV3.Module.ServerBackup.Models
+namespace GLaDOSV3.Module.ServerBackup.Models
 {
     internal class BackupEmoji
     {

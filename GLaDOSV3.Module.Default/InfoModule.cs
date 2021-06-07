@@ -1,8 +1,8 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using GladosV3.Attributes;
-using GladosV3.Helpers;
+using GLaDOSV3.Attributes;
+using GLaDOSV3.Helpers;
 using Microsoft.Extensions.PlatformAbstractions;
 using System;
 using System.Diagnostics;
@@ -13,7 +13,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace GladosV3.Module.Default
+namespace GLaDOSV3.Module.Default
 {
     [Name("Info")]
     public class InfoModule : ModuleBase<SocketCommandContext>

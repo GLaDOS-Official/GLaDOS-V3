@@ -4,11 +4,12 @@
     <TargetFramework>net5.0</TargetFramework>
     <StartupObject></StartupObject>
     <ApplicationIcon />
-    <AssemblyName>GladosV3.Module.Default</AssemblyName>
+    <AssemblyName>GLaDOSV3.Module.Default</AssemblyName>
     <SignAssembly>false</SignAssembly>
-    <RootNamespace>GladosV3.Module.Default</RootNamespace>
+    <RootNamespace>GLaDOSV3.Module.Default</RootNamespace>
     <AssemblyVersion>1.0.133.8</AssemblyVersion>
     <FileVersion>1.0.133.8</FileVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -24,7 +25,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GLaDOSV3\GladosV3.csproj" />
+    <ProjectReference Include="..\GLaDOSV3\GLaDOSV3.csproj" />
   </ItemGroup>
 
   <ItemGroup>

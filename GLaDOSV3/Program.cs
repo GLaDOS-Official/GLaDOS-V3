@@ -3,15 +3,15 @@ using Discord.Commands;
 using Discord.Net.Rest;
 using Discord.Net.WebSockets;
 using Discord.WebSocket;
-using GladosV3.Helpers;
-using GladosV3.Services;
+using GLaDOSV3.Helpers;
+using GLaDOSV3.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace GladosV3
+namespace GLaDOSV3
 {
     public sealed class Program
     {

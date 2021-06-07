@@ -1,8 +1,8 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using GladosV3.Attributes;
-using GladosV3.Helpers;
+using GLaDOSV3.Attributes;
+using GLaDOSV3.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -11,7 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace GladosV3.Services
+namespace GLaDOSV3.Services
 {
     public class CommandHandler
     {

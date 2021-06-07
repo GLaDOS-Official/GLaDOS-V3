@@ -1,6 +1,6 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
-using GladosV3.Helpers;
+using GLaDOSV3.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -8,7 +8,7 @@ using System.Runtime.Loader;
 using Interactivity;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace GladosV3.Module.GTAService
+namespace GLaDOSV3.Module.GTAService
 {
     public class ModuleInfo : IGladosModule
     {

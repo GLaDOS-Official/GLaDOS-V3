@@ -1,11 +1,11 @@
 ﻿using Discord;
 using Discord.Commands;
-using GladosV3.Helpers;
+using GLaDOSV3.Helpers;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace GladosV3.Attributes
+namespace GLaDOSV3.Attributes
 {
     public static class IsOwner
     {

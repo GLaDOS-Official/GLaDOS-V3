@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using GladosV3.Helpers;
+using GLaDOSV3.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,7 +13,7 @@ using System.Runtime.Loader;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace GladosV3.Services
+namespace GLaDOSV3.Services
 {
     public class ExtensionLoadingService
     {

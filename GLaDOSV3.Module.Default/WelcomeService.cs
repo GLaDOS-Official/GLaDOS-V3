@@ -1,11 +1,11 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using GladosV3.Helpers;
+using GLaDOSV3.Helpers;
 using System;
 using System.Globalization;
 using System.Threading.Tasks;
 
-namespace GladosV3.Module.Default
+namespace GLaDOSV3.Module.Default
 {
     internal class WelcomeService
     {

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace GladosV3.Helpers
+namespace GLaDOSV3.Helpers
 {
     public static class StaticTools
     {

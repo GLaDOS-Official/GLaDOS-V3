@@ -12,7 +12,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace GladosV3.Services
+namespace GLaDOSV3.Services
 {
     internal class IPLoggerProtection
     {

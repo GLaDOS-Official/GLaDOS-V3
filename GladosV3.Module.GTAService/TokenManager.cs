@@ -7,11 +7,11 @@ using System.Web;
 using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
-using GladosV3.Helpers;
+using GLaDOSV3.Helpers;
 using Interactivity;
 using ConnectionState = System.Data.ConnectionState;
 
-namespace GladosV3.Module.GTAService
+namespace GLaDOSV3.Module.GTAService
 {
     public class TokenManager
     {

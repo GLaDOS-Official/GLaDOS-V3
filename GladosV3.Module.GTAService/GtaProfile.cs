@@ -1,9 +1,9 @@
 ﻿using Discord.Commands;
-using GladosV3.Helpers;
+using GLaDOSV3.Helpers;
 using System.Data;
 using System.Threading.Tasks;
 
-namespace GladosV3.Module.GTAService
+namespace GLaDOSV3.Module.GTAService
 {
     public class GtaProfile
     {

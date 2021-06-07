@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace GladosV3.Module.ServerBackup.Models
+namespace GLaDOSV3.Module.ServerBackup.Models
 {
     internal class BackupTextChannel : BackupChannel
     {

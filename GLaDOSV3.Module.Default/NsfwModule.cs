@@ -1,5 +1,5 @@
 ﻿using Discord.Commands;
-using GladosV3.Helpers;
+using GLaDOSV3.Helpers;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Globalization;
@@ -8,7 +8,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace GladosV3.Module.Default
+namespace GLaDOSV3.Module.Default
 {
     [Name("NSFW")]
     public class NsfwModule : ModuleBase<SocketCommandContext>

@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-namespace GladosV3.Helpers
+namespace GLaDOSV3.Helpers
 {
     public static class PInvokes // Original source found: https://pastebin.com/7qtiPv3A
     {

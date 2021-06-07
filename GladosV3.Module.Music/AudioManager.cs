@@ -9,7 +9,7 @@ using Victoria.Enums;
 using Victoria.EventArgs;
 using Victoria.Responses.Rest;
 
-namespace GladosV3.Module.Music
+namespace GLaDOSV3.Module.Music
 {
     public class AudioService
     {

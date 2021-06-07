@@ -2,7 +2,7 @@
 using Discord.Commands;
 using Discord.Net;
 using Discord.WebSocket;
-using GladosV3.Helpers;
+using GLaDOSV3.Helpers;
 using System;
 using System.Data;
 using System.Linq;
@@ -10,7 +10,7 @@ using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace GladosV3.Services
+namespace GLaDOSV3.Services
 {
     public class StartupService
     {

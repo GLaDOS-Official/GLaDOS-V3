@@ -1,8 +1,8 @@
-﻿using GladosV3.Helpers;
+﻿using GLaDOSV3.Helpers;
 using System;
 using System.Threading;
 
-namespace GladosV3.Services
+namespace GLaDOSV3.Services
 {
     internal static class MemoryHandlerService
     {

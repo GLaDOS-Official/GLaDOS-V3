@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace GladosV3.Attributes
+namespace GLaDOSV3.Attributes
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = false)]
     public class TimeoutAttribute : PreconditionAttribute

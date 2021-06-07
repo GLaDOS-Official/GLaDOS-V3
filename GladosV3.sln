@@ -3,24 +3,24 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29609.76
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GladosV3", "GLaDOSV3\GladosV3.csproj", "{8F39F095-C020-496B-A0E8-ACBD70D39A7C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GLaDOSV3", "GLaDOSV3\GLaDOSV3.csproj", "{8F39F095-C020-496B-A0E8-ACBD70D39A7C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GladosV3.Module.Default", "GladosV3.Modules\GladosV3.Module.Default.csproj", "{EE19BBBE-B89F-4B64-9831-F0B8BBD9C5E7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GLaDOSV3.Module.Default", "GLaDOSV3.Module.Default\GLaDOSV3.Module.Default.csproj", "{EE19BBBE-B89F-4B64-9831-F0B8BBD9C5E7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GladosV3.Module.Music", "GladosV3.Module.Music\GladosV3.Module.Music.csproj", "{9B78D683-0A58-48A7-A54C-65E87833DEF1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GLaDOSV3.Module.Music", "GLaDOSV3.Module.Music\GLaDOSV3.Module.Music.csproj", "{9B78D683-0A58-48A7-A54C-65E87833DEF1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GladosV3.Module.ImageGenerator", "GladosV3.Module.ImageGenerator\GladosV3.Module.ImageGenerator.csproj", "{5E86001E-5AC6-46C7-B304-B61F0F7AE09E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GLaDOSV3.Module.ImageGenerator", "GLaDOSV3.Module.ImageGenerator\GLaDOSV3.Module.ImageGenerator.csproj", "{5E86001E-5AC6-46C7-B304-B61F0F7AE09E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GladosV3.Module.ServerBackup", "GladosV3.Module.ServerBackup\GladosV3.Module.ServerBackup.csproj", "{6CF7CCB5-D375-43E3-8383-E54347CC625C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GLaDOSV3.Module.ServerBackup", "GLaDOSV3.Module.ServerBackup\GLaDOSV3.Module.ServerBackup.csproj", "{6CF7CCB5-D375-43E3-8383-E54347CC625C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1F3392C2-58FC-4163-A28B-DE2A0BB652B7}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GladosV3.Module.WinDocs", "GladosV3.Module.WinDocs\GladosV3.Module.WinDocs.csproj", "{CA5F14ED-C69F-4A0A-BC0E-F0C056679028}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GLaDOSV3.Module.WinDocs", "GLaDOSV3.Module.WinDocs\GLaDOSV3.Module.WinDocs.csproj", "{CA5F14ED-C69F-4A0A-BC0E-F0C056679028}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GladosV3.Module.GTAService", "GladosV3.Module.GTAService\GladosV3.Module.GTAService.csproj", "{7430D54D-0491-4614-BCBB-703851DD1BA2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GLaDOSV3.Module.GTAService", "GLaDOSV3.Module.GTAService\GLaDOSV3.Module.GTAService.csproj", "{7430D54D-0491-4614-BCBB-703851DD1BA2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

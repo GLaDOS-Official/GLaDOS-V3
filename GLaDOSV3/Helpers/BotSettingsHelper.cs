@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Reflection;
 
-namespace GladosV3.Helpers
+namespace GLaDOSV3.Helpers
 {
     public class BotSettingsHelper<T> 
     {

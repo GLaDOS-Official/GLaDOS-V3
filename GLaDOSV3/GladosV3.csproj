@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>GladosV3</RootNamespace>
+    <RootNamespace>GLaDOSV3</RootNamespace>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
   <PropertyGroup>
@@ -12,14 +12,15 @@
     <FileVersion>1.0.249.8</FileVersion>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Version>1.0.0.0</Version>
-    <Product>GladosV3</Product>
-    <Authors>GladosV3</Authors>
-    <Company>GladosV3</Company>
-    <PackageId>GladosV3</PackageId>
+    <Product>GLaDOSV3</Product>
+    <Authors>GLaDOSV3</Authors>
+    <Company>GLaDOSV3</Company>
+    <PackageId>GLaDOSV3</PackageId>
     <Description></Description>
-    <StartupObject>GladosV3.Program</StartupObject>
+    <StartupObject>GLaDOSV3.Program</StartupObject>
     <SignAssembly>false</SignAssembly>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <Prefer32Bit>false</Prefer32Bit>

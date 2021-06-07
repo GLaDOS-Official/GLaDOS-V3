@@ -1,6 +1,6 @@
 using Discord;
 using Discord.Commands;
-using GladosV3.Services;
+using GLaDOSV3.Services;
 using ImageMagick;
 using Newtonsoft.Json.Linq;
 using System;
@@ -11,7 +11,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GladosV3.Module.ImageGeneration
+namespace GLaDOSV3.Module.ImageGeneration
 {
     public class GeneratorService
     {

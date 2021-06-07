@@ -8,7 +8,7 @@ using System.Data.SQLite;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace GladosV3.Helpers
+namespace GLaDOSV3.Helpers
 {
     public sealed class Eval
     {
@@ -34,7 +34,7 @@ namespace GladosV3.Helpers
             List<string> imports = new List<string>(16)
             {
                 "System", "System.Collections.Generic", "System.Reflection", "System.Text", "System.Threading.Tasks","System.Linq","System.Math",
-                "System.IO","System.Diagnostics","GladosV3.Helpers","Discord","Discord.Commands","Discord.WebSocket","Newtonsoft.Json",
+                "System.IO","System.Diagnostics","GLaDOSV3.Helpers","Discord","Discord.Commands","Discord.WebSocket","Newtonsoft.Json",
                 "System.Data.SQLite", "Microsoft.Extensions"
             };
             try

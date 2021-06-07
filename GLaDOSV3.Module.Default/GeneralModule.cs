@@ -1,8 +1,8 @@
 ﻿using Discord;
 using Discord.Commands;
-using GladosV3.Attributes;
-using GladosV3.Helpers;
-using GladosV3.Services;
+using GLaDOSV3.Attributes;
+using GLaDOSV3.Helpers;
+using GLaDOSV3.Services;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Data;
@@ -10,7 +10,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace GladosV3.Module.Default
+namespace GLaDOSV3.Module.Default
 {
     [Name("General")]
     [RequireContext(ContextType.Guild)]

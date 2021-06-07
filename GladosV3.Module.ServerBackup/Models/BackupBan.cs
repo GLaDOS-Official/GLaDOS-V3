@@ -1,6 +1,6 @@
 ﻿using Discord.Rest;
 
-namespace GladosV3.Module.ServerBackup.Models
+namespace GLaDOSV3.Module.ServerBackup.Models
 {
     internal class BackupBan
     {

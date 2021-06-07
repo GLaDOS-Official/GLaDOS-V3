@@ -3,7 +3,7 @@ using Discord.WebSocket;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GladosV3.Module.ServerBackup.Models
+namespace GLaDOSV3.Module.ServerBackup.Models
 {
 
     public class BackupChannel

@@ -1,12 +1,12 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
-using GladosV3.Helpers;
+using GLaDOSV3.Helpers;
 using System;
 using System.Reflection;
 using System.Runtime.Loader;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace GladosV3.Module.WinDocs
+namespace GLaDOSV3.Module.WinDocs
 {
     public class ModuleInfo : IGladosModule
     {

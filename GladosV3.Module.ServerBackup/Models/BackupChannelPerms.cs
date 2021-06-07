@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 
-namespace GladosV3.Module.ServerBackup.Models
+namespace GLaDOSV3.Module.ServerBackup.Models
 {
 
     public class BackupChannelPerms

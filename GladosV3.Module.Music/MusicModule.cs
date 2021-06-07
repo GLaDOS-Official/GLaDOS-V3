@@ -3,7 +3,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using System.Threading.Tasks;
 
-namespace GladosV3.Module.Music
+namespace GLaDOSV3.Module.Music
 {
     public class MusicModule : ModuleBase<ICommandContext>
     {

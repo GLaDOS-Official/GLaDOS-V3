@@ -1,11 +1,11 @@
 ﻿using Discord.Commands;
 using System;
 using System.Threading.Tasks;
-using GladosV3.Helpers;
+using GLaDOSV3.Helpers;
 using Discord;
 using Discord.WebSocket;
 
-namespace GladosV3.Module.GTAService
+namespace GLaDOSV3.Module.GTAService
 {
     [ServerOnlyAttribute]
     [Name("Meow's services commands")]
@@ -19,7 +19,7 @@ namespace GladosV3.Module.GTAService
         [Command("service set", RunMode = RunMode.Async)]
         [Remarks("service set <userid> <amount of tokens>")]
         [Summary("Set's users tokens")]
-        [GladosV3.Attributes.RequireOwner]
+        [GLaDOSV3.Attributes.RequireOwner]
         public async Task GSet(ulong userid, uint tokens)
         {
             var profile = await GtaProfile.Get(userid, Context);
@@ -72,7 +72,7 @@ namespace GladosV3.Module.GTAService
         [Command("service create coupon", RunMode = RunMode.Async)]
         [Remarks("service create coupon <tokens> <maximumUses> [name]")]
         [Summary("Creates a coupon code")]
-        [GladosV3.Attributes.RequireOwner]
+        [GLaDOSV3.Attributes.RequireOwner]
         public async Task CreateCoupon(uint tokens, uint maximumUses, string name = "")
         {
             if (string.IsNullOrWhiteSpace(name)) name = Tools.RandomString(8);

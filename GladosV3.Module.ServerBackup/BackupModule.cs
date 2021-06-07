@@ -3,7 +3,7 @@ using Discord.Commands;
 using Discord.Rest;
 using Discord.Webhook;
 using Discord.WebSocket;
-using GladosV3.Module.ServerBackup.Models;
+using GLaDOSV3.Module.ServerBackup.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
@@ -13,7 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace GladosV3.Module.ServerBackup
+namespace GLaDOSV3.Module.ServerBackup
 {
     public class BackupModule : ModuleBase<SocketCommandContext>
     {

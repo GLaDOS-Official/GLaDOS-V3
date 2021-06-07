@@ -1,16 +1,17 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using GladosV3.Attributes;
-using GladosV3.Helpers;
-using GladosV3.Services;
+using GLaDOSV3.Attributes;
+using GLaDOSV3.Helpers;
+using GLaDOSV3.Services;
 using System;
 using System.Data;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.Loader;
 using System.Threading.Tasks;
 
-namespace GladosV3.Modules
+namespace GLaDOSV3.Modules
 {
     //[Name("Bot owner")]
     public class OwnerModule : ModuleBase<SocketCommandContext>
@@ -69,6 +70,7 @@ namespace GladosV3.Modules
         [Attributes.RequireOwner]
         public async Task Eval([Remainder] string code)
         {
+            this.service.ExecuteAsync(new MessageContext())
             IUserMessage message = await this.ReplyAsync("Please wait...").ConfigureAwait(false);
             await message.ModifyAsync(async properties => properties.Content = await Helpers.Eval.EvalTask(Context, code).ConfigureAwait(true)).ConfigureAwait(false);
         }

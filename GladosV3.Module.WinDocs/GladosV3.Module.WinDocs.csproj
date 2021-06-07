@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GLaDOSV3\GladosV3.csproj" />
+    <ProjectReference Include="..\GLaDOSV3\GLaDOSV3.csproj" />
   </ItemGroup>
 
   <ItemGroup>

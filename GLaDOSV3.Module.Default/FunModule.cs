@@ -1,14 +1,14 @@
 ﻿using Discord;
 using Discord.Commands;
-using GladosV3.Attributes;
-using GladosV3.Helpers;
+using GLaDOSV3.Attributes;
+using GLaDOSV3.Helpers;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
-namespace GladosV3.Module.Default
+namespace GLaDOSV3.Module.Default
 {
     [Name("Fun")]
     public class FunModule : ModuleBase<SocketCommandContext>

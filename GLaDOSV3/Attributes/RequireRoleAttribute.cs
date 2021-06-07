@@ -4,7 +4,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace GladosV3.Attributes
+namespace GLaDOSV3.Attributes
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
     public class RequireRoleAttribute : RequireContextAttribute

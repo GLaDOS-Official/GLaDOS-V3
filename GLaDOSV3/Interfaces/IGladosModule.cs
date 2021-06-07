@@ -1,10 +1,10 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
-using GladosV3.Helpers;
+using GLaDOSV3.Helpers;
 using System;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace GladosV3
+namespace GLaDOSV3
 {
     public interface IGladosModule
     {

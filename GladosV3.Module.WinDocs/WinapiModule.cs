@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Fizzler.Systems.HtmlAgilityPack;
-using GladosV3.Helpers;
+using GLaDOSV3.Helpers;
 using HtmlAgilityPack;
 using Octokit;
 
-namespace GladosV3.Module.WinDocs
+namespace GLaDOSV3.Module.WinDocs
 {
     public class WinapiModule : ModuleBase<SocketCommandContext>
     {

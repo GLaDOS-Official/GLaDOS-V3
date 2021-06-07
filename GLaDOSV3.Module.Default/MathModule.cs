@@ -1,10 +1,10 @@
 ﻿using Discord.Commands;
-using GladosV3.Attributes;
+using GLaDOSV3.Attributes;
 using org.mariuszgromada.math.mxparser;
 using System;
 using System.Threading.Tasks;
 
-namespace GladosV3.Module.Default
+namespace GLaDOSV3.Module.Default
 {
     [Name("Math")]
     [Remarks("Do some math I guess")]
