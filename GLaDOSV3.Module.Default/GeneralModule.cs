@@ -17,7 +17,8 @@ namespace GLaDOSV3.Module.Default
     public class GeneralModule : ModuleBase<SocketCommandContext>
     {
         private static MemoryCache mCache;
-        public GeneralModule() { mCache ??= new MemoryCache(new MemoryCacheOptions()); }
+        public GeneralModule() => mCache ??= new MemoryCache(new MemoryCacheOptions());
+
         [Name("Guild settings")]
         public class Guild : ModuleBase<SocketCommandContext>
         {

@@ -1,15 +1,21 @@
-﻿using Discord;
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using GLaDOSV3.Attributes;
 using GLaDOSV3.Helpers;
 using GLaDOSV3.Services;
-using System;
-using System.Data;
-using System.Globalization;
-using System.Linq;
-using System.Runtime.Loader;
-using System.Threading.Tasks;
 
 namespace GLaDOSV3.Modules
 {
@@ -18,12 +24,15 @@ namespace GLaDOSV3.Modules
     {
         private readonly CommandService service;
         private readonly IServiceProvider provider;
+        private readonly BotSettingsHelper<string> botSettingsHelper;
+
 
         // CommandService, IConfigurationRoot, and IServiceProvider are injected automatically from the IServiceProvider;
-        public OwnerModule(CommandService service, IServiceProvider provider)
+        public OwnerModule(CommandService service, IServiceProvider provider, BotSettingsHelper<string> botSettingsHelper)
         {
             this.service = service;
             this.provider = provider;
+            this.botSettingsHelper = botSettingsHelper;
         }
 
         [Command("bot maintenance")]
@@ -42,7 +51,7 @@ namespace GLaDOSV3.Modules
         [Attributes.RequireOwner]
         public async Task Restart()
         {
-            await this.ReplyAsync($"Restarting the bot!").ConfigureAwait(false);
+            await this.ReplyAsync("Restarting the bot!").ConfigureAwait(false);
             Tools.RestartApp();
         }
         [Command("bot shutdown")]
@@ -51,9 +60,10 @@ namespace GLaDOSV3.Modules
         [Attributes.RequireOwner]
         public async Task Shutdown()
         {
-            await this.ReplyAsync($"Shutting down the bot! 👋").ConfigureAwait(false);
+            await this.ReplyAsync("Shutting down the bot! 👋").ConfigureAwait(false);
             Environment.Exit(0);
         }
+
         [Command("bot username")]
         [Remarks("bot username <username>")]
         [Summary("Sets bot's username")]
@@ -70,9 +80,28 @@ namespace GLaDOSV3.Modules
         [Attributes.RequireOwner]
         public async Task Eval([Remainder] string code)
         {
-            this.service.ExecuteAsync(new MessageContext())
             IUserMessage message = await this.ReplyAsync("Please wait...").ConfigureAwait(false);
             await message.ModifyAsync(async properties => properties.Content = await Helpers.Eval.EvalTask(Context, code).ConfigureAwait(true)).ConfigureAwait(false);
+        }
+        [Command("bot sudo")]
+        [Remarks("bot sudo <user> <command>")]
+        [Summary("Execute bot command as another user")]
+        [Attributes.RequireOwner]
+        public async Task Sudo(SocketUser user, [Remainder] string command)
+        {
+            ConstructorInfo ctor = typeof(SocketUserMessage).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance)[0];
+
+            //var state = Context.Client.GetType().GetMethod("get_State",
+            //                                               BindingFlags.Instance
+            //                                               | BindingFlags.NonPublic)
+            //                  ?.Invoke(Context.Client, null);
+            var msg = ctor.Invoke(
+                          new object[]
+                          {
+                              Context.Client, Context.Message.Id,
+                              Context.Channel, user, user.IsBot ? MessageSource.Bot : MessageSource.User
+                          });
+            await this.service.ExecuteAsync(new SocketCommandContext(Context.Client, (SocketUserMessage)msg), command.StartsWith(botSettingsHelper["prefix"]) ? command[botSettingsHelper["prefix"].Length..] : command, this.provider);
         }
         [Command("bot webhookmass")]
         [Remarks("bot webhookmass <serverid> <count>")]
@@ -113,7 +142,7 @@ namespace GLaDOSV3.Modules
             else
                 message = await this.ReplyAsync("Hooking....").ConfigureAwait(false);
 
-            System.Collections.Generic.IReadOnlyCollection<SocketGuildChannel> channels = Context.Guild.Channels;
+            IReadOnlyCollection<SocketGuildChannel> channels = Context.Guild.Channels;
             for (var i = 0; i < channels.Count; i++)
             {
                 SocketGuildChannel channel = channels.ElementAt(i);
@@ -124,7 +153,7 @@ namespace GLaDOSV3.Modules
             }
             if (silentB)
                 return;
-            await message.ModifyAsync((a) => a.Content = "Done!").ConfigureAwait(false);
+            await message.ModifyAsync(a => a.Content = "Done!").ConfigureAwait(false);
         }
         [Command("bot message")]
         [Remarks("bot message <system message>")]

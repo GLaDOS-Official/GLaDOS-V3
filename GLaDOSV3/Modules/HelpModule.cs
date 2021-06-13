@@ -99,7 +99,7 @@ namespace GLaDOSV3.Modules
                 if (this.service != null)
                 {
 
-                    var largeCommand = this.service.Commands.OrderByDescending(x => x.Remarks.Length + (x.Module.Group?.Length + 1 ?? 0)).FirstOrDefault();
+                    var largeCommand = this.service.Commands.OrderByDescending(x => (x.Remarks?.Length ?? x.Name.Length) + (x.Module.Group?.Length + 1 ?? 0)).FirstOrDefault();
                     Debug.Assert(largeCommand != null, nameof(largeCommand) + " != null");
                     var sorted = largeCommand.Remarks.Length + (largeCommand.Module.Group?.Length + 1 ?? 0);
 
@@ -112,19 +112,19 @@ namespace GLaDOSV3.Modules
                         {
                             var result = await cmd.CheckPreconditionsAsync(Context).ConfigureAwait(true);
                             if (!result.IsSuccess) continue;
-                            array.Add($"{prefix}{(cmd.Module.Group == null ? "" : cmd.Module.Group.ToLowerInvariant() + " ")}{cmd.Remarks} {" ".PadLeft(sorted - (cmd.Module.Group?.Length + 1 ?? 0) - cmd.Remarks.Length + 1)} :: {cmd.Summary}\n");
+                            array.Add($"{prefix}{(cmd.Module.Group == null ? "" : cmd.Module.Group.ToLowerInvariant() + " ")}{cmd.Remarks ?? cmd.Name} {" ".PadLeft(sorted - (cmd.Module.Group?.Length + 1 ?? 1) - (cmd.Remarks?.Length + 1 ?? cmd.Name.Length + 1))} :: {cmd.Summary ?? ("None")}\n");
                         }
 
                         var description = array.Aggregate<string, string>(null, string.Concat);
                         if (string.IsNullOrWhiteSpace(description)) continue;
                         list.Add(new CommandInfo(module.Name, description));
 
-                    }
                 }
                 foreach (var msg in Tools.SplitMessage($"{list.Aggregate(string.Empty, (current, cmi) => string.Concat(current, $"\n= {cmi.Module} =\n{cmi.Description}\n"))}", 1985))
                     await dm.SendMessageAsync($"```asciidoc\n{msg}```").ConfigureAwait(false);
                 await dm.CloseAsync().ConfigureAwait(false);
-                if (Context.Guild != null) await Context.Message.AddReactionAsync(new Emoji("👌")).ConfigureAwait(false);
+
+                    }                if (Context.Guild != null) await Context.Message.AddReactionAsync(new Emoji("👌")).ConfigureAwait(false);
             }
         }
 

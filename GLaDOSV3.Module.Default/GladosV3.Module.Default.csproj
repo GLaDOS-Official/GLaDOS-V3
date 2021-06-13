@@ -33,12 +33,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations" Version="2021.1.0" />
+    <PackageReference Include="JetBrains.Annotations" Version="2021.2.0-eap2" />
     <PackageReference Include="MathParser.org-mXparser" Version="4.4.2" />
+    <PackageReference Include="Universe.CpuUsage" Version="2.2.497.598" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\GLaDOSV3\$(OutDir)\Modules\"></Copy>
     <Copy SourceFiles="Dependencies\MathParser.org-mXparser.dll" DestinationFolder="..\GLaDOSV3\$(OutDir)\Dependencies"></Copy>
+    <Copy SourceFiles="Dependencies\Universe.CpuUsage.dll" DestinationFolder="..\GLaDOSV3\$(OutDir)\Dependencies"></Copy>
   </Target>
 </Project>

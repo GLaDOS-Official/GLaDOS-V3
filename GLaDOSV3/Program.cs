@@ -17,6 +17,7 @@ namespace GLaDOSV3
     {
         //TODO: use https://github.com/Quahu/Qmmands
         //TODO: Make timeout attribute better
+        public static DiscordSocketClient client;
         public static void Main(string[] args)  
             =>  StartAsync(args).GetAwaiter().GetResult();
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
@@ -25,7 +26,7 @@ namespace GLaDOSV3
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.White;
             Directory.SetCurrentDirectory(Path.GetDirectoryName(AppContext.BaseDirectory));
-            var pInvokeDir = Path.Combine(Directory.GetCurrentDirectory(), "PInvoke\\");
+            var pInvokeDir = Path.Combine(Directory.GetCurrentDirectory(), $"PInvoke{Path.DirectorySeparatorChar}");
             if (!Directory.Exists(pInvokeDir))
             { Console.WriteLine("PInvoke directory doesn't exist! Creating!"); Directory.CreateDirectory(pInvokeDir); }
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !PInvokes_DllImport.SetDllDirectory(pInvokeDir)) Console.WriteLine($"Failed to call SetDllDirectory PInvoke! Last error code: {Marshal.GetLastWin32Error()}");
@@ -33,7 +34,7 @@ namespace GLaDOSV3
             LoggingService.Begin();
             /*if(!IsValidJson())
             { await Task.Delay(10000); return; }*/
-            var client =
+            client =
                 new DiscordSocketClient(new DiscordSocketConfig // Add the discord client to the service provider
                 {
                     LogLevel           = LogSeverity.Verbose,

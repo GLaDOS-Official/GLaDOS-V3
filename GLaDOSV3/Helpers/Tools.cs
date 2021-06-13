@@ -135,9 +135,8 @@ namespace GLaDOSV3.Helpers
         public static bool WriteToReadOnlyValue(Type type, object obj, string element, object value)
         {
             PropertyInfo[] array = type.GetProperties();
-            for (var i = 0; i < array.Length; i++)
+            foreach (var info in array)
             {
-                PropertyInfo info = array[i];
                 if (info.Name != element) continue;
                 if (!info.CanWrite) return false;
                 info.SetValue(obj, value);

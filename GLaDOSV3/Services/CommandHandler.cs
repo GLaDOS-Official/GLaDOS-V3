@@ -37,6 +37,7 @@ namespace GLaDOSV3.Services
             this.commands = commands;
             this.provider = provider;
             discord.MessageReceived += this.OnMessageReceivedAsync;
+            commands.CommandExecuted += this.CommandExecuted;
             MaintenanceMode = botSettingsHelper["maintenance"];
             this.fallbackPrefix = botSettingsHelper["prefix"];
             using DataTable dt = SqLite.Connection.GetValuesAsync("BlacklistedUsers").GetAwaiter().GetResult();
@@ -45,6 +46,31 @@ namespace GLaDOSV3.Services
                 BlacklistedUsers.Add(Convert.ToUInt64(dt.Rows[i]["UserId"], CultureInfo.InvariantCulture));
             }
             RefreshPrefix();
+        }
+
+        private Task CommandExecuted(Optional<CommandInfo> command, ICommandContext context, IResult result)
+        {
+            if (result.IsSuccess || result.ErrorReason == "hidden" || result.Error == CommandError.UnknownCommand) return Task.CompletedTask;
+            switch (result.ErrorReason) // "Custom" error
+            {
+                case "Invalid context for command; accepted contexts: Guild":
+                    context.Channel.SendMessageAsync("**Error:** This command must be used in a guild!")
+                           .ConfigureAwait(false);
+                    break;
+                case "The input text has too few parameters.":
+                    context.Channel.SendMessageAsync("**Error:** None or few arguments are being used.")
+                           .ConfigureAwait(false);
+                    break;
+                case "User not found.":
+                    context.Channel.SendMessageAsync("**Error:** No user parameter detected.")
+                           .ConfigureAwait(false);
+                    break;
+                default:
+                    context.Channel.SendMessageAsync($@"**Error:** {result.ErrorReason}").ConfigureAwait(false);
+                    break;
+            }
+
+            return Task.CompletedTask;
         }
 
         public static void RefreshPrefix()
@@ -57,8 +83,8 @@ namespace GLaDOSV3.Services
             for (int i = 0; i < dt2.Rows.Count; i++)
             {
                 string pref = dt2.Rows[i]["prefix"].ToString();
-                if (!string.IsNullOrWhiteSpace(pref))
-                    Prefix.Add(Convert.ToUInt64(dt2.Rows[i]["guildid"], CultureInfo.InvariantCulture), pref);
+                if (string.IsNullOrWhiteSpace(pref)) continue;
+                Prefix.Add(Convert.ToUInt64(dt2.Rows[i]["guildid"], CultureInfo.InvariantCulture), pref);
             }
         }
         private static bool IsUserBlackListed(SocketUserMessage msg) => BlacklistedUsers.Contains(msg.Author.Id);
@@ -81,7 +107,7 @@ namespace GLaDOSV3.Services
 
             int argPos = 0; // Check if the message has a valid command prefix
             string prefix = this.fallbackPrefix;
-            if ((msg.Channel is IGuildChannel ok) && Prefix.TryGetValue(ok.Guild.Id, out string guildPrefix))
+            if (msg.Channel is IGuildChannel ok && Prefix.TryGetValue(ok.Guild.Id, out string guildPrefix))
             { prefix = guildPrefix; }
             if (!msg.HasStringPrefix(prefix, ref argPos) && !msg.HasMentionPrefix(this.discord.CurrentUser, ref argPos))
             {
@@ -99,54 +125,7 @@ namespace GLaDOSV3.Services
 
             SocketCommandContext context = new SocketCommandContext(this.discord, msg); // Create the command context
             if (!string.IsNullOrWhiteSpace(MaintenanceMode) && (IsOwner.CheckPermission(context).GetAwaiter().GetResult())) { await context.Channel.SendMessageAsync("Bot is in maintenance mode! Reason: " + MaintenanceMode).ConfigureAwait(false); ; return; } // Don't execute commands in maintenance mode 
-            var result = this.commands.ExecuteAsync(context, argPos, this.provider); // Execute the command
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            result.ContinueWith(task =>
-            {
-                while (!task.IsCompleted) { System.Threading.Thread.Sleep(4); }
-                var result = task.Result;
-                if (result.IsSuccess || result.ErrorReason == "hidden") return;
-                switch (result.Error)
-                {
-                    case CommandError.BadArgCount:
-                        break;
-                    case CommandError.Exception:
-                        Console.WriteLine("Exception :(");
-                        break;
-                    case CommandError.UnknownCommand:
-                        break;
-                    case CommandError.ParseFailed:
-                        break;
-                    case CommandError.MultipleMatches:
-                        break;
-                    case CommandError.UnmetPrecondition:
-                        break;
-                    case CommandError.Unsuccessful:
-                        break;
-                    case null:
-                        break;
-                    default:
-                        {
-                            switch (result.ErrorReason) // "Custom" error
-                            {
-                                case "Invalid context for command; accepted contexts: Guild":
-                                    context.Channel.SendMessageAsync("**Error:** This command must be used in a guild!").ConfigureAwait(false);
-                                    break;
-                                case "The input text has too few parameters.":
-                                    context.Channel.SendMessageAsync("**Error:** None or few arguments are being used.").ConfigureAwait(false);
-                                    break;
-                                case "User not found.":
-                                    context.Channel.SendMessageAsync("**Error:** No user parameter detected.").ConfigureAwait(false);
-                                    break;
-                                default:
-                                    context.Channel.SendMessageAsync($@"**Error:** {result.ErrorReason}").ConfigureAwait(false);
-                                    break;
-                            }
-                        }
-                        break;
-                }
-            }, TaskScheduler.Default);
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            this.commands.ExecuteAsync(context, argPos, this.provider); // Execute the command
         }
 
         private Task MentionBomb(SocketUserMessage msg)

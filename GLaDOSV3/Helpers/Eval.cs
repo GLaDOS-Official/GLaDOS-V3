@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Linq;
 using System.Threading.Tasks;
+// ReSharper disable All
 
 namespace GLaDOSV3.Helpers
 {

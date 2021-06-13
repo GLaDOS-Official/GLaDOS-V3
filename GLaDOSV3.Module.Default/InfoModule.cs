@@ -5,13 +5,18 @@ using GLaDOSV3.Attributes;
 using GLaDOSV3.Helpers;
 using Microsoft.Extensions.PlatformAbstractions;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using GLaDOSV3.Services;
+using Universe.CpuUsage;
 
 namespace GLaDOSV3.Module.Default
 {
@@ -21,8 +26,7 @@ namespace GLaDOSV3.Module.Default
         private static string _infoMessage;
         private static DiscordSocketClient _client;
         private readonly Thread t = new Thread(new ThreadStart(RefreshMessage));
-        private static BotSettingsHelper<string> _botSettingsHelper;
-
+        private static BotSettingsHelper<string> _botSettingsHelper;    
         private static void RefreshMessage()
         {
             while (true)
@@ -48,14 +52,44 @@ namespace GLaDOSV3.Module.Default
                     return (size / tb).ToString("0.## TB", CultureInfo.InvariantCulture);
                 }
 
+                static long GetRamUsage()
+                {
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return Process.GetCurrentProcess().PagedMemorySize64;
+                    var ramUsageLines = new List<string>();
+                    using var fs           = new FileStream("/proc/self/smaps", FileMode.Open, FileAccess.Read, FileShare.Read, 512, FileOptions.SequentialScan | FileOptions.Asynchronous);
+                    using var r            = new StreamReader(fs, Encoding.ASCII);
+                    string    line;
+                    while ((line = r.ReadLine()) != null)
+                    {
+                        if (!line.StartsWith("Pss")) continue;
+                        ramUsageLines.Add(line);
+                    }
+
+                    int counter = 0;
+                    foreach (var ramString in ramUsageLines.Select(ramUsageLine => ramUsageLine.Split(": ")[1].ReduceWhitespace()).Select(ramString => ramString[..^3]))
+                    {
+                        if (!int.TryParse(ramString, out int kiloBytes)) continue;
+                        counter += kiloBytes * 1024;
+                    }
+                    
+                    return counter;
+                }
                 static float GetCpuUsage()
                 {
-                    using var cpuCounter = new PerformanceCounter("Process", "% Processor Time",
-                        Process.GetCurrentProcess().ProcessName); //, Process.GetCurrentProcess().ProcessName,true
-                    cpuCounter.NextValue();
-                    Thread.Sleep(1000);
-                    return cpuCounter.NextValue();
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        using var cpuCounter = new PerformanceCounter("Process", "% Processor Time",
+                                                                      Process.GetCurrentProcess().ProcessName,
+                                                                      true); //, Process.GetCurrentProcess().ProcessName,true
+
+                        cpuCounter.NextValue();
+                        Thread.Sleep(1000);
+                        return cpuCounter.NextValue();
+                    }
+                    var cpuUsage = CpuUsage.GetByProcess();
+                    return cpuUsage?.UserUsage.Seconds ?? float.NaN;
                 }
+                Process.GetCurrentProcess().Refresh();
                 _infoMessage = (
                     $"{Format.Bold("Info")}\n" +
                     $"- Library: Discord.Net ({DiscordConfig.APIVersion.ToString(CultureInfo.InvariantCulture)})\n" +
@@ -64,8 +98,8 @@ namespace GLaDOSV3.Module.Default
                     $"- Up-time: {(DateTime.Now - Process.GetCurrentProcess().StartTime):d\'d \'hh\'h \'mm\'m \'ss\'s\'}\n" +
                     $"- Heartbeat: {_client.Latency.ToString(CultureInfo.InvariantCulture)} ms\n" +
                     $"- Thread running: {Process.GetCurrentProcess().Threads.OfType<ProcessThread>().Count(t => t.ThreadState == System.Diagnostics.ThreadState.Running).ToString(CultureInfo.InvariantCulture)} out of {Process.GetCurrentProcess().Threads.Count.ToString(CultureInfo.InvariantCulture)}\n" +
-                    $"- RAM usage: {ToFileSize2(Process.GetCurrentProcess().PagedMemorySize64)}\n" +
-                    $"- CPU usage: {(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"{GetCpuUsage():N1}%" : "Can not determine CPU usage 😦")}\n" +
+                    $"- RAM usage: {ToFileSize2(GetRamUsage())}\n" +
+                    $"- CPU usage: {GetCpuUsage():N1}%\n" +
                     $"- Heap Size: {ToFileSize2(GC.GetTotalMemory(true))}\n" +
                     $"- Owner of the bot: <@{ulong.Parse(_botSettingsHelper["ownerID"], CultureInfo.InvariantCulture).ToString(CultureInfo.InvariantCulture)}>\n" +
                     $"- Version: {FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion}\n" +

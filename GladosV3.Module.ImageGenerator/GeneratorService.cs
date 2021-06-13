@@ -19,7 +19,8 @@ namespace GLaDOSV3.Module.ImageGeneration
         private const string HtmlSplit = " ";
         public GeneratorService()
         {
-            if (!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Binaries\\wkhtmltoimage.exe"))) { LoggingService.Log(LogSeverity.Error, "ImageGenerator", "wkhtmltoimage.exe not found!"); this.Fail = true; };
+            if (!OperatingSystem.IsWindows())  {this.Fail = false; return;}
+            if (!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), $"Binaries{Path.DirectorySeparatorChar}wkhtmltoimage.exe"))) { LoggingService.Log(LogSeverity.Error, "ImageGenerator", "wkhtmltoimage.exe not found!"); this.Fail = true; };
         }
         public Task<MemoryStream> Shit(string[] items, ICommandContext context)
         {
@@ -28,7 +29,7 @@ namespace GLaDOSV3.Module.ImageGeneration
             {
                 string item = items.Aggregate(string.Empty, (current, type) => current + type + ", ");
                 string html = File.ReadAllTextAsync(Path.Combine(Directory.GetCurrentDirectory(),
-                    "images\\shit.html")).GetAwaiter().GetResult().Replace("REPLACEWITHITEM", item.Remove(item.Length - 2)).Replace("REPLACECORRECTPLURAL", items.Length > 1 ? "are" : "is");
+                    $"images{Path.DirectorySeparatorChar}shit.html")).GetAwaiter().GetResult().Replace("REPLACEWITHITEM", item.Remove(item.Length - 2)).Replace("REPLACECORRECTPLURAL", items.Length > 1 ? "are" : "is");
                 var jpgBytes = Exec(html).GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
@@ -43,7 +44,7 @@ namespace GLaDOSV3.Module.ImageGeneration
             try
             {
                 string html = File.ReadAllTextAsync(Path.Combine(Directory.GetCurrentDirectory(),
-                    "images\\delete.html")).GetAwaiter().GetResult().Replace("REPLACEWITHITEM", item);
+                    $"images{Path.DirectorySeparatorChar}delete.html")).GetAwaiter().GetResult().Replace("REPLACEWITHITEM", item);
                 var jpgBytes = Exec(html).GetAwaiter().GetResult();
                 return Task.FromResult(new MemoryStream(jpgBytes));
             }
@@ -310,7 +311,7 @@ namespace GLaDOSV3.Module.ImageGeneration
             {
                 using var images = new MagickImageCollection();
                 using HttpClient hc = new HttpClient();
-                MagickImage image1 = new MagickImage($".\\Images\\beautiful.png");
+                MagickImage image1 = new MagickImage($".{Path.DirectorySeparatorChar}Images{Path.DirectorySeparatorChar}beautiful.png");
                 MagickImage image2 = new MagickImage(hc.GetByteArrayAsync(url.Replace(".gif", ".png")).GetAwaiter().GetResult());
                 MagickImage image3 = new MagickImage(image2);
                 image1.Alpha(AlphaOption.Set);
@@ -440,7 +441,7 @@ namespace GLaDOSV3.Module.ImageGeneration
             {
                 Arguments = $"-q --width {width} --height {height} -f jpeg  - -",
                 FileName = Path.Combine(Directory.GetCurrentDirectory(),
-                    "Binaries\\wkhtmltoimage.exe"),
+                    $"Binaries{Path.DirectorySeparatorChar}wkhtmltoimage.exe"),
                 RedirectStandardOutput = true,
                 RedirectStandardInput = true
             });

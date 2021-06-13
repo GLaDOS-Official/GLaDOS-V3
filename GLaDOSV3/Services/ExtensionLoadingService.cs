@@ -55,14 +55,11 @@ namespace GLaDOSV3.Services
 
             string name = args.Name;
             name = name.Substring(0, name.IndexOf(',', StringComparison.Ordinal)).ToLowerInvariant();
-            char slash = '/';
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                slash = '\\';
-            string path = $"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}{slash}.nuget{slash}packages{slash}{name}";
+            string path = $"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}{Path.DirectorySeparatorChar}.nuget{Path.DirectorySeparatorChar}packages{Path.DirectorySeparatorChar}{name}";
             if (!Directory.Exists(path)) return null;
             path = Directory.GetDirectories(path)[0];
             if (!Directory.Exists(path)) return null;
-            path += $"{slash}lib";
+            path += $"{Path.DirectorySeparatorChar}lib";
             if (!Directory.Exists(path)) return null;
             if (Directory.Exists(Path.Combine(path, "netcoreapp31"))) path = Path.Combine(path, "netcoreapp31");
             else if (Directory.Exists(Path.Combine(path, "netstandard20"))) path = Path.Combine(path, "netstandard20");
