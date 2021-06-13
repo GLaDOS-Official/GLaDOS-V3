@@ -7,10 +7,11 @@ namespace GLaDOSV3.Helpers
     public class BotSettingsHelper<T> 
     {
         private static readonly Assembly currentAssembly = Assembly.GetEntryAssembly();
-        private static readonly StackTrace st = new StackTrace();
+        private static readonly StackTrace st = new StackTrace(true);
         private static T GetValue(string key)
         {
-            var sf = st.GetFrame(2);
+            //TODO: make better
+            var sf = st.GetFrame(3);
             var prevMethod = sf.GetMethod();
             if (key.Contains("token", System.StringComparison.OrdinalIgnoreCase) && prevMethod.DeclaringType.Assembly != currentAssembly) return default;
             using DataTable dt = SqLite.Connection.GetValuesAsync("BotSettings", $"WHERE name IS '{key}'").GetAwaiter().GetResult();
