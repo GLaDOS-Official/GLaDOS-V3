@@ -7,7 +7,7 @@ namespace GLaDOSV3.Helpers
     public class BotSettingsHelper<T> 
     {
         private static readonly Assembly currentAssembly = Assembly.GetEntryAssembly();
-        private static readonly StackTrace st = new StackTrace(true);
+        private static readonly StackTrace st = new StackTrace(false);
         private static T GetValue(string key)
         {
             //TODO: make better

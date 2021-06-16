@@ -4,13 +4,46 @@ using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Data.SQLite;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Metadata;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 // ReSharper disable All
 
 namespace GLaDOSV3.Helpers
 {
+    public static class EvalMetaData
+    {
+        public static MetadataReference GetRawMetadataReference(this Assembly asm)
+        {
+            unsafe
+            {
+                return asm.TryGetRawMetadata(out var blob, out var length)
+                           ? AssemblyMetadata
+                            .Create(ModuleMetadata.CreateFromMetadata((IntPtr) blob, length))
+                            .GetReference()
+                           : throw new InvalidOperationException($"Could not get raw metadata for Assembly {asm}");
+            }
+        }
+
+        public static ImmutableArray<MetadataReference> GetMetadataRerefeReferences()
+        {
+            var arr = ImmutableArray.Create<MetadataReference>();
+            
+            foreach (var a in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                arr.Add(a.GetRawMetadataReference());
+            }
+
+            return arr.ToImmutableArray();
+        }
+    }
+
     public sealed class Eval
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1051:Do not declare visible instance fields", Justification = "<Pending>")]
@@ -30,6 +63,8 @@ namespace GLaDOSV3.Helpers
 
             public Globals(SocketCommandContext ctx) => Context = ctx;
         }
+
+       
         public static async Task<string> EvalTask(SocketCommandContext ctx, string cScode)
         {
             List<string> imports = new List<string>(16)
@@ -40,7 +75,20 @@ namespace GLaDOSV3.Helpers
             };
             try
             {
-                ScriptOptions options = ScriptOptions.Default.WithReferences(AppDomain.CurrentDomain.GetAssemblies().Where(asm => !asm.IsDynamic && !string.IsNullOrWhiteSpace(asm.Location))).WithImports(imports).WithEmitDebugInformation(true);
+                //MetadataReference
+                ScriptOptions options = ScriptOptions.Default
+                                                     .WithReferences(AppDomain.CurrentDomain.GetAssemblies()
+                                                                              .Where(asm => !asm.IsDynamic 
+                                                                                   && !string
+                                                                                      .IsNullOrWhiteSpace(asm
+                                                                                          .Location)))
+                                                     .AddImports(imports)
+                                                     .WithEmitDebugInformation(true)
+                                                     .WithAllowUnsafe(true)
+                                                     .WithCheckOverflow(true)
+                                                     .WithWarningLevel(5)
+                                                     ;
+                //options.MetadataResolver//.MetadataResolver = EvalMetaData.GetMetadataRerefeReferences();
                 Script result = CSharpScript.Create(cScode, options, typeof(Globals));
                 var returnVal = result.RunAsync(new Globals(ctx)).GetAwaiter().GetResult().ReturnValue?.ToString();
                 BotSettingsHelper<string> r = new BotSettingsHelper<string>();
