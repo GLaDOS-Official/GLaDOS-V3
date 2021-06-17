@@ -44,8 +44,7 @@ namespace GLaDOSV3.Services
             if (this.discord.CurrentUser == null) return Task.FromResult(false);
             if (this.discord.CurrentUser.IsMfaEnabled) return Task.FromResult(true);
             LoggingService.Log(LogSeverity.Warning, "Bot",
-                "MFA is disabled! Mod usage on MFA enabled server won't work!",
-                null).GetAwaiter();
+                "MFA is disabled! Mod usage on MFA enabled server won't work!").GetAwaiter();
             return Task.FromResult(false);
         }
         private async Task GetUserFromConfigAsync()

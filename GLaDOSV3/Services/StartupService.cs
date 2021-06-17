@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Commands;
 using Discord.Net;
 using Discord.WebSocket;
@@ -82,7 +82,7 @@ namespace GLaDOSV3.Services
             await this.discord.SetGameAsync(gameTitle).ConfigureAwait(false); // set bot's game status
             try
             {
-                await this.discord.LoginAsync(TokenType.Bot, discordToken, true).ConfigureAwait(false); // Login to discord
+                await this.discord.LoginAsync(TokenType.Bot, discordToken).ConfigureAwait(false); // Login to discord
                 await this.discord.StartAsync().ConfigureAwait(false); // Connect to the websocket
             }
             catch (HttpException ex) // Some error checking
