@@ -35,6 +35,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Modules\OwnerModule.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="_configuration - example.json" />
   </ItemGroup>
 
