@@ -79,5 +79,10 @@
   <ItemGroup>
     <EditorConfigFiles Update="$(ProjectDir).editorconfig" Link=".editorconfig" />
   </ItemGroup>
-
+  <Target Name="Date" BeforeTargets="CoreCompile">
+    <WriteLinesToFile File="$(IntermediateOutputPath)gen.cs" Lines="using System%3B%0Astatic partial class Builtin { public static DateTime CompileTime = new DateTime($([System.DateTime]::UtcNow.Ticks))%3B}" Overwrite="true" />
+    <ItemGroup>
+      <Compile Include="$(IntermediateOutputPath)gen.cs" />
+    </ItemGroup>
+  </Target>
 </Project>

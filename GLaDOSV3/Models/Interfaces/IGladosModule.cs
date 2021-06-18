@@ -12,6 +12,7 @@ namespace GLaDOSV3
         string Version();
         Uri UpdateUrl();
         string Author();
+        DateTime GetCompileTime() => Builtin.CompileTime;
         Type[] Services(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceCollection provider);
         void PreLoad(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider);
         void PostLoad(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider);
