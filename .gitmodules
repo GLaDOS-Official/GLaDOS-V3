@@ -1,0 +1,18 @@
+[submodule "GLaDOSV3.Module.Default"]
+	path = GLaDOSV3.Module.Default
+	url = https://github.com/botGLaDOSV3/GLaDOSV3.Module.Default.git
+[submodule "GLaDOSV3.Module.WinDocs"]
+	path = GLaDOSV3.Module.WinDocs
+	url = https://github.com/botGLaDOSV3/GLaDOSV3.Module.WinDocs.git
+[submodule "GLaDOSV3.Module.ServerBackup"]
+	path = GLaDOSV3.Module.ServerBackup
+	url = https://github.com/botGLaDOSV3/GLaDOSV3.Module.ServerBackup.git
+[submodule "GLaDOSV3.Module.Music"]
+	path = GLaDOSV3.Module.Music
+	url = https://github.com/botGLaDOSV3/GLaDOSV3.Module.Music.git
+[submodule "GLaDOSV3.Module.GTAService"]
+	path = GLaDOSV3.Module.GTAService
+	url = https://github.com/botGLaDOSV3/GLaDOSV3.Module.GTAService.git
+[submodule "GLaDOSV3.Module.ImageGenerator"]
+	path = GLaDOSV3.Module.ImageGenerator
+	url = https://github.com/botGLaDOSV3/GLaDOSV3.Module.ImageGenerator.git
