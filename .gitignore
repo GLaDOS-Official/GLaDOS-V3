@@ -6,11 +6,6 @@
 *.user
 *.userosscache
 *.sln.docstates
-# Glados config file
-/GLaDOSV3/_configuration.json
-/GLaDOSV3/commit.bat
-/Build/release.zip
-/GladosV3.Modules/PrereleaseModule.cs
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
@@ -260,5 +255,5 @@ GLaDOSV3/database.db
 # GladosV3.Module.GTAService/
 
 Build/*.zip
-
 Build/release*
+Build/Build/
