@@ -14,7 +14,7 @@ namespace GLaDOSV3.Helpers
         private static readonly string DirPath = Path.Combine(Directory.GetCurrentDirectory(), "Database.db");
 
         //use shared cache so it will be faster (SPEEEEEEED!!)
-        public static SQLiteConnection Connection = new SQLiteConnection($"Data Source={DirPath};Mode=Memory;Cache=Shared");
+        public static SQLiteConnection Connection = new SQLiteConnection($"Data Source={DirPath};Cache=Shared;Version=3;Pooling=True;Max Pool Size=100");
 
 
         /// <summary>
@@ -47,6 +47,7 @@ namespace GLaDOSV3.Helpers
             return Task.Run(() =>
             {
                 string              sql     = $"CREATE TABLE `{tableName}` ({parameters});";
+                if (!ValidateSQLSafety(sql)) return Task.CompletedTask;
                 using SQLiteCommand command = new SQLiteCommand(sql, connection);
                 command.ExecuteNonQuery();
                 return Task.CompletedTask;
@@ -62,6 +63,7 @@ namespace GLaDOSV3.Helpers
                 string sql = $"UPDATE {tableName} SET {parameter}='{value}'";
                 if (!string.IsNullOrEmpty(filter))
                     sql += $" {filter}";
+                if (!ValidateSQLSafety(sql)) return Task.CompletedTask;
                 using SQLiteCommand command = new SQLiteCommand(sql, connection);
                 command.ExecuteNonQuery();
                 return Task.CompletedTask;
@@ -78,6 +80,7 @@ namespace GLaDOSV3.Helpers
                 using DataTable dt  = new DataTable();
                 if (!string.IsNullOrEmpty(filter))
                     sql += $" {filter}";
+                if (!ValidateSQLSafety(sql)) return Task.FromResult(new DataTable());
                 using (SQLiteDataAdapter reader = new SQLiteDataAdapter(sql, connection))
                     reader.Fill(dt);
                 dt.TableName = tableName;
@@ -97,10 +100,7 @@ namespace GLaDOSV3.Helpers
 
             //Enable write-ahead logging
             var walCommand = Connection.CreateCommand();
-            walCommand.CommandText =
-                @"
-                PRAGMA journal_mode = 'wal'
-                ";
+            walCommand.CommandText = @"PRAGMA auto_vacuum = FULL;PRAGMA journal_mode = 'wal';PRAGMA synchronous=OFF;";
             walCommand.ExecuteNonQuery();
             //CREATE TABLE "servers" ( `guildid` INTEGER, `nsfw` INTEGER, `joinleave_cid` INTEGER, `join_msg` TEXT, `join_toggle` INTEGER, `leave_msg` TEXT, `leave_toggle` INTEGER, `prefix` TEXT )
             if (!Connection.TableExistsAsync("servers").GetAwaiter().GetResult())
@@ -128,6 +128,7 @@ namespace GLaDOSV3.Helpers
                 string sql = $"INSERT INTO {tablename} ({values}) VALUES ({result.Remove(result.Length - 1)}) ";
                 if (!string.IsNullOrEmpty(filter))
                     sql += $"WHERE {filter}";
+                if (!ValidateSQLSafety(sql)) return Task.FromResult(false);
                 using SQLiteCommand command = new SQLiteCommand(sql, connection);
                 for (int i = 1; i <= items.Length; i++)
                     command.Parameters.AddWithValue($"@val{i}", items[i - 1]);
@@ -145,6 +146,7 @@ namespace GLaDOSV3.Helpers
                 if (string.IsNullOrWhiteSpace(filter))
                     return Task.FromException(new SQLiteException("Filter mustn't be empty!"));
                 string              sql     = $"DELETE FROM {tablename} WHERE {filter}";
+                if (!ValidateSQLSafety(sql)) return Task.FromResult(false);
                 using SQLiteCommand command = new SQLiteCommand(sql, connection);
                 command.ExecuteNonQuery();
                 return Task.CompletedTask;
@@ -159,6 +161,7 @@ namespace GLaDOSV3.Helpers
             {
                 string sql                             = $"SELECT 1 FROM {tablename}";
                 if (!string.IsNullOrEmpty(filter)) sql += $" {filter}";
+                if (!ValidateSQLSafety(sql)) return Task.FromResult(false);
                 using DataTable dt                     = new DataTable();
                 using (SQLiteDataAdapter reader = new SQLiteDataAdapter(sql, connection))
                     reader.Fill(dt);
@@ -173,12 +176,22 @@ namespace GLaDOSV3.Helpers
         {
             return Task.Run(() =>
             {
-                if (string.IsNullOrWhiteSpace(command))
+                if (string.IsNullOrWhiteSpace(command) && !ValidateSQLSafety(command))
                     return Task.FromException(new SQLiteException("Command mustn't be empty!!"));
                 using SQLiteCommand sqlCommand = new SQLiteCommand(command, connection);
                 sqlCommand.ExecuteNonQuery();
                 return Task.CompletedTask;
             }, token);
+        }
+
+        private static bool ValidateSQLSafety(string command)
+        {
+            //Safety features
+            Connection.Flags |= SQLiteConnectionFlags.NoLoadExtension;
+            if (command.Contains("--") || (command.Contains("/*") && command.Contains("*/"))) return false; // comments are used for SQLi, since SQL is mostly used for programmers, we strictly disallow them
+            if(command.Contains("INTO OUTFILE")) return false; // prevent file write
+
+            return true;
         }
     }
 }
