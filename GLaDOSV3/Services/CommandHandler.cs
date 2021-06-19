@@ -92,7 +92,7 @@ namespace GLaDOSV3.Services
         private async Task OnMessageReceivedAsync(SocketMessage s)
         {
             if (BotBusy) return;
-            if (!(s is SocketUserMessage msg))
+            if (s is not SocketUserMessage msg)
             {
                 return; // Ensure the message is from a user/bot
             }
