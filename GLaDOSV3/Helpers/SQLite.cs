@@ -1,68 +1,88 @@
 ﻿using System.Data;
 using System.Data.SQLite;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GLaDOSV3.Helpers
 {
+    [SuppressMessage("ReSharper", "ArrangeMethodOrOperatorBody")]
+    [SuppressMessage("Style", "IDE0022:Use expression body for methods", Justification = "<Pending>")]
     public static class SqLite
     {
         private static readonly string DirPath = Path.Combine(Directory.GetCurrentDirectory(), "Database.db");
-        public static SQLiteConnection Connection = new SQLiteConnection($"Data Source={DirPath}");
+
+        //use shared cache so it will be faster (SPEEEEEEED!!)
+        public static SQLiteConnection Connection = new SQLiteConnection($"Data Source={DirPath};Mode=Memory;Cache=Shared");
+
+
         /// <summary>
         ///  Returns a bool if a table exists.
         /// </summary>
-        public static Task<bool> TableExistsAsync(this SQLiteConnection connection, string tableName)
+        public static Task<bool> TableExistsAsync(this SQLiteConnection connection, string tableName, CancellationToken token = default)
         {
-            object result;
-            using (SQLiteCommand cmd = new SQLiteCommand(connection))
+            return Task.Run(() =>
             {
-                cmd.CommandText = @"SELECT COUNT(*) FROM sqlite_master WHERE name=@TableName";
-                var p1 = cmd.CreateParameter();
-                p1.DbType = DbType.String;
-                p1.ParameterName = "TableName";
-                p1.Value = tableName;
-                cmd.Parameters.Add(p1);
-                result = cmd.ExecuteScalar();
-            }
+                object result;
+                using (SQLiteCommand cmd = new SQLiteCommand(connection))
+                {
+                    cmd.CommandText = @"SELECT COUNT(*) FROM sqlite_master WHERE name=@TableName";
+                    var p1 = cmd.CreateParameter();
+                    p1.DbType        = DbType.String;
+                    p1.ParameterName = "TableName";
+                    p1.Value         = tableName;
+                    cmd.Parameters.Add(p1);
+                    result = cmd.ExecuteScalar();
+                }
 
-            return Task.FromResult(((long)result) >= 1);
+                return Task.FromResult(((long) result) >= 1);
+            }, token);
         }
         /// <summary>
         /// Creates a table with a name and parameters..
         /// </summary>
-        public static Task CreateTableAsync(this SQLiteConnection connection, string tableName, string parameters)
+        public static Task CreateTableAsync(this SQLiteConnection connection, string tableName, string parameters, CancellationToken token = default)
         {
-            string sql = $"CREATE TABLE `{tableName}` ({parameters});";
-            using (SQLiteCommand command = new SQLiteCommand(sql, connection))
+            return Task.Run(() =>
+            {
+                string              sql     = $"CREATE TABLE `{tableName}` ({parameters});";
+                using SQLiteCommand command = new SQLiteCommand(sql, connection);
                 command.ExecuteNonQuery();
-            return Task.CompletedTask;
+                return Task.CompletedTask;
+            }, token);
         }
         /// <summary>
         /// Sets/updates a value in a table.
         /// </summary>
-        public static Task SetValueAsync<T>(this SQLiteConnection connection, string tableName, string parameter, T value, string filter = "")
+        public static Task SetValueAsync<T>(this SQLiteConnection connection, string tableName, string parameter, T value, string filter = "", CancellationToken token = default)
         {
-            string sql = $"UPDATE {tableName} SET {parameter}='{value}'";
-            if (!string.IsNullOrEmpty(filter))
-                sql += $" {filter}";
-            using (SQLiteCommand command = new SQLiteCommand(sql, connection))
+            return Task.Run(() =>
+            {
+                string sql = $"UPDATE {tableName} SET {parameter}='{value}'";
+                if (!string.IsNullOrEmpty(filter))
+                    sql += $" {filter}";
+                using SQLiteCommand command = new SQLiteCommand(sql, connection);
                 command.ExecuteNonQuery();
-            return Task.CompletedTask;
+                return Task.CompletedTask;
+            }, token);
         }
         /// <summary>
         /// Returns a DataTable.
         /// </summary>
-        public static Task<DataTable> GetValuesAsync(this SQLiteConnection connection, string tableName, string filter = "")
+        public static Task<DataTable> GetValuesAsync(this SQLiteConnection connection, string tableName, string filter = "", CancellationToken token = default)
         {
-            string sql = $"SELECT * FROM {tableName}";
-            using DataTable dt = new DataTable();
-            if (!string.IsNullOrEmpty(filter))
-                sql += $" {filter}";
-            using (SQLiteDataAdapter reader = new SQLiteDataAdapter(sql, connection))
-                reader.Fill(dt);
-            dt.TableName = tableName;
-            return Task.FromResult(dt);
+            return Task.Run(() =>
+            {
+                string          sql = $"SELECT * FROM {tableName}";
+                using DataTable dt  = new DataTable();
+                if (!string.IsNullOrEmpty(filter))
+                    sql += $" {filter}";
+                using (SQLiteDataAdapter reader = new SQLiteDataAdapter(sql, connection))
+                    reader.Fill(dt);
+                dt.TableName = tableName;
+                return Task.FromResult(dt);
+            }, token);
         }
         /// <summary>
         /// Starts SQLite connection and checks for tables.
@@ -74,6 +94,14 @@ namespace GLaDOSV3.Helpers
             if ((File.GetAttributes(DirPath) & FileAttributes.ReadOnly) != 0)
                 File.SetAttributes(DirPath, File.GetAttributes(DirPath) & ~FileAttributes.ReadOnly);
             Connection.Open();
+
+            //Enable write-ahead logging
+            var walCommand = Connection.CreateCommand();
+            walCommand.CommandText =
+                @"
+                PRAGMA journal_mode = 'wal'
+                ";
+            walCommand.ExecuteNonQuery();
             //CREATE TABLE "servers" ( `guildid` INTEGER, `nsfw` INTEGER, `joinleave_cid` INTEGER, `join_msg` TEXT, `join_toggle` INTEGER, `leave_msg` TEXT, `leave_toggle` INTEGER, `prefix` TEXT )
             if (!Connection.TableExistsAsync("servers").GetAwaiter().GetResult())
                 Connection.CreateTableAsync("servers", "`guildid` INTEGER, `nsfw` INTEGER, `joinleave_cid` INTEGER, `join_msg` TEXT, `join_toggle` INTEGER, `leave_msg` TEXT, `leave_toggle` INTEGER, `prefix` TEXT");
@@ -88,60 +116,69 @@ namespace GLaDOSV3.Helpers
         /// <summary>
         /// Adds a new row into a table.
         /// </summary>
-        public static Task AddRecordAsync<T>(this SQLiteConnection connection, string tablename, string values, T[] items, string filter = "")
+        public static Task AddRecordAsync<T>(this SQLiteConnection connection, string tablename, string values, T[] items, string filter = "", CancellationToken token = default)
         {
-            if (string.IsNullOrWhiteSpace(tablename) || string.IsNullOrWhiteSpace(values) || items == null) return Task.CompletedTask;
-            string result = string.Empty;
-            for (int i = 1; i <= items?.Length; i++)
+            return Task.Run(() =>
             {
-                result += $"@val{i},";
-            }
-            string sql = $"INSERT INTO {tablename} ({values}) VALUES ({result.Remove(result.Length - 1)}) ";
-            if (!string.IsNullOrEmpty(filter))
-                sql += $"WHERE {filter}";
-            using (SQLiteCommand command = new SQLiteCommand(sql, connection))
-            {
+                if (string.IsNullOrWhiteSpace(tablename) || string.IsNullOrWhiteSpace(values) || items == null)
+                    return Task.CompletedTask;
+                string result = string.Empty;
+                for (int i = 1; i <= items?.Length; i++) { result += $"@val{i},"; }
+
+                string sql = $"INSERT INTO {tablename} ({values}) VALUES ({result.Remove(result.Length - 1)}) ";
+                if (!string.IsNullOrEmpty(filter))
+                    sql += $"WHERE {filter}";
+                using SQLiteCommand command = new SQLiteCommand(sql, connection);
                 for (int i = 1; i <= items.Length; i++)
                     command.Parameters.AddWithValue($"@val{i}", items[i - 1]);
                 command.ExecuteNonQuery();
-            }
-            return Task.CompletedTask;
+                return Task.CompletedTask;
+            }, token);
         }
         /// <summary>
         /// Removes a row from the selected table.
         /// </summary>
-        public static Task RemoveRecordAsync(this SQLiteConnection connection, string tablename, string filter)
+        public static Task RemoveRecordAsync(this SQLiteConnection connection, string tablename, string filter, CancellationToken token = default)
         {
-            if (string.IsNullOrWhiteSpace(filter))
-                return Task.FromException(new SQLiteException("Filter mustn't be empty!"));
-            string sql = $"DELETE FROM {tablename} WHERE {filter}";
-            using (SQLiteCommand command = new SQLiteCommand(sql, connection))
+            return Task.Run(() =>
+            {
+                if (string.IsNullOrWhiteSpace(filter))
+                    return Task.FromException(new SQLiteException("Filter mustn't be empty!"));
+                string              sql     = $"DELETE FROM {tablename} WHERE {filter}";
+                using SQLiteCommand command = new SQLiteCommand(sql, connection);
                 command.ExecuteNonQuery();
-            return Task.CompletedTask;
+                return Task.CompletedTask;
+            }, token);
         }
         /// <summary>
         /// Returns true if table exists
         /// </summary>
-        public static Task<bool> RecordExistsAsync(this SQLiteConnection connection, string tablename, string filter = "")
+        public static Task<bool> RecordExistsAsync(this SQLiteConnection connection, string tablename, string filter = "", CancellationToken token = default)
         {
-            string sql = $"SELECT 1 FROM {tablename}";
-            if (!string.IsNullOrEmpty(filter)) sql += $" {filter}";
-            using DataTable dt  = new DataTable();
-            using (SQLiteDataAdapter reader = new SQLiteDataAdapter(sql, connection))
-                reader.Fill(dt);
-            dt.TableName = tablename;
-            return Task.FromResult(dt.Rows.Count != 0);
+            return Task.Run(() =>
+            {
+                string sql                             = $"SELECT 1 FROM {tablename}";
+                if (!string.IsNullOrEmpty(filter)) sql += $" {filter}";
+                using DataTable dt                     = new DataTable();
+                using (SQLiteDataAdapter reader = new SQLiteDataAdapter(sql, connection))
+                    reader.Fill(dt);
+                dt.TableName = tablename;
+                return Task.FromResult(dt.Rows.Count != 0);
+            }, token);
         }
         /// <summary>
         ///  Executes SQL command
         /// </summary>
-        public static Task ExecuteSql(this SQLiteConnection connection, string command)
+        public static Task ExecuteSqlAsync(this SQLiteConnection connection, string command, CancellationToken token = default)
         {
-            if (string.IsNullOrWhiteSpace(command))
-                return Task.FromException(new SQLiteException("Command mustn't be empty!!"));
-            using (SQLiteCommand sqlCommand = new SQLiteCommand(command, connection))
+            return Task.Run(() =>
+            {
+                if (string.IsNullOrWhiteSpace(command))
+                    return Task.FromException(new SQLiteException("Command mustn't be empty!!"));
+                using SQLiteCommand sqlCommand = new SQLiteCommand(command, connection);
                 sqlCommand.ExecuteNonQuery();
-            return Task.CompletedTask;
+                return Task.CompletedTask;
+            }, token);
         }
     }
 }

@@ -47,7 +47,7 @@ namespace GLaDOSV3.Services
         {
             using (DataTable dt = await SqLite.Connection.GetValuesAsync("BotSettings", "WHERE value IS NOT NULL").ConfigureAwait(true))
                 if (dt.Rows.Count == 8 && !reset) return;
-            await SqLite.Connection.ExecuteSql("DROP TABLE IF EXISTS BotSettings").ConfigureAwait(false);
+            await SqLite.Connection.ExecuteSqlAsync("DROP TABLE IF EXISTS BotSettings").ConfigureAwait(false);
             await SqLite.Connection.CreateTableAsync("BotSettings", "`ID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, `name` TEXT, `value` TEXT").ConfigureAwait(false);
             Console.WriteLine("Hello user! Looks like your starting this bot for the first time! You'll need to enter some values to start this bot.");
             Console.Write("Please enter your default bot prefix: ");
