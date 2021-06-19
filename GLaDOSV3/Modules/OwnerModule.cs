@@ -41,8 +41,8 @@ namespace GLaDOSV3.Modules
         [Attributes.RequireOwner]
         public async Task Maintenance([Remainder] string reason = "")
         {
-            CommandHandler.MaintenanceMode = reason;
-            IsOwner.botSettingsHelper["maintenance"] = reason;
+            CommandHandler.MaintenanceMode           = reason;
+            IsOwner.BotSettingsHelper["maintenance"] = reason;
             await this.ReplyAsync($"{(string.IsNullOrWhiteSpace(reason) ? "Disabled" : "Enabled")} maintenance reason{(string.IsNullOrWhiteSpace(reason) ? "" : " to: ")}{(string.IsNullOrWhiteSpace(reason) ? "" : reason)}!").ConfigureAwait(false);
         }
         [Command("bot restart")]
@@ -70,7 +70,7 @@ namespace GLaDOSV3.Modules
         [Attributes.RequireOwner]
         public async Task Username([Remainder] string username)
         {
-            IsOwner.botSettingsHelper["name"] = username;
+            IsOwner.BotSettingsHelper["name"] = username;
             await this.ReplyAsync($"Set bot's username to {username}.").ConfigureAwait(false);
             await Context.Client.CurrentUser.ModifyAsync(properties => properties.Username = username).ConfigureAwait(false);
         }
@@ -126,35 +126,35 @@ namespace GLaDOSV3.Modules
                 await dm.SendMessageAsync($"```\n{msg}```").ConfigureAwait(false);
             await dm.CloseAsync().ConfigureAwait(false);
         }
-        [Command("bot rehook")]
-        [Remarks("bot rehook <user> [--s]")]
-        [Summary("Hooks his permissions to admin to every channel")]
-        [Attributes.RequireOwner]
-        public async Task ReHook(SocketUser user, [Remainder] string silent = "")
-        {
-            var silentB = false;
-            IUserMessage message = null;
-            if (silent == "--s")
-                silentB = true;
+        //[Command("bot rehook")]
+        //[Remarks("bot rehook <user> [--s]")]
+        //[Summary("Hooks his permissions to admin to every channel")]
+        //[Attributes.RequireOwner]
+        //public async Task ReHook(SocketUser user, [Remainder] string silent = "")
+        //{
+        //    var silentB = false;
+        //    IUserMessage message = null;
+        //    if (silent == "--s")
+        //        silentB = true;
 
-            if (silentB)
-                await Context.Message.DeleteAsync().ConfigureAwait(false);
-            else
-                message = await this.ReplyAsync("Hooking....").ConfigureAwait(false);
+        //    if (silentB)
+        //        await Context.Message.DeleteAsync().ConfigureAwait(false);
+        //    else
+        //        message = await this.ReplyAsync("Hooking....").ConfigureAwait(false);
 
-            IReadOnlyCollection<SocketGuildChannel> channels = Context.Guild.Channels;
-            for (var i = 0; i < channels.Count; i++)
-            {
-                SocketGuildChannel channel = channels.ElementAt(i);
-                if (channel.GetPermissionOverwrite(user) == null)
-                    await channel.AddPermissionOverwriteAsync(user, new OverwritePermissions(PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow)).ConfigureAwait(false);
-                else
-                    channel.GetPermissionOverwrite(user)?.Modify(PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow);
-            }
-            if (silentB)
-                return;
-            await message.ModifyAsync(a => a.Content = "Done!").ConfigureAwait(false);
-        }
+        //    IReadOnlyCollection<SocketGuildChannel> channels = Context.Guild.Channels;
+        //    for (var i = 0; i < channels.Count; i++)
+        //    {
+        //        SocketGuildChannel channel = channels.ElementAt(i);
+        //        if (channel.GetPermissionOverwrite(user) == null)
+        //            await channel.AddPermissionOverwriteAsync(user, new OverwritePermissions(PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow)).ConfigureAwait(false);
+        //        else
+        //            channel.GetPermissionOverwrite(user)?.Modify(PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow);
+        //    }
+        //    if (silentB)
+        //        return;
+        //    await message.ModifyAsync(a => a.Content = "Done!").ConfigureAwait(false);
+        //}
         [Command("bot message")]
         [Remarks("bot message <system message>")]
         [Summary("Sends message to all servers!")]
@@ -181,15 +181,11 @@ namespace GLaDOSV3.Modules
         [Attributes.RequireOwner]
         public async Task Game([Remainder] string status = "")
         {
-            /*JObject clasO =
-                Tools.GetConfigAsync(1).GetAwaiter().GetResult();*/
             if (status == null)
             {
                 await Context.Client.SetGameAsync(null).ConfigureAwait(false);
             }
-            IsOwner.botSettingsHelper["discord_game"] = status;
-            //clasO["discord"]["game"] = status;
-            //await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json"), clasO.ToString());
+            IsOwner.BotSettingsHelper["discord_game"] = status;
             if (string.IsNullOrEmpty(status))
             {
                 await this.ReplyAsync("Reset bot's game state.").ConfigureAwait(false);
@@ -329,7 +325,7 @@ namespace GLaDOSV3.Modules
             /*clasO["discord"]["status"] = status;
             await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, "_configuration.json"),
                 clasO.ToString());*/
-            IsOwner.botSettingsHelper["discord_status"] = status;
+            IsOwner.BotSettingsHelper["discord_status"] = status;
             await this.ReplyAsync($"Set bot's game state to {status}.").ConfigureAwait(false);
             await Context.Client.SetStatusAsync(Enum.Parse<UserStatus>(status)).ConfigureAwait(false);
         }
