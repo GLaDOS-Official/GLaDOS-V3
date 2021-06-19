@@ -16,7 +16,7 @@ namespace GLaDOSV3.Helpers
     {
         public static int RoundToDividable<T>(int number, int dividable) => (int)RoundToDividable<double>((double)number, dividable);
         public static double RoundToDividable<T>(double number, double dividable) => Math.Ceiling(number / dividable) * dividable;
-        private static Random rnd = new Random();
+        private static Random _rnd = new Random();
         public static async Task<string> EscapeMentionsAsync(IGuild g, IChannel channel, string message)
         {
             if (message == null || channel == null || message == null) return null;
@@ -44,10 +44,10 @@ namespace GLaDOSV3.Helpers
             }
             return message;
         }
-        private static readonly object _writeLock = new object();
+        private static readonly object WriteLock = new object();
         public static void WriteColorLine(ConsoleColor color, string message)
         {
-            lock (_writeLock)
+            lock (WriteLock)
             {
                 var fcolor = Console.ForegroundColor;
                 var bcolor = Console.BackgroundColor;
@@ -61,7 +61,7 @@ namespace GLaDOSV3.Helpers
 
         public static void WriteColor(ConsoleColor color, string message)
         {
-            lock (_writeLock)
+            lock (WriteLock)
             {
                 var fcolor = Console.ForegroundColor;
                 var bcolor = Console.BackgroundColor;
@@ -99,8 +99,8 @@ namespace GLaDOSV3.Helpers
                 json = await reader.ReadToEndAsync().ConfigureAwait(true);
             }
             if (string.IsNullOrWhiteSpace(json)) return await Task.FromResult("").ConfigureAwait(false);
-            var Object = JObject.Parse(json);
-            return await Task.FromResult(new WebProxy { Address = new Uri($"http://{Object["ipPort"]}") }).ConfigureAwait(false);
+            var @object = JObject.Parse(json);
+            return await Task.FromResult(new WebProxy { Address = new Uri($"http://{@object["ipPort"]}") }).ConfigureAwait(false);
         }
         internal static void ReleaseMemory()
         {
@@ -148,7 +148,7 @@ namespace GLaDOSV3.Helpers
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
             return new string(Enumerable.Repeat(chars, length)
-                                        .Select(s => s[rnd.Next(s.Length)]).ToArray());
+                                        .Select(s => s[_rnd.Next(s.Length)]).ToArray());
         }
     }
 }

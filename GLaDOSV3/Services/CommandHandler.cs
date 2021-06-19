@@ -125,7 +125,7 @@ namespace GLaDOSV3.Services
 
             SocketCommandContext context = new SocketCommandContext(this.discord, msg); // Create the command context
             if (!string.IsNullOrWhiteSpace(MaintenanceMode) && (IsOwner.CheckPermission(context).GetAwaiter().GetResult())) { await context.Channel.SendMessageAsync("Bot is in maintenance mode! Reason: " + MaintenanceMode).ConfigureAwait(false); ; return; } // Don't execute commands in maintenance mode 
-            this.commands.ExecuteAsync(context, argPos, this.provider); // Execute the command
+            await this.commands.ExecuteAsync(context, argPos, this.provider).ConfigureAwait(false); // Execute the command
         }
 
         private Task MentionBomb(SocketUserMessage msg)

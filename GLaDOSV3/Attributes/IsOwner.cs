@@ -9,24 +9,24 @@ namespace GLaDOSV3.Attributes
 {
     public static class IsOwner
     {
-        public static BotSettingsHelper<string> botSettingsHelper = new BotSettingsHelper<string>();
-        public static bool IsCoOwner(ulong ID)
+        public static BotSettingsHelper<string> BotSettingsHelper = new BotSettingsHelper<string>();
+        public static bool IsCoOwner(ulong id)
         {
-            string ok = botSettingsHelper["co-owners"];
+            string ok = BotSettingsHelper["co-owners"];
             if (string.IsNullOrWhiteSpace(ok))
                 return false;
             string[] coOwners = ok.Split(',');
-            bool fail = coOwners.All(t => t != ID.ToString(CultureInfo.InvariantCulture));
+            bool fail = coOwners.All(t => t != id.ToString(CultureInfo.InvariantCulture));
             return !fail;
         }
         public static Task<bool> CheckPermission(ICommandContext context) => context?.Client.TokenType switch
         {
-            TokenType.Bot => Task.FromResult(ulong.Parse(botSettingsHelper["ownerID"], NumberStyles.Integer, CultureInfo.InvariantCulture) == context.User.Id || context.User.Id == context.Client.GetApplicationInfoAsync().GetAwaiter().GetResult().Owner.Id || IsCoOwner(context.User.Id)),
+            TokenType.Bot => Task.FromResult(ulong.Parse(BotSettingsHelper["ownerID"], NumberStyles.Integer, CultureInfo.InvariantCulture) == context.User.Id || context.User.Id == context.Client.GetApplicationInfoAsync().GetAwaiter().GetResult().Owner.Id || IsCoOwner(context.User.Id)),
             _ => Task.FromResult(false),
         };
         public static Task<ulong> GetOwner(ICommandContext context) => context?.Client.TokenType switch
         {
-            TokenType.Bot => Task.FromResult(ulong.Parse(botSettingsHelper["ownerID"], NumberStyles.Integer, CultureInfo.InvariantCulture)),
+            TokenType.Bot => Task.FromResult(ulong.Parse(BotSettingsHelper["ownerID"], NumberStyles.Integer, CultureInfo.InvariantCulture)),
             _ => Task.FromResult(0UL),
         };
     }

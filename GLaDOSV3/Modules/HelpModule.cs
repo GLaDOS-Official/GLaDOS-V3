@@ -54,7 +54,7 @@ namespace GLaDOSV3.Modules
             {
                 Color = new Color(rnd.Next(256), rnd.Next(256), rnd.Next(256))
             };
-            var prefix = IsOwner.botSettingsHelper["prefix"];
+            var prefix = IsOwner.BotSettingsHelper["prefix"];
             if (command != null)
             {
                 var result = this.service.Search(Context, command);

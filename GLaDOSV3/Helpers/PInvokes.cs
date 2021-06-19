@@ -48,7 +48,7 @@ namespace GLaDOSV3.Helpers
         [DllImport("kernel32.dll", EntryPoint = "GetProcAddress", SetLastError = true, CharSet = CharSet.Unicode)]
         private static extern IntPtr GetFunctionPtr(IntPtr hModule, string procedureName);
     }
-    public static class PInvokes_DllImport
+    public static class PInvokesDllImport
     {
         [DllImport("kernel32.dll", EntryPoint = "SetDllDirectory", SetLastError = true, CharSet = CharSet.Unicode)]
         [return: MarshalAs(UnmanagedType.Bool)]

@@ -38,7 +38,7 @@ namespace GLaDOSV3.Services
             if (discord != null) return;
             foreach (var assemblyName in Directory.GetFiles(Path.Combine(Directory.GetCurrentDirectory(), "Dependencies")))
             {
-                if (!this.IsValidCLRFile(assemblyName)) continue;
+                if (!this.IsValidClrFile(assemblyName)) continue;
                 var asm = Assembly.LoadFile(assemblyName);
                 Dependencies.Add(asm.FullName, asm);
             }
@@ -103,7 +103,7 @@ namespace GLaDOSV3.Services
         private Assembly ValidFile(string file)
         {
             if (new FileInfo(file).Length == 0) return null; // file is empty!
-            try { return !this.IsValidCLRFile(file) ? null : Assembly.LoadFile(file); }
+            try { return !this.IsValidClrFile(file) ? null : Assembly.LoadFile(file); }
             catch (Exception) { return null; }
         }
 
@@ -157,7 +157,7 @@ namespace GLaDOSV3.Services
             LoggingService.Log(LogSeverity.Verbose, "ExtensionLoadingService", "Loading " + args.Name);
             return Dependencies.TryGetValue(args.Name, out var res) ? res : TryLoadFromNuget(args);
         }
-        private bool IsValidCLRFile(string file) // based on PE headers
+        private bool IsValidClrFile(string file) // based on PE headers
         {
             bool? returnBool = null;
             uint[] dataDictionaryRva = new uint[16];

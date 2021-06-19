@@ -14,11 +14,11 @@ using System.Threading.Tasks;
 
 namespace GLaDOSV3.Services
 {
-    internal class IPLoggerProtection
+    internal class IpLoggerProtection
     {
         private readonly DiscordSocketClient discord;
         private readonly List<ulong> serverIds = new List<ulong>() { 658372357924192281, 259776446942150656, 472402015679414293, 503145318372868117, 516296348367192074, 611503265313718282, 611599798595878912, 499598184570421253,  };
-        public IPLoggerProtection(DiscordSocketClient discord)
+        public IpLoggerProtection(DiscordSocketClient discord)
         {
             this.discord = discord;
             this.discord.MessageReceived += this.OnMessageReceivedAsync;
@@ -32,11 +32,11 @@ namespace GLaDOSV3.Services
 
         private Task DeleteMessageDelay(IMessage msg, int delay = 3000)
         {
-            Thread deleteThread = new Thread(() =>
+            Thread deleteThread = new Thread(async () =>
             {
                 Thread.CurrentThread.IsBackground = true;
                 Thread.Sleep(delay);
-                DeleteMessage(msg);
+                await this.DeleteMessage(msg).ConfigureAwait(false);
             });
             deleteThread.Start();
             return Task.CompletedTask;

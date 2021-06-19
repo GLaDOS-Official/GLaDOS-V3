@@ -135,7 +135,7 @@ namespace GLaDOSV3.Helpers
         /// <summary>
         ///  Executes SQL command
         /// </summary>
-        public static Task ExecuteSQL(this SQLiteConnection connection, string command)
+        public static Task ExecuteSql(this SQLiteConnection connection, string command)
         {
             if (string.IsNullOrWhiteSpace(command))
                 return Task.FromException(new SQLiteException("Command mustn't be empty!!"));

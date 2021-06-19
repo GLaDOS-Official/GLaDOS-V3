@@ -17,7 +17,7 @@ namespace GLaDOSV3
     {
         //TODO: use https://github.com/Quahu/Qmmands
         //TODO: Make timeout attribute better
-        public static DiscordSocketClient client;
+        public static DiscordSocketClient Client;
         public static void Main(string[] args)  
             =>  StartAsync(args).GetAwaiter().GetResult();
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
@@ -29,12 +29,12 @@ namespace GLaDOSV3
             var pInvokeDir = Path.Combine(Directory.GetCurrentDirectory(), $"PInvoke{Path.DirectorySeparatorChar}");
             if (!Directory.Exists(pInvokeDir))
             { Console.WriteLine("PInvoke directory doesn't exist! Creating!"); Directory.CreateDirectory(pInvokeDir); }
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !PInvokes_DllImport.SetDllDirectory(pInvokeDir)) Console.WriteLine($"Failed to call SetDllDirectory PInvoke! Last error code: {Marshal.GetLastWin32Error()}");
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !PInvokesDllImport.SetDllDirectory(pInvokeDir)) Console.WriteLine($"Failed to call SetDllDirectory PInvoke! Last error code: {Marshal.GetLastWin32Error()}");
             Tools.ReleaseMemory();
             LoggingService.Begin();
             /*if(!IsValidJson())
             { await Task.Delay(10000); return; }*/
-            client =
+            Client =
                 new DiscordSocketClient(new DiscordSocketConfig // Add the discord client to the service provider
                 {
                     LogLevel           = LogSeverity.Verbose,
@@ -50,7 +50,7 @@ namespace GLaDOSV3
                     DefaultRetryMode = RetryMode.AlwaysRetry // Always believe
                 });
             var services = new ServiceCollection()      // Begin building the service provider
-                .AddSingleton(client)
+                .AddSingleton(Client)
                 .AddSingleton(new CommandService(new CommandServiceConfig     // Add the command service to the service provider
                 {
                     DefaultRunMode = RunMode.Async,     // Force all commands to run async
@@ -63,9 +63,9 @@ namespace GLaDOSV3
                 .AddSingleton<StartupService>()     // Do commands on startup
                 .AddSingleton<OnLogonService>()     // Execute commands after websocket connects
                 .AddSingleton<ClientEvents>()       // Discord client events
-                .AddSingleton<IPLoggerProtection>()       // IP logging service
+                .AddSingleton<IpLoggerProtection>()       // IP logging service
                 .AddSingleton<BotSettingsHelper<string>>();
-            foreach (var item in (await new ExtensionLoadingService().GetServices(client, services).ConfigureAwait(true))) 
+            foreach (var item in (await new ExtensionLoadingService().GetServices(Client, services).ConfigureAwait(true))) 
                 services.AddSingleton(item);
             var provider = services.BuildServiceProvider();     // Create the service provide
             provider.GetRequiredService<LoggingService>();      // Initialize the logging service, client events, startup service, on discord log on service, command handler and system message
@@ -73,7 +73,7 @@ namespace GLaDOSV3
             provider.GetRequiredService<OnLogonService>();
             await provider.GetRequiredService<StartupService>().StartAsync(args).ConfigureAwait(false);
             provider.GetRequiredService<CommandHandler>();
-            provider.GetRequiredService<IPLoggerProtection>();
+            provider.GetRequiredService<IpLoggerProtection>();
             MemoryHandlerService.Start();
             await Task.Delay(-1).ConfigureAwait(true);     // Prevent the application from closing
         }

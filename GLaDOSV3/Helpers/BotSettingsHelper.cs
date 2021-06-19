@@ -6,14 +6,14 @@ namespace GLaDOSV3.Helpers
 {
     public class BotSettingsHelper<T> 
     {
-        private static readonly Assembly currentAssembly = Assembly.GetEntryAssembly();
-        private static readonly StackTrace st = new StackTrace(false);
+        private static readonly Assembly CurrentAssembly = Assembly.GetEntryAssembly();
+        private static readonly StackTrace St = new StackTrace(false);
         private static T GetValue(string key)
         {
             //TODO: make better
-            var sf = st.GetFrame(3);
+            var sf = St.GetFrame(3);
             var prevMethod = sf.GetMethod();
-            if (key.Contains("token", System.StringComparison.OrdinalIgnoreCase) && prevMethod.DeclaringType.Assembly != currentAssembly) return default;
+            if (key.Contains("token", System.StringComparison.OrdinalIgnoreCase) && prevMethod.DeclaringType.Assembly != CurrentAssembly) return default;
             using DataTable dt = SqLite.Connection.GetValuesAsync("BotSettings", $"WHERE name IS '{key}'").GetAwaiter().GetResult();
             return (T)dt.Rows[0]["value"];
         }
