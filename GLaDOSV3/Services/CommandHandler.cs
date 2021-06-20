@@ -75,7 +75,7 @@ namespace GLaDOSV3.Services
 
         public static void RefreshPrefix()
         {
-            string sql = $"SELECT guildid,prefix FROM servers";
+            string sql = "SELECT guildid,prefix FROM servers";
             using DataTable dt2 = new DataTable();
             using (SQLiteDataAdapter reader = new SQLiteDataAdapter(sql, SqLite.Connection))
                 reader.Fill(dt2);
@@ -96,7 +96,7 @@ namespace GLaDOSV3.Services
             {
                 return; // Ensure the message is from a user/bot
             }
-            if (msg.Author.IsBot)
+            if (msg.Source != MessageSource.User)
             {
                 return; // Ignore other bots
             }

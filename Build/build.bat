@@ -112,7 +112,6 @@ IF EXIST %GLADOSRELEASE%\database.db (
 	echo Deleting database.db to prevent any leaks!
 	del %BUILDLOCATION%\database.db /q /f >nul 2>&1
 )
-IF %ERRORLEVEL% NEQ 0 GOTO err
 echo Zipping all files!
 del *.zip >nul 2>&1
 7z a release-portable.zip -mx9 -r .\Build\portable-x64 .\Build\portable-x86 >nul 2>&1

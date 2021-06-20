@@ -98,7 +98,8 @@ namespace GLaDOSV3.Services
                 Environment.Exit(0);
             }
             await this.commands.AddModulesAsync(Assembly.GetEntryAssembly(), this.provider).ConfigureAwait(false);     // Load commands and modules into the command service
-            await new ExtensionLoadingService(this.discord, this.commands, this.botSettingsHelper, this.provider).Load().ConfigureAwait(false);
+            ExtensionLoadingService.Init(this.discord, this.commands, this.botSettingsHelper, this.provider);
+            await ExtensionLoadingService.Load().ConfigureAwait(false);
         }
     }
 }

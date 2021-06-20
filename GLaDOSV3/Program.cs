@@ -65,7 +65,9 @@ namespace GLaDOSV3
                 .AddSingleton<ClientEvents>()       // Discord client events
                 .AddSingleton<IpLoggerProtection>()       // IP logging service
                 .AddSingleton<BotSettingsHelper<string>>();
-            foreach (var item in (await new ExtensionLoadingService().GetServices(Client, services).ConfigureAwait(true))) 
+            ExtensionLoadingService.Init(null, null, null, null);
+            ExtensionLoadingService.LoadExtensions();
+            foreach (var item in (await ExtensionLoadingService.GetServices(Client, services).ConfigureAwait(true))) 
                 services.AddSingleton(item);
             var provider = services.BuildServiceProvider();     // Create the service provide
             provider.GetRequiredService<LoggingService>();      // Initialize the logging service, client events, startup service, on discord log on service, command handler and system message

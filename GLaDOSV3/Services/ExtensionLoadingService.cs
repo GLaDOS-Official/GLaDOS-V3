@@ -17,20 +17,22 @@ namespace GLaDOSV3.Services
 {
     public class ExtensionLoadingService
     {
-        private readonly DiscordSocketClient discord;
-        private readonly CommandService commands;
-        private readonly BotSettingsHelper<string> config;
-        private readonly IServiceProvider provider;
+        private static DiscordSocketClient discord;
+        private static CommandService commands;
+        private static BotSettingsHelper<string> config;
+        private static IServiceProvider provider;
 
         public static List<GladosModuleStruct> Extensions = new List<GladosModuleStruct>();
-        public ExtensionLoadingService(DiscordSocketClient discord = null, CommandService commands = null, BotSettingsHelper<string> config = null, IServiceProvider provider = null)
+        public static void Init(DiscordSocketClient discord = null, CommandService commands = null, BotSettingsHelper<string> config = null, IServiceProvider provider = null)
         {
-            AppDomain.CurrentDomain.AssemblyResolve += this.CurrentDomainOnAssemblyResolve;
-            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += this.CurrentDomainOnAssemblyResolve;
-            this.discord = discord;
-            this.commands = commands;
-            this.config = config;
-            this.provider = provider;
+            AppDomain.CurrentDomain.AssemblyResolve -= CurrentDomainOnAssemblyResolve;
+            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve -= CurrentDomainOnAssemblyResolve;
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainOnAssemblyResolve;
+            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += CurrentDomainOnAssemblyResolve;
+            ExtensionLoadingService.discord = discord;
+            ExtensionLoadingService.commands = commands;
+            ExtensionLoadingService.config = config;
+            ExtensionLoadingService.provider = provider;
             if (!Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Dependencies")))
                 Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "Dependencies"));
             if (!Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Modules")))
@@ -38,7 +40,7 @@ namespace GLaDOSV3.Services
             if (discord != null) return;
             foreach (var assemblyName in Directory.GetFiles(Path.Combine(Directory.GetCurrentDirectory(), "Dependencies")))
             {
-                if (!this.IsValidClrFile(assemblyName)) continue;
+                if (!ValidFile(assemblyName)) continue;
                 var asm = Assembly.LoadFile(assemblyName);
                 Dependencies.Add(asm.FullName, asm);
             }
@@ -74,60 +76,36 @@ namespace GLaDOSV3.Services
             { }
             return null;
         }
-        public Task<Type[]> GetServices(DiscordSocketClient client, IServiceCollection provider)
+        public static Task<Type[]> GetServices(DiscordSocketClient client, IServiceCollection provider)
         {
             List<Type> types = new List<Type>();
+            foreach (var extension in Extensions) // Bad extension loading
             {
-                foreach (var file in Directory.GetFiles(Path.Combine(Directory.GetCurrentDirectory(), "Modules"), "*.dll")) // Bad extension loading
-                {
-                    try
-                    {
-                        Assembly asm = this.ValidFile(file);
-                        if (asm == null) continue;
-                        Type asmType = asm.GetTypes().Where(type => type.IsClass && type.Name == "ModuleInfo").Distinct().First(); //create type
-                        ConstructorInfo asmConstructor = asmType.GetConstructor(Type.EmptyTypes);  // get extension's constructor
-                        object magicClassObject = asmConstructor?.Invoke(Array.Empty<object>()); // create object of class
-                        var memberInfo = asmType.GetMethod("Services", BindingFlags.Instance | BindingFlags.Public); //get services method
-                        if (memberInfo == null) continue;
-                        var item = (Type[])memberInfo.Invoke(magicClassObject, new object[] {client, this.commands, this.config, provider});
-                        if (item != null && item.Length > 0)
-                            types.AddRange(item); // invoke services method
-                    }
-                    catch (Exception) { /* ignored */ }
-                }
+                types.AddRange(extension.GetServices(client, provider));
             }
+
             return Task.FromResult(types.ToArray());
 
         }
 
-        private Assembly ValidFile(string file)
+        private static bool ValidFile(string file)
         {
-            if (new FileInfo(file).Length == 0) return null; // file is empty!
-            try { return !this.IsValidClrFile(file) ? null : Assembly.LoadFile(file); }
-            catch (Exception) { return null; }
+            if (new FileInfo(file).Length == 0) return false; // file is empty!
+            try { return IsValidClrFile(file); }
+            catch (Exception) { return false; }
         }
 
-        public async Task Load()
+        public static async void LoadExtensions()
         {
             foreach (var file in Directory.GetFiles(Path.Combine(Directory.GetCurrentDirectory(), "Modules"), "*.dll")) // Bad extension loading
             {
                 try
                 {
-                    //TODO: remove validfile, cause it causes Assembly.Load (makes Unload worthless)
-                    /*Assembly asm = ValidFile(file);
-                    if (asm == null) continue;*/
-                    using GladosModuleStruct module = new GladosModuleStruct(file, this.discord, this.commands, this.config, this.provider);
+                    if (!ValidFile(file)) continue;
+                    using GladosModuleStruct module = new GladosModuleStruct(file, discord, commands, config, provider);
                     module.Initialize();
-                    if (module.LoadFailed) continue;
-                    module.PreLoad(this.discord, this.commands, this.config, this.provider);
-                    var count = this.commands.AddModulesAsync(module.AppAssembly, module.Provider).GetAwaiter().GetResult().Count();
-                    module.PostLoad(this.discord, this.commands, this.config, this.provider);
-
+                    if (module.LoadFailed) { module.Dispose(); continue; }
                     Extensions.Add(module);
-                    var modules = module.AppAssembly.GetTypes().Where(type => type.IsClass && !type.IsSpecialName && type.IsPublic)
-                        .Aggregate(string.Empty, (current, type) => current + type.Name + ", ");
-                    await LoggingService.Log(LogSeverity.Verbose, "Module",
-                        $"Loaded modules: {modules.Remove(modules.Length - 2)} from {Path.GetFileNameWithoutExtension(file)}").ConfigureAwait(false);
                 }
                 catch (BadImageFormatException)
                 { }
@@ -135,6 +113,21 @@ namespace GLaDOSV3.Services
                 {
                     await LoggingService.Log(LogSeverity.Critical, "Module", $"Exception happened when loading \"{Path.GetFileNameWithoutExtension(file)}\"!\nMessage: {ex.Message}\nCallstack:\n{ex.StackTrace}\nTo prevent any errors or crashes, this module has not been loaded!").ConfigureAwait(false);
                 }
+            }
+        }
+        public static async Task Load()
+        {
+            foreach (var module in Extensions) // Bad extension loading
+            {
+                module.FixShit(discord, commands, config, provider);
+                module.PreLoad();
+                var count = commands.AddModulesAsync(module.AppAssembly, module.Provider).GetAwaiter().GetResult().Count();
+                module.PostLoad();
+
+                var modules = module.AppAssembly.GetTypes().Where(type => type.IsClass && !type.IsSpecialName && type.IsPublic)
+                                    .Aggregate(string.Empty, (current, type) => current + type.Name + ", ");
+                await LoggingService.Log(LogSeverity.Verbose, "Module",
+                                         $"Loaded modules: {modules.Remove(modules.Length - 2)} from {Path.GetFileNameWithoutExtension(module.AppAssembly.Location)}").ConfigureAwait(false);
             }
         }
         public static Task Unload(string extensionName)
@@ -145,6 +138,7 @@ namespace GLaDOSV3.Services
                 GladosModuleStruct e = Extensions[i];
                 Extensions.RemoveAt(i);
                 e.Unload();
+                e.Dispose();
                 return Task.CompletedTask;
             }
             return Task.CompletedTask;
@@ -152,12 +146,12 @@ namespace GLaDOSV3.Services
         private static readonly IDictionary<string, Assembly> Dependencies = new Dictionary<string, Assembly>();
 
 
-        private Assembly CurrentDomainOnAssemblyResolve(object sender, ResolveEventArgs args)
+        private static Assembly CurrentDomainOnAssemblyResolve(object sender, ResolveEventArgs args)
         {
             LoggingService.Log(LogSeverity.Verbose, "ExtensionLoadingService", "Loading " + args.Name);
             return Dependencies.TryGetValue(args.Name, out var res) ? res : TryLoadFromNuget(args);
         }
-        private bool IsValidClrFile(string file) // based on PE headers
+        private static bool IsValidClrFile(string file) // based on PE headers
         {
             bool? returnBool = null;
             uint[] dataDictionaryRva = new uint[16];
@@ -202,11 +196,11 @@ namespace GLaDOSV3.Services
         private bool disposed = false;
 
         private IGladosModule module;
-        private readonly AssemblyDependencyResolver resolver;
-        private readonly DiscordSocketClient discord;
-        private readonly CommandService commands;
-        private readonly BotSettingsHelper<string> config;
-        private readonly string path;
+        private AssemblyDependencyResolver resolver;
+        private DiscordSocketClient discord;
+        private CommandService commands;
+        private BotSettingsHelper<string> config;
+        private string path;
         public GladosModuleStruct(string path, DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider) : base(isCollectible: true)
         {
             this.discord = discord;
@@ -216,10 +210,16 @@ namespace GLaDOSV3.Services
             this.resolver = new AssemblyDependencyResolver(path);
             this.path = path;
         }
-
+        public void FixShit(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider)
+        {
+            this.discord = discord;
+            this.commands = commands;
+            this.config = config;
+            this.Provider = provider;
+        }
         public void Initialize()
         {
-            if (this.AppAssembly == null) this.AppAssembly = Assembly.LoadFile(this.path);
+            if (this.AppAssembly == null) this.AppAssembly = this.LoadFromAssemblyPath(this.path);
             var asmType = this.AppAssembly.GetTypes().Where(type => type.IsClass && type.Name == "ModuleInfo").Distinct().First(); //create type
             MethodInfo getInterface = asmType.GetMethod("GetModule", BindingFlags.Static | BindingFlags.Public);
             Debug.Assert(getInterface != null, nameof(getInterface) + " != null");
@@ -228,23 +228,24 @@ namespace GLaDOSV3.Services
             this.ModuleAuthor = this.module.Author();
             this.ModuleVersion = this.module.Version();
 
-            if (string.IsNullOrWhiteSpace(this.ModuleName)) this.LoadFailed = true; // class doesn't have Name string
+            if (string.IsNullOrWhiteSpace(this.ModuleName))    this.LoadFailed = true; // class doesn't have Name string
             if (string.IsNullOrWhiteSpace(this.ModuleVersion)) this.LoadFailed = true; // class doesn't have Version string
-            if (string.IsNullOrWhiteSpace(this.ModuleAuthor)) this.LoadFailed = true; // class doesn't have Author string
+            if (string.IsNullOrWhiteSpace(this.ModuleAuthor))  this.LoadFailed = true; // class doesn't have Author string
             if (this.LoadFailed) { this.Unload(); return; }
-            this.AsmName = new AssemblyName(this.ModuleName) { CodeBase = this.path };
+            this.AsmName = new AssemblyName(this.ModuleName ?? throw new InvalidOperationException()) { CodeBase = this.path };
         }
+
 
         protected override Assembly Load(AssemblyName name)
         {
             string assemblyPath = this.resolver.ResolveAssemblyToPath(name);
             return assemblyPath != null ? this.LoadFromAssemblyPath(assemblyPath) : null;
         }
-        public void PreLoad(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider) => this.module.PreLoad(discord, commands, config, provider);
+        public void PreLoad() => this.module.PreLoad(this.discord, this.commands, this.config, this.Provider);
 
-        public void PostLoad(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider) => this.module.PostLoad(discord, commands, config, provider);
+        public void PostLoad() => this.module.PostLoad(this.discord, this.commands, this.config, this.Provider);
 
-        public List<Type> GetServices(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceCollection provider) => this.module.Services(discord, commands, config, provider).ToList();
+        public List<Type> GetServices(DiscordSocketClient client, IServiceCollection provider) => this.module.Services(client, this.commands, this.config, provider).ToList();
 
         public void Dispose()
         {
