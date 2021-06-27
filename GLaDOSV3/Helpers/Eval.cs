@@ -6,41 +6,117 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Data.SQLite;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Security.Cryptography;
+using System.Threading;
 using System.Threading.Tasks;
+using Discord;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Emit;
 
 // ReSharper disable All
 
 namespace GLaDOSV3.Helpers
 {
-    public static class EvalMetaData
+    public static class EvalWorkaround
     {
-        public static MetadataReference GetRawMetadataReference(this Assembly asm)
+        public static async Task<object> Eval(string sourceText, Type globalsType)
         {
-            unsafe
+            // The `CSharpScript` API cannot be used when `Assembly.Location` is not supported, see:
+            // - https://github.com/dotnet/roslyn/issues/50719
+            // - https://www.samprof.com/2018/12/15/compile-csharp-and-blazor-inside-browser-en
+
+            var diagnostics = new List<Diagnostic>();
+
+            // https://github.com/dotnet/roslyn/blob/version-3.2.0/src/Scripting/CSharp/CSharpScriptCompiler.cs#L43
+            var syntaxTree = SyntaxFactory.ParseSyntaxTree(
+                sourceText,
+                new CSharpParseOptions(
+                    kind: SourceCodeKind.Script,
+                    languageVersion: LanguageVersion.Latest));
+
+            diagnostics.AddRange(syntaxTree.GetDiagnostics());
+
+            // https://github.com/dotnet/runtime/issues/36590#issuecomment-689883856
+            static MetadataReference GetReference(Type type)
             {
-                return asm.TryGetRawMetadata(out var blob, out var length)
-                           ? AssemblyMetadata
-                            .Create(ModuleMetadata.CreateFromMetadata((IntPtr) blob, length))
+                unsafe
+                {
+                    return type.Assembly.TryGetRawMetadata(out var blob, out var length)
+                        ? AssemblyMetadata
+                            .Create(ModuleMetadata.CreateFromMetadata((IntPtr)blob, length))
                             .GetReference()
-                           : throw new InvalidOperationException($"Could not get raw metadata for Assembly {asm}");
+                        : throw new InvalidOperationException($"Could not get raw metadata for type {type}");
+                }
             }
-        }
 
-        public static ImmutableArray<MetadataReference> GetMetadataRerefeReferences()
-        {
-            var arr = ImmutableArray.Create<MetadataReference>();
-            
-            foreach (var a in AppDomain.CurrentDomain.GetAssemblies())
+            var references = new[]
             {
-                arr.Add(a.GetRawMetadataReference());
+    GetReference(typeof(object))
+};
+
+            // In this example, a return type of `string` is expected
+
+            // Note that `ScriptBuilder` would normally generate a unique assembly name
+            // https://github.com/dotnet/roslyn/blob/version-3.2.0/src/Scripting/Core/ScriptBuilder.cs#L64
+            var compilation = CSharpCompilation.CreateScriptCompilation(
+                assemblyName: "Script",
+                syntaxTree,
+                references,
+                returnType: typeof(object));
+            var submissionFactory = default(Func<object[], Task<object>>);
+
+            await using (var peStream = new MemoryStream())
+            await using (var pdbStream = new MemoryStream())
+            {
+                // https://github.com/dotnet/roslyn/blob/version-3.2.0/src/Scripting/Core/ScriptBuilder.cs#L121
+                // https://github.com/dotnet/roslyn/blob/version-3.2.0/src/Scripting/Core/Utilities/PdbHelpers.cs#L10
+                var result = compilation.Emit(
+                    peStream,
+                    pdbStream,
+                    xmlDocumentationStream: null,
+                    win32Resources: null,
+                    manifestResources: null,
+                    new EmitOptions(
+                        debugInformationFormat: DebugInformationFormat.PortablePdb,
+                        pdbChecksumAlgorithm: default(HashAlgorithmName)));
+
+                diagnostics.AddRange(result.Diagnostics);
+
+                if (result.Success)
+                {
+                    var scriptAssembly = AppDomain.CurrentDomain.Load(peStream.ToArray(), pdbStream.ToArray());
+
+                    // https://github.com/dotnet/roslyn/blob/version-3.2.0/src/Scripting/Core/ScriptBuilder.cs#L188
+                    var entryPoint = compilation.GetEntryPoint(CancellationToken.None) ?? throw new InvalidOperationException("Entry point could be determined");
+
+                    var entryPointType = scriptAssembly
+                        .GetType(
+                            $"{entryPoint.ContainingNamespace.MetadataName}.{entryPoint.ContainingType.MetadataName}",
+                            throwOnError: true,
+                            ignoreCase: false);
+
+                    var entryPointMethod = entryPointType?.GetTypeInfo().GetDeclaredMethod(entryPoint.MetadataName) ?? throw new InvalidOperationException("Entry point method could be determined");
+
+                    submissionFactory = entryPointMethod.CreateDelegate<Func<object[], Task<object>>>();
+                }
+
+            }
+            if (submissionFactory == null)
+            {
+                throw new CompilationErrorException("Compilation failed", diagnostics.ToImmutableArray());
             }
 
-            return arr.ToImmutableArray();
+            // The first argument is the globals type, the remaining are preceding script states 
+            // - https://github.com/dotnet/roslyn/blob/version-3.2.0/src/Scripting/Core/ScriptExecutionState.cs#L31
+            // - https://github.com/dotnet/roslyn/blob/version-3.2.0/src/Scripting/Core/ScriptExecutionState.cs#L65
+            var message = await submissionFactory.Invoke(new object[] { globalsType, null });
+            return message;
         }
     }
 
@@ -75,10 +151,9 @@ namespace GLaDOSV3.Helpers
             };
             try
             {
-                //MetadataReference
                 ScriptOptions options = ScriptOptions.Default
                                                      .WithReferences(AppDomain.CurrentDomain.GetAssemblies()
-                                                                              .Where(asm => !asm.IsDynamic 
+                                                                              .Where(asm => !asm.IsDynamic
                                                                                    && !string
                                                                                       .IsNullOrWhiteSpace(asm
                                                                                           .Location)))
@@ -88,9 +163,11 @@ namespace GLaDOSV3.Helpers
                                                      .WithCheckOverflow(true)
                                                      .WithWarningLevel(5)
                                                      ;
+
                 //options.MetadataResolver//.MetadataResolver = EvalMetaData.GetMetadataRerefeReferences();
                 Script result = CSharpScript.Create(cScode, options, typeof(Globals));
-                var returnVal = result.RunAsync(new Globals(ctx)).GetAwaiter().GetResult().ReturnValue?.ToString();
+
+                var returnVal = /*(await EvalWorkaround.Eval(cScode, typeof(Globals))).ToString(); ;*/result.RunAsync(new Globals(ctx)).GetAwaiter().GetResult().ReturnValue?.ToString();
                 BotSettingsHelper<string> r = new BotSettingsHelper<string>();
                 var token = r["tokens_discord"];
                 if (!string.IsNullOrWhiteSpace(returnVal) && returnVal.Contains(token, StringComparison.Ordinal)) returnVal = returnVal?.Replace(token, "Nah, no token leak 4 u.", StringComparison.OrdinalIgnoreCase);

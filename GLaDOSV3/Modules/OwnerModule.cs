@@ -41,7 +41,7 @@ namespace GLaDOSV3.Modules
         [Attributes.RequireOwner]
         public async Task Maintenance([Remainder] string reason = "")
         {
-            CommandHandler.MaintenanceMode           = reason;
+            CommandHandler.MaintenanceMode = reason;
             IsOwner.BotSettingsHelper["maintenance"] = reason;
             await this.ReplyAsync($"{(string.IsNullOrWhiteSpace(reason) ? "Disabled" : "Enabled")} maintenance reason{(string.IsNullOrWhiteSpace(reason) ? "" : " to: ")}{(string.IsNullOrWhiteSpace(reason) ? "" : reason)}!").ConfigureAwait(false);
         }
@@ -292,13 +292,45 @@ namespace GLaDOSV3.Modules
             CommandHandler.BlacklistedServers.Remove(guildid);
             await this.ReplyAsync("Ok!").ConfigureAwait(false);
         }
-        [Command("bot add coowner")]
-        [Remarks("bot add coowner <id>")]
+        [Command("bot coowner add")]
+        [Remarks("bot coowner add< id>")]
         [Summary("Adds a bot's co-owner")]
         [Attributes.RequireOwner]
         public async Task AddCoOwner(ulong userId)
         {
-
+            string ok = this.botSettingsHelper["co-owners"];
+            var coOwners = ok.Split(',').ToList();
+            bool fail = coOwners.All(t => t != userId.ToString(CultureInfo.InvariantCulture));
+            if (!fail) { await this.ReplyAsync("User is already a co-owner!"); return; }
+            coOwners.Add(userId.ToString());
+            this.botSettingsHelper["co-owners"] = string.Join(",", coOwners);
+            await this.ReplyAsync("Ok!").ConfigureAwait(false);
+        }
+        [Command("bot coowner remove")]
+        [Remarks("bot coowner remove <id>")]
+        [Summary("Removes a bot's co-owner")]
+        [Attributes.RequireOwner]
+        public async Task RemoveCoOwner(ulong userId)
+        {
+            string ok = this.botSettingsHelper["co-owners"];
+            var coOwners = ok.Split(',').ToList();
+            bool fail = coOwners.All(t => t != userId.ToString(CultureInfo.InvariantCulture));
+            if (fail) { await this.ReplyAsync("User isn't already co-owner!"); return; }
+            coOwners.Remove(userId.ToString());
+            this.botSettingsHelper["co-owners"] = string.Join(",", coOwners);
+            await this.ReplyAsync("Ok!").ConfigureAwait(false);
+        }
+        [Command("bot coowner list")]
+        [Remarks("bot coowner list")]
+        [Summary("Adds a bot's co-owner")]
+        [Attributes.RequireOwner]
+        public async Task ListCoOwners()
+        {
+            var ok = this.botSettingsHelper["co-owners"];
+            if (string.IsNullOrWhiteSpace(ok)) { await this.ReplyAsync("This bot has no coowners!"); return; }
+            string[] coOwners = ok.Split(',');
+            var output = coOwners.Aggregate("User (Mention)\n", (current, t) => current + $"{t} (<@{t}>)\n");
+            await this.ReplyAsync(output).ConfigureAwait(false);
             //TODO: finish this
         }
         [Attributes.RequireOwner]

@@ -132,14 +132,14 @@ namespace GLaDOSV3.Helpers
             return messages.ToArray();
         }
 
-        public static bool WriteToReadOnlyValue(Type type, object obj, string element, object value)
+        public static bool WriteToReadOnlyValue(Type type, object instance, string element, object value)
         {
             PropertyInfo[] array = type.GetProperties();
             foreach (var info in array)
             {
                 if (info.Name != element) continue;
                 if (!info.CanWrite) return false;
-                info.SetValue(obj, value);
+                info.SetValue(instance, value);
                 return true;
             }
             return false;

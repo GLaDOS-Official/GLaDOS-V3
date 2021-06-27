@@ -193,7 +193,7 @@ namespace GLaDOSV3.Services
         public string ModuleVersion;
         public bool LoadFailed;
         public IServiceProvider Provider;
-        private bool disposed = false;
+        private bool disposed;
 
         private IGladosModule module;
         private AssemblyDependencyResolver resolver;
@@ -251,8 +251,8 @@ namespace GLaDOSV3.Services
         {
             if (this.disposed) return;
             this.disposed = true;
+            this.Unload();
             this.module?.Unload(this.discord, this.commands, this.config, this.Provider);
-            GC.SuppressFinalize(this);
         }
 
         ~GladosModuleStruct() => this.Dispose();

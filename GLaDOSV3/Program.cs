@@ -41,9 +41,9 @@ namespace GLaDOSV3
                     RateLimitPrecision = RateLimitPrecision.Millisecond,
                     ExclusiveBulkDelete =
                         true, // Disable firing message delete event on bulk delete event (bulk delete event will still be fired)
-#if DEBUG
+#if true
                     RestClientProvider = DefaultRestClientProvider.Create(true),
-                    WebSocketProvider  = DefaultWebSocketProvider.Create(/*new WebProxy("127.0.0.1", 8888)*/),
+                    WebSocketProvider  = DefaultWebSocketProvider.Create(new System.Net.WebProxy("127.0.0.1", 8888)),
 #endif
                     MessageCacheSize =
                         0,                                   // Tell Discord.Net to NOT CACHE! This will also disable MessageUpdated event
