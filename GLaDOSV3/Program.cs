@@ -8,8 +8,11 @@ using GLaDOSV3.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
+using System.IO.Pipes;
 using System.Runtime.InteropServices;
+using System.Security.Principal;
 using System.Threading.Tasks;
+using GLaDOSV3.Dashboard;
 
 namespace GLaDOSV3
 {
@@ -23,6 +26,7 @@ namespace GLaDOSV3
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
         public static async Task StartAsync(string[] args)
         {
+            DashboardClient.Connect();
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.White;
             Directory.SetCurrentDirectory(Path.GetDirectoryName(AppContext.BaseDirectory));
