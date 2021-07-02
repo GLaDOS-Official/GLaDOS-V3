@@ -2,10 +2,6 @@
 	path = GLaDOSV3.Module.Default
 	url = https://github.com/botGLaDOSV3/GLaDOSV3.Module.Default.git
 	branch = main
-[submodule "GLaDOSV3.Module.WinDocs"]
-	path = GLaDOSV3.Module.WinDocs
-	url = https://github.com/botGLaDOSV3/GLaDOSV3.Module.WinDocs.git
-	branch = main
 [submodule "GLaDOSV3.Module.ServerBackup"]
 	path = GLaDOSV3.Module.ServerBackup
 	url = https://github.com/botGLaDOSV3/GLaDOSV3.Module.ServerBackup.git
