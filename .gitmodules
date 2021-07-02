@@ -18,3 +18,6 @@
 	path = GLaDOSV3.Module.ImageGenerator
 	url = https://github.com/botGLaDOSV3/GLaDOSV3.Module.ImageGenerator.git
 	branch = main
+[submodule "GLaDOSV3.Module.Developers"]
+	path = GLaDOSV3.Module.Developers
+	url = https://github.com/botGLaDOSV3/GLaDOSV3.Module.Developers
