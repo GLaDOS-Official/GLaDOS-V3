@@ -25,7 +25,7 @@ namespace GLaDOSV3.Helpers
 {
     public static class EvalWorkaround
     {
-        public static async Task<object> Eval(string sourceText, Type globalsType)
+        public static async Task<object> Eval(string sourceText, List<string> imports, object globals, Type globalsType)
         {
             // The `CSharpScript` API cannot be used when `Assembly.Location` is not supported, see:
             // - https://github.com/dotnet/roslyn/issues/50719
@@ -39,7 +39,6 @@ namespace GLaDOSV3.Helpers
                 new CSharpParseOptions(
                     kind: SourceCodeKind.Script,
                     languageVersion: LanguageVersion.Latest));
-
             diagnostics.AddRange(syntaxTree.GetDiagnostics());
 
             // https://github.com/dotnet/runtime/issues/36590#issuecomment-689883856
@@ -55,20 +54,37 @@ namespace GLaDOSV3.Helpers
                 }
             }
 
-            var references = new[]
+            var list = new List<MetadataReference>();
+            list.Add(GetReference(typeof(object)));
+            foreach(var asm in AppDomain.CurrentDomain.GetAssemblies().Where(asm => !asm.IsDynamic&& !string.IsNullOrWhiteSpace(asm.Location)))
             {
-    GetReference(typeof(object))
-};
+                foreach(var types in asm.GetTypes()) list.Add(GetReference(types));
+            }
+            if (imports.Count != 0)
+            {
+                foreach (var import in imports)
+                {
+                    foreach(var type in ScriptMetadataResolver.Default.
+                                                               ResolveReference(import, null,
+                                                                                    MetadataReferenceProperties
+                                                                                       .Assembly))
+                        list.Add((MetadataReference)type);
+                }
+            }
+
+            var references = list.ToArray();
 
             // In this example, a return type of `string` is expected
 
             // Note that `ScriptBuilder` would normally generate a unique assembly name
             // https://github.com/dotnet/roslyn/blob/version-3.2.0/src/Scripting/Core/ScriptBuilder.cs#L64
+            //AssemblyMetadata.
             var compilation = CSharpCompilation.CreateScriptCompilation(
-                assemblyName: "Script",
-                syntaxTree,
-                references,
-                returnType: typeof(object));
+                                                                        assemblyName: "Script",
+                                                                        syntaxTree: syntaxTree,
+                                                                        references: references,
+                                                                        returnType: typeof(object),
+                                                                        globalsType: globalsType);
             var submissionFactory = default(Func<object[], Task<object>>);
 
             await using (var peStream = new MemoryStream())
@@ -92,7 +108,7 @@ namespace GLaDOSV3.Helpers
                 {
                     var scriptAssembly = AppDomain.CurrentDomain.Load(peStream.ToArray(), pdbStream.ToArray());
 
-                    // https://github.com/dotnet/roslyn/blob/version-3.2.0/src/Scripting/Core/ScriptBuilder.cs#L188
+                    // https://github.com/dotnet/roslyn /blob/version-3.2.0/src/Scripting/Core/ScriptBuilder.cs#L188
                     var entryPoint = compilation.GetEntryPoint(CancellationToken.None) ?? throw new InvalidOperationException("Entry point could be determined");
 
                     var entryPointType = scriptAssembly
@@ -115,7 +131,7 @@ namespace GLaDOSV3.Helpers
             // The first argument is the globals type, the remaining are preceding script states 
             // - https://github.com/dotnet/roslyn/blob/version-3.2.0/src/Scripting/Core/ScriptExecutionState.cs#L31
             // - https://github.com/dotnet/roslyn/blob/version-3.2.0/src/Scripting/Core/ScriptExecutionState.cs#L65
-            var message = await submissionFactory.Invoke(new object[] { globalsType, null });
+            var message = await submissionFactory.Invoke(new object[] { globals, null });
             return message;
         }
     }
@@ -145,29 +161,42 @@ namespace GLaDOSV3.Helpers
         {
             List<string> imports = new List<string>(16)
             {
-                "System", "System.Collections.Generic", "System.Reflection", "System.Text", "System.Threading.Tasks","System.Linq","System.Math",
-                "System.IO","System.Diagnostics","GLaDOSV3.Helpers","Discord","Discord.Commands","Discord.WebSocket","Newtonsoft.Json",
+                "System",
+                "System.Runtime",
+                "System.Collections.Generic",
+                "System.Reflection",
+                "System.Text",
+                "System.Threading.Tasks",
+                "System.Linq",
+                "System.Math",
+                "System.IO",
+                "System.Diagnostics",
+                "GLaDOSV3.Helpers",
+                "Discord",
+                "Discord.Commands",
+                "Discord.WebSocket",
+                "Newtonsoft.Json",
                 "System.Data.SQLite", "Microsoft.Extensions"
             };
             try
             {
-                ScriptOptions options = ScriptOptions.Default
-                                                     .WithReferences(AppDomain.CurrentDomain.GetAssemblies()
-                                                                              .Where(asm => !asm.IsDynamic
-                                                                                   && !string
-                                                                                      .IsNullOrWhiteSpace(asm
-                                                                                          .Location)))
-                                                     .AddImports(imports)
-                                                     .WithEmitDebugInformation(true)
-                                                     .WithAllowUnsafe(true)
-                                                     .WithCheckOverflow(true)
-                                                     .WithWarningLevel(5)
-                                                     ;
+                //ScriptOptions options = ScriptOptions.Default
+                //                                     .WithReferences(AppDomain.CurrentDomain.GetAssemblies()
+                //                                                              .Where(asm => !asm.IsDynamic
+                //                                                                   && !string
+                //                                                                      .IsNullOrWhiteSpace(asm
+                //                                                                          .Location)))
+                //                                     .AddImports(imports)
+                //                                     .WithEmitDebugInformation(true)
+                //                                     .WithAllowUnsafe(true)
+                //                                     .WithCheckOverflow(true)
+                //                                     .WithWarningLevel(5)
+                //                                     ;
 
                 //options.MetadataResolver//.MetadataResolver = EvalMetaData.GetMetadataRerefeReferences();
-                Script result = CSharpScript.Create(cScode, options, typeof(Globals));
+                //Script result = CSharpScript.Create(cScode, options, typeof(Globals));
 
-                var returnVal = /*(await EvalWorkaround.Eval(cScode, typeof(Globals))).ToString(); ;*/result.RunAsync(new Globals(ctx)).GetAwaiter().GetResult().ReturnValue?.ToString();
+                var returnVal = (await EvalWorkaround.Eval(cScode, imports, new Globals(ctx), typeof(Globals))).ToString(); ///; result.RunAsync(new Globals(ctx)).GetAwaiter().GetResult().ReturnValue?.ToString();
                 BotSettingsHelper<string> r = new BotSettingsHelper<string>();
                 var token = r["tokens_discord"];
                 if (!string.IsNullOrWhiteSpace(returnVal) && returnVal.Contains(token, StringComparison.Ordinal)) returnVal = returnVal?.Replace(token, "Nah, no token leak 4 u.", StringComparison.OrdinalIgnoreCase);

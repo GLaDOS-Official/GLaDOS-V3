@@ -15,18 +15,20 @@ namespace GLaDOSV3.Dashboard
             pipeClient = new NamedPipeClientStream(".", "GLaDOS_Dashboard", PipeDirection.InOut, PipeOptions.None, TokenImpersonationLevel.Impersonation);
             pipeClient.Connect();
             var read = ReadString();
+            WriteString(read);
         }
-        public int WriteString(string outString)
+        public static int WriteString(string outString)
         {
-            byte[] outBuffer = streamEncoding.GetBytes(outString);
-            int    len       = outBuffer.Length;
+            byte[] outBuffer               = streamEncoding.GetBytes(outString);
+            int    len                     = outBuffer.Length;
             if (len > ushort.MaxValue) len = (int)ushort.MaxValue;
-            pipeClient.WriteByte((byte)(len / 256));
-            pipeClient.WriteByte((byte)(len & 255));
-            pipeClient.Write(outBuffer, 0, len);
+            byte[] info                    = new[] { (byte) (len / 256), (byte) (len & 255) };
+            byte[] newArray                = new byte[info.Length + outBuffer.Length];
+            Array.Copy(info, newArray, info.Length);
+            Array.Copy(outBuffer, 0, newArray, info.Length, outBuffer.Length);
+            pipeClient.Write(newArray, 0, info.Length + outBuffer.Length);
             pipeClient.Flush();
-
-            return outBuffer.Length + 2;
+            return info.Length + outBuffer.Length;
         }
         public static string ReadString()
         {

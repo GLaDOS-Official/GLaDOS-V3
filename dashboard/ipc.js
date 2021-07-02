@@ -8,8 +8,24 @@ function begin() {
 		c.on('end', () => {
 			console.log('GLaDOS disconnected :(');
 		});
+		client.on('data', (data) => {
+			console.log(readString(data));
+		});
+		writeString("Hello!");
 	});
 	server.listen('\\\\?\\pipe\\GLaDOS_Dashboard');
+}
+function readString(data) {
+    var len;
+	var c = data.toString();
+    len =  c.charCodeAt(0) * 256;
+    len += c.charCodeAt(1);
+	console.log(len);
+	var str = '';
+	for(var i = 2; i < len + 2; i++) {
+		str += c[i];
+	}
+	return str;
 }
 function writeString(string) {
 	var buffer = Buffer.from(string, 'utf-8');

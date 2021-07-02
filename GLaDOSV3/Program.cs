@@ -26,7 +26,7 @@ namespace GLaDOSV3
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
         public static async Task StartAsync(string[] args)
         {
-            DashboardClient.Connect();
+            //DashboardClient.Connect();
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.White;
             Directory.SetCurrentDirectory(Path.GetDirectoryName(AppContext.BaseDirectory));
@@ -45,7 +45,7 @@ namespace GLaDOSV3
                     RateLimitPrecision = RateLimitPrecision.Millisecond,
                     ExclusiveBulkDelete =
                         true, // Disable firing message delete event on bulk delete event (bulk delete event will still be fired)
-#if true
+#if false
                     RestClientProvider = DefaultRestClientProvider.Create(true),
                     WebSocketProvider  = DefaultWebSocketProvider.Create(new System.Net.WebProxy("127.0.0.1", 8888)),
 #endif
