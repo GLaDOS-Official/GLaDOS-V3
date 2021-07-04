@@ -14,6 +14,7 @@ using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
+using GLaDOSV3.Services;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -42,7 +43,7 @@ namespace GLaDOSV3.Helpers
             diagnostics.AddRange(syntaxTree.GetDiagnostics());
 
             // https://github.com/dotnet/runtime/issues/36590#issuecomment-689883856
-            static MetadataReference GetReference(Type type)
+            static MetadataReference GetReference_type(Type type)
             {
                 unsafe
                 {
@@ -53,22 +54,37 @@ namespace GLaDOSV3.Helpers
                         : throw new InvalidOperationException($"Could not get raw metadata for type {type}");
                 }
             }
-
+            static MetadataReference GetReference_asm(Assembly asm)
+            {
+                unsafe
+                {
+                    return asm.TryGetRawMetadata(out var blob, out var length)
+                               ? AssemblyMetadata
+                                .Create(ModuleMetadata.CreateFromMetadata((IntPtr)blob, length))
+                                .GetReference()
+                               : throw new InvalidOperationException($"Could not get raw metadata for assembly {asm}");
+                }
+            }
             var list = new List<MetadataReference>();
-            list.Add(GetReference(typeof(object)));
+            list.Add(GetReference_type(typeof(object)));
+            list.Add(GetReference_asm(Assembly.GetExecutingAssembly()));
             foreach(var asm in AppDomain.CurrentDomain.GetAssemblies().Where(asm => !asm.IsDynamic&& !string.IsNullOrWhiteSpace(asm.Location)))
             {
-                foreach(var types in asm.GetTypes()) list.Add(GetReference(types));
+                foreach(var types in asm.GetTypes()) list.Add(GetReference_type(types));
+            }
+
+            foreach (var asm in ExtensionLoadingService.Extensions)
+            {
+                list.Add(GetReference_asm(asm.AppAssembly));
             }
             if (imports.Count != 0)
             {
                 foreach (var import in imports)
                 {
-                    foreach(var type in ScriptMetadataResolver.Default.
-                                                               ResolveReference(import, null,
-                                                                                    MetadataReferenceProperties
-                                                                                       .Assembly))
-                        list.Add((MetadataReference)type);
+                    foreach (var type in ScriptMetadataResolver.Default.ResolveReference(import, null,
+                        MetadataReferenceProperties
+                           .Assembly))
+                        list.Add((MetadataReference) type);
                 }
             }
 
@@ -108,7 +124,7 @@ namespace GLaDOSV3.Helpers
                 {
                     var scriptAssembly = AppDomain.CurrentDomain.Load(peStream.ToArray(), pdbStream.ToArray());
 
-                    // https://github.com/dotnet/roslyn /blob/version-3.2.0/src/Scripting/Core/ScriptBuilder.cs#L188
+                    // https://github.com/dotnet/roslyn/blob/version-3.2.0/src/Scripting/Core/ScriptBuilder.cs#L188
                     var entryPoint = compilation.GetEntryPoint(CancellationToken.None) ?? throw new InvalidOperationException("Entry point could be determined");
 
                     var entryPointType = scriptAssembly

