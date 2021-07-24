@@ -16,9 +16,9 @@ namespace GLaDOSV3.Services
 {
     internal class IpLoggerProtection
     {
-        private readonly DiscordSocketClient discord;
+        private readonly DiscordShardedClient discord;
         private readonly List<ulong> serverIds = new List<ulong>() { 658372357924192281, 259776446942150656, 472402015679414293, 503145318372868117, 516296348367192074, 611503265313718282, 611599798595878912, 499598184570421253,  };
-        public IpLoggerProtection(DiscordSocketClient discord)
+        public IpLoggerProtection(DiscordShardedClient discord)
         {
             this.discord = discord;
             this.discord.MessageReceived += this.OnMessageReceivedAsync;

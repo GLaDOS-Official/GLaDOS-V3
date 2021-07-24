@@ -11,35 +11,39 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Threading.Tasks;
+using GLaDOSV3.Models.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace GLaDOSV3.Services
 {
     public class ExtensionLoadingService
     {
-        private static DiscordSocketClient discord;
-        private static CommandService commands;
-        private static BotSettingsHelper<string> config;
-        private static IServiceProvider provider;
+        private static DiscordShardedClient _discord;
+        private static CommandService _commands;
+        private static BotSettingsHelper<string> _config;
+        private static IServiceProvider _provider;
 
         public static List<GladosModuleStruct> Extensions = new List<GladosModuleStruct>();
-        public static void Init(DiscordSocketClient discord = null, CommandService commands = null, BotSettingsHelper<string> config = null, IServiceProvider provider = null)
+        public static void Init(DiscordShardedClient discord = null, CommandService commands = null, BotSettingsHelper<string> config = null, IServiceProvider provider = null)
         {
-            AppDomain.CurrentDomain.AssemblyResolve -= CurrentDomainOnAssemblyResolve;
+            _discord                                              =  discord;
+            _commands                                             =  commands;
+            _config                                               =  config;
+            _provider                                             =  provider;
+            AppDomain.CurrentDomain.AssemblyResolve               -= CurrentDomainOnAssemblyResolve;
             AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve -= CurrentDomainOnAssemblyResolve;
-            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainOnAssemblyResolve;
+            AppDomain.CurrentDomain.AssemblyResolve               += CurrentDomainOnAssemblyResolve;
             AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += CurrentDomainOnAssemblyResolve;
-            ExtensionLoadingService.discord = discord;
-            ExtensionLoadingService.commands = commands;
-            ExtensionLoadingService.config = config;
-            ExtensionLoadingService.provider = provider;
             if (!Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Dependencies")))
                 Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "Dependencies"));
             if (!Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Modules")))
                 Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "Modules"));
             if (discord != null) return;
-            foreach (var assemblyName in Directory.GetFiles(Path.Combine(Directory.GetCurrentDirectory(), "Dependencies")))
+            var architecture = RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
+            foreach (var assemblyName in Directory.GetFiles(Path.Combine(Directory.GetCurrentDirectory(), "Dependencies"),"*.dll", SearchOption.AllDirectories))
             {
+                if (new DirectoryInfo(assemblyName).Parent.Name.ToLowerInvariant() == "x64" && architecture != "x64") continue;
+                if (new DirectoryInfo(assemblyName).Parent.Name.ToLowerInvariant() == "x86" && architecture != "x86") continue;
                 if (!ValidFile(assemblyName)) continue;
                 var asm = Assembly.LoadFile(assemblyName);
                 Dependencies.Add(asm.FullName, asm);
@@ -76,7 +80,7 @@ namespace GLaDOSV3.Services
             { }
             return null;
         }
-        public static Task<Type[]> GetServices(DiscordSocketClient client, IServiceCollection provider)
+        public static Task<Type[]> GetServices(DiscordShardedClient client, IServiceCollection provider)
         {
             List<Type> types = new List<Type>();
             foreach (var extension in Extensions) // Bad extension loading
@@ -102,7 +106,7 @@ namespace GLaDOSV3.Services
                 try
                 {
                     if (!ValidFile(file)) continue;
-                    using GladosModuleStruct module = new GladosModuleStruct(file, discord, commands, config, provider);
+                    using GladosModuleStruct module = new GladosModuleStruct(file, _discord, _commands, _config, _provider);
                     module.Initialize();
                     if (module.LoadFailed) { module.Dispose(); continue; }
                     Extensions.Add(module);
@@ -119,9 +123,9 @@ namespace GLaDOSV3.Services
         {
             foreach (var module in Extensions) // Bad extension loading
             {
-                module.FixShit(discord, commands, config, provider);
+                module.FixShit(_discord, _commands, _config, _provider);
                 module.PreLoad();
-                var count = commands.AddModulesAsync(module.AppAssembly, module.Provider).GetAwaiter().GetResult().Count();
+                var count = _commands.AddModulesAsync(module.AppAssembly, module.Provider).GetAwaiter().GetResult().Count();
                 module.PostLoad();
 
                 var modules = module.AppAssembly.GetTypes().Where(type => type.IsClass && !type.IsSpecialName && type.IsPublic)
@@ -153,34 +157,17 @@ namespace GLaDOSV3.Services
         }
         private static bool IsValidClrFile(string file) // based on PE headers
         {
-            bool? returnBool = null;
-            uint[] dataDictionaryRva = new uint[16];
-            uint[] dataDictionarySize = new uint[16];
-            Stream fs = new FileStream(file, FileMode.Open, FileAccess.Read);
-            BinaryReader reader = new BinaryReader(fs);
-            fs.Position = 0x3C;
-            var peHeader = reader.ReadUInt32();
-            fs.Position = peHeader;
-            var peHeaderSignature = reader.ReadUInt32();
-            ushort dataDictionaryStart = Convert.ToUInt16(Convert.ToUInt16(fs.Position) + 0x60);
-            fs.Position = dataDictionaryStart;
-            for (int i = 0; i < 15; i++)
+            try
             {
-                dataDictionaryRva[i] = reader.ReadUInt32();
-                dataDictionarySize[i] = reader.ReadUInt32();
+                AssemblyName.GetAssemblyName(file);
             }
-            if (peHeaderSignature != 0x4550)
-            { LoggingService.Log(LogSeverity.Error, "Module", $"{file} has non-valid PE header!"); returnBool = false; }
-            if (dataDictionaryRva[13] == 64 && returnBool == null)
+            catch (BadImageFormatException)
             {
                 LoggingService.Log(LogSeverity.Error, "Module", $"{file} is NOT a valid CLR file!!");
-                returnBool = false;
+                return false;
             }
-            else
-                returnBool = true;
-            reader.Close();
-            fs.Close();
-            return (bool)returnBool;
+
+            return true;
         }
     }
 
@@ -197,11 +184,11 @@ namespace GLaDOSV3.Services
 
         private IGladosModule module;
         private AssemblyDependencyResolver resolver;
-        private DiscordSocketClient discord;
+        private DiscordShardedClient discord;
         private CommandService commands;
         private BotSettingsHelper<string> config;
         private string path;
-        public GladosModuleStruct(string path, DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider) : base(isCollectible: true)
+        public GladosModuleStruct(string path, DiscordShardedClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider) : base(isCollectible: true)
         {
             this.discord = discord;
             this.commands = commands;
@@ -210,7 +197,7 @@ namespace GLaDOSV3.Services
             this.resolver = new AssemblyDependencyResolver(path);
             this.path = path;
         }
-        public void FixShit(DiscordSocketClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider)
+        public void FixShit(DiscordShardedClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider)
         {
             this.discord = discord;
             this.commands = commands;
@@ -245,7 +232,7 @@ namespace GLaDOSV3.Services
 
         public void PostLoad() => this.module.PostLoad(this.discord, this.commands, this.config, this.Provider);
 
-        public List<Type> GetServices(DiscordSocketClient client, IServiceCollection provider) => this.module.Services(client, this.commands, this.config, provider).ToList();
+        public List<Type> GetServices(DiscordShardedClient client, IServiceCollection provider) => this.module.Services(client, this.commands, this.config, provider).ToList();
 
         public void Dispose()
         {

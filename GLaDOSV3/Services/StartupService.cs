@@ -14,13 +14,13 @@ namespace GLaDOSV3.Services
 {
     public class StartupService
     {
-        private readonly DiscordSocketClient discord;
+        private readonly DiscordShardedClient discord;
         private readonly CommandService commands;
         private readonly IServiceProvider provider;
         private readonly BotSettingsHelper<string> botSettingsHelper;
-        // IServiceProvider, DiscordSocketClient, CommandService, and IConfigurationRoot are injected automatically from the IServiceProvider
+        // IServiceProvider, DiscordShardedClient, CommandService, and IConfigurationRoot are injected automatically from the IServiceProvider
         public StartupService(
-            DiscordSocketClient discord,
+            DiscordShardedClient discord,
             CommandService commands,
             IServiceProvider provider,
             BotSettingsHelper<string> botSettingsHelper)
@@ -78,8 +78,6 @@ namespace GLaDOSV3.Services
             //Console.SetWindowSize(150, 35);
             Console.WriteLine("This bot is using a database to store it's settings. Add --resetdb to reset the configuration (token, owners, etc..).");
             string discordToken = this.botSettingsHelper["tokens_discord"];     // Get the discord token from the config file
-            string gameTitle = this.botSettingsHelper["discord_game"]; // Get bot's game status
-            await this.discord.SetGameAsync(gameTitle).ConfigureAwait(false); // set bot's game status
             try
             {
                 await this.discord.LoginAsync(TokenType.Bot, discordToken).ConfigureAwait(false); // Login to discord

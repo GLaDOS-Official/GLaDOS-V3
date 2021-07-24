@@ -8,54 +8,53 @@ namespace GLaDOSV3.Services
 {
     public class OnLogonService
     {
-        private readonly DiscordSocketClient discord;
         private readonly BotSettingsHelper<string> botSettingsHelper;
 
-        // DiscordSocketClient, CommandService, and IConfigurationRoot are injected automatically from the IServiceProvider
+        // DiscordShardedClient, CommandService, and IConfigurationRoot are injected automatically from the IServiceProvider
         public OnLogonService(
-            DiscordSocketClient discord,
+            DiscordShardedClient discord,
             BotSettingsHelper<string> botSettingsHelper)
         {
             if (discord == null) return;
-            this.discord = discord;
-            this.discord.Connected += this.Connected;
-            this.botSettingsHelper = botSettingsHelper;
+            discord.ShardConnected += this.ShardConnected;
+            this.botSettingsHelper      =  botSettingsHelper;
         }
 
-        private async Task Connected()
+
+        private async Task ShardConnected(DiscordSocketClient client)
         {
-            await this.IsMfaEnabled().ConfigureAwait(false);
-            await this.GetUserFromConfigAsync().ConfigureAwait(false);
+            await this.IsMfaEnabled(client).ConfigureAwait(false);
+            await this.GetUserFromConfigAsync(client).ConfigureAwait(false);
 
             if (this.botSettingsHelper["discord_status"] != "online")
             {
                 if (Enum.TryParse(typeof(UserStatus), this.botSettingsHelper["discord_status"], true, out var status))
-                    await this.discord.SetStatusAsync((UserStatus)status).ConfigureAwait(false);
+                    await client.SetStatusAsync((UserStatus)status).ConfigureAwait(false);
                 else
                     await LoggingService.Log(LogSeverity.Warning, "Client status",
                         "Could not parse status string from database!").ConfigureAwait(false);
             }
 
-            if (this.discord.CurrentUser.Activity?.Name != this.botSettingsHelper["discord_game"])
-                await this.discord.SetGameAsync(this.botSettingsHelper["discord_game"]).ConfigureAwait(false);
+            if (client.CurrentUser.Activity?.Name != this.botSettingsHelper["discord_game"])
+                await client.SetGameAsync(this.botSettingsHelper["discord_game"]).ConfigureAwait(false);
         }
-        private Task<bool> IsMfaEnabled()
+        private Task<bool> IsMfaEnabled(DiscordSocketClient client)
         {
-            if (this.discord.CurrentUser == null) return Task.FromResult(false);
-            if (this.discord.CurrentUser.IsMfaEnabled) return Task.FromResult(true);
+            if (client.CurrentUser == null) return Task.FromResult(false);
+            if (client.CurrentUser.IsMfaEnabled) return Task.FromResult(true);
             LoggingService.Log(LogSeverity.Warning, "Bot",
                 "MFA is disabled! Mod usage on MFA enabled server won't work!").GetAwaiter();
             return Task.FromResult(false);
         }
-        private async Task GetUserFromConfigAsync()
+        private async Task GetUserFromConfigAsync(DiscordSocketClient client)
         {
-            if (this.discord.CurrentUser == null) return;
-            if (this.discord.CurrentUser.Username != this.botSettingsHelper["name"])
+            if (client.CurrentUser == null) return;
+            if (client.CurrentUser.Username != this.botSettingsHelper["name"])
             {
-                await this.discord.CurrentUser.ModifyAsync(u => u.Username = this.botSettingsHelper["name"]).ConfigureAwait(false);
-                foreach (SocketGuild guild in this.discord.Guilds)
+                await client.CurrentUser.ModifyAsync(u => u.Username = this.botSettingsHelper["name"]).ConfigureAwait(false);
+                foreach (SocketGuild guild in client.Guilds)
                 {
-                    var me = guild.GetUser(this.discord.CurrentUser.Id);
+                    var me = guild.GetUser(client.CurrentUser.Id);
                     if (me.Nickname == this.botSettingsHelper["name"]) continue;
                     await me.ModifyAsync(x => x.Nickname = this.botSettingsHelper["name"]).ConfigureAwait(false);
                 }

@@ -20,7 +20,7 @@ using GLaDOSV3.Services;
 namespace GLaDOSV3.Modules
 {
     //[Name("Bot owner")]
-    public class OwnerModule : ModuleBase<SocketCommandContext>
+    public class OwnerModule : ModuleBase<ShardedCommandContext>
     {
         private readonly CommandService service;
         private readonly IServiceProvider provider;
@@ -102,7 +102,7 @@ namespace GLaDOSV3.Modules
                               Context.Client, Context.Message.Id,
                               Context.Channel, user, user.IsBot ? MessageSource.Bot : MessageSource.User
                           });
-            await this.service.ExecuteAsync(new SocketCommandContext(Context.Client, (SocketUserMessage)msg), command.StartsWith(botSettingsHelper["prefix"]) ? command[botSettingsHelper["prefix"].Length..] : command, this.provider);
+            await this.service.ExecuteAsync(new ShardedCommandContext(Context.Client, (SocketUserMessage)msg), command.StartsWith(botSettingsHelper["prefix"]) ? command[botSettingsHelper["prefix"].Length..] : command, this.provider);
         }
         //[Command("bot webhookmass")]
         //[Remarks("bot webhookmass <serverid> <count>")]

@@ -15,8 +15,8 @@ namespace GLaDOSV3.Services
         private static string LogDirectory => Path.Combine(AppContext.BaseDirectory, "logs");
         private static string LogFile => Path.Combine(LogDirectory, $"{DateTime.UtcNow:yyyy-MM-dd}.txt");
         private static readonly ObservableCollection<string> Logs = new ObservableCollection<string>();
-        // DiscordSocketClient and CommandService are injected automatically from the IServiceProvider
-        public LoggingService(DiscordSocketClient discord, CommandService commands)
+        // DiscordShardedClient and CommandService are injected automatically from the IServiceProvider
+        public LoggingService(DiscordShardedClient discord, CommandService commands)
         {
             if (discord == null || commands == null) return;
             discord.Log += OnLogAsync;

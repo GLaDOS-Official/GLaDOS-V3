@@ -29,14 +29,14 @@ namespace GLaDOSV3.Helpers
                 {
                     cmd.CommandText = @"SELECT COUNT(*) FROM sqlite_master WHERE name=@TableName";
                     var p1 = cmd.CreateParameter();
-                    p1.DbType        = DbType.String;
+                    p1.DbType = DbType.String;
                     p1.ParameterName = "TableName";
-                    p1.Value         = tableName;
+                    p1.Value = tableName;
                     cmd.Parameters.Add(p1);
                     result = cmd.ExecuteScalar();
                 }
 
-                return Task.FromResult(((long) result) >= 1);
+                return Task.FromResult(((long)result) >= 1);
             }, token);
         }
         /// <summary>
@@ -46,7 +46,7 @@ namespace GLaDOSV3.Helpers
         {
             return Task.Run(() =>
             {
-                string              sql     = $"CREATE TABLE `{tableName}` ({parameters});";
+                string sql = $"CREATE TABLE `{tableName}` ({parameters});";
                 if (!ValidateSQLSafety(sql)) return Task.CompletedTask;
                 using SQLiteCommand command = new SQLiteCommand(sql, connection);
                 command.ExecuteNonQuery();
@@ -76,8 +76,8 @@ namespace GLaDOSV3.Helpers
         {
             return Task.Run(() =>
             {
-                string          sql = $"SELECT * FROM {tableName}";
-                using DataTable dt  = new DataTable();
+                string sql = $"SELECT * FROM {tableName}";
+                using DataTable dt = new DataTable();
                 if (!string.IsNullOrEmpty(filter))
                     sql += $" {filter}";
                 if (!ValidateSQLSafety(sql)) return Task.FromResult(new DataTable());
@@ -145,7 +145,7 @@ namespace GLaDOSV3.Helpers
             {
                 if (string.IsNullOrWhiteSpace(filter))
                     return Task.FromException(new SQLiteException("Filter mustn't be empty!"));
-                string              sql     = $"DELETE FROM {tablename} WHERE {filter}";
+                string sql = $"DELETE FROM {tablename} WHERE {filter}";
                 if (!ValidateSQLSafety(sql)) return Task.FromResult(false);
                 using SQLiteCommand command = new SQLiteCommand(sql, connection);
                 command.ExecuteNonQuery();
@@ -159,10 +159,10 @@ namespace GLaDOSV3.Helpers
         {
             return Task.Run(() =>
             {
-                string sql                             = $"SELECT 1 FROM {tablename}";
+                string sql = $"SELECT 1 FROM {tablename}";
                 if (!string.IsNullOrEmpty(filter)) sql += $" {filter}";
                 if (!ValidateSQLSafety(sql)) return Task.FromResult(false);
-                using DataTable dt                     = new DataTable();
+                using DataTable dt = new DataTable();
                 using (SQLiteDataAdapter reader = new SQLiteDataAdapter(sql, connection))
                     reader.Fill(dt);
                 dt.TableName = tablename;
@@ -189,7 +189,7 @@ namespace GLaDOSV3.Helpers
             //Safety features
             Connection.Flags |= SQLiteConnectionFlags.NoLoadExtension;
             if (command.Contains("--") || (command.Contains("/*") && command.Contains("*/"))) return false; // comments are used for SQLi, since SQL is mostly used for programmers, we strictly disallow them
-            if(command.Contains("INTO OUTFILE")) return false; // prevent file write
+            if (command.Contains("INTO OUTFILE")) return false; // prevent file write
 
             return true;
         }

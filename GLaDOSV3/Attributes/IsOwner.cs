@@ -24,10 +24,5 @@ namespace GLaDOSV3.Attributes
             TokenType.Bot => Task.FromResult(ulong.Parse(BotSettingsHelper["ownerID"], NumberStyles.Integer, CultureInfo.InvariantCulture) == context.User.Id || context.User.Id == context.Client.GetApplicationInfoAsync().GetAwaiter().GetResult().Owner.Id || IsCoOwner(context.User.Id)),
             _ => Task.FromResult(false),
         };
-        public static Task<ulong> GetOwner(ICommandContext context) => context?.Client.TokenType switch
-        {
-            TokenType.Bot => Task.FromResult(ulong.Parse(BotSettingsHelper["ownerID"], NumberStyles.Integer, CultureInfo.InvariantCulture)),
-            _ => Task.FromResult(0UL),
-        };
     }
 }

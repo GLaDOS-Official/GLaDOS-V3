@@ -119,16 +119,15 @@ namespace GLaDOSV3.Modules
                         if (string.IsNullOrWhiteSpace(description)) continue;
                         list.Add(new CommandInfo(module.Name, description));
 
-                }
-                foreach (var msg in Tools.SplitMessage($"{list.Aggregate(string.Empty, (current, cmi) => string.Concat(current, $"\n= {cmi.Module} =\n{cmi.Description}\n"))}", 1985))
-                    await dm.SendMessageAsync($"```asciidoc\n{msg}```").ConfigureAwait(false);
-                await dm.CloseAsync().ConfigureAwait(false);
+                    }
+                    foreach (var msg in Tools.SplitMessage($"{list.Aggregate(string.Empty, (current, cmi) => string.Concat(current, $"\n= {cmi.Module} =\n{cmi.Description}\n"))}", 1985))
+                        await dm.SendMessageAsync($"```asciidoc\n{msg}```").ConfigureAwait(false);
+                    await dm.CloseAsync().ConfigureAwait(false);
 
-                    }                if (Context.Guild != null) await Context.Message.AddReactionAsync(new Emoji("👌")).ConfigureAwait(false);
+                }
+                if (Context.Guild != null) await Context.Message.AddReactionAsync(new Emoji("👌")).ConfigureAwait(false);
             }
         }
-
-
     }
     internal struct CommandInfo
     {

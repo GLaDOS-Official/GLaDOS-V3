@@ -15,7 +15,7 @@ namespace GLaDOSV3.Services
 {
     public class CommandHandler
     {
-        private readonly DiscordSocketClient discord;
+        private readonly DiscordShardedClient discord;
         private readonly CommandService commands;
         private readonly IServiceProvider provider;
         public static List<ulong> BlacklistedUsers = new List<ulong>();
@@ -25,9 +25,9 @@ namespace GLaDOSV3.Services
         public static Dictionary<ulong, string> Prefix = new Dictionary<ulong, string>();
 
         private readonly string fallbackPrefix;
-        // DiscordSocketClient, CommandService, IConfigurationRoot, and IServiceProvider are injected automatically from the IServiceProvider
+        // DiscordShardedClient, CommandService, IConfigurationRoot, and IServiceProvider are injected automatically from the IServiceProvider
         public CommandHandler(
-            DiscordSocketClient discord,
+            DiscordShardedClient discord,
             CommandService commands,
             IServiceProvider provider,
             BotSettingsHelper<string> botSettingsHelper)
@@ -123,7 +123,7 @@ namespace GLaDOSV3.Services
                 return; // We can't let blacklisted users ruin our bot!
             }
 
-            SocketCommandContext context = new SocketCommandContext(this.discord, msg); // Create the command context
+            ShardedCommandContext context = new ShardedCommandContext(this.discord, msg); // Create the command context
             if (!string.IsNullOrWhiteSpace(MaintenanceMode) && (IsOwner.CheckPermission(context).GetAwaiter().GetResult())) { await context.Channel.SendMessageAsync("Bot is in maintenance mode! Reason: " + MaintenanceMode).ConfigureAwait(false); ; return; } // Don't execute commands in maintenance mode 
             await this.commands.ExecuteAsync(context, argPos, this.provider).ConfigureAwait(false); // Execute the command
         }

@@ -20,7 +20,7 @@ namespace GLaDOSV3
     {
         //TODO: use https://github.com/Quahu/Qmmands
         //TODO: Make timeout attribute better
-        public static DiscordSocketClient Client;
+        public static DiscordShardedClient Client;
         public static void Main(string[] args)  
             =>  StartAsync(args).GetAwaiter().GetResult();
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
@@ -39,7 +39,7 @@ namespace GLaDOSV3
             /*if(!IsValidJson())
             { await Task.Delay(10000); return; }*/
             Client =
-                new DiscordSocketClient(new DiscordSocketConfig // Add the discord client to the service provider
+                new DiscordShardedClient(new DiscordSocketConfig // Add the discord client to the service provider
                 {
                     LogLevel           = LogSeverity.Verbose,
                     RateLimitPrecision = RateLimitPrecision.Millisecond,

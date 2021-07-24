@@ -8,7 +8,7 @@ namespace GLaDOSV3.Services
     public class ClientEvents
     {
         public ClientEvents(
-            DiscordSocketClient discord)
+            DiscordShardedClient discord)
         {
             if (discord == null) return;
             discord.JoinedGuild += this.JoinedGuild;

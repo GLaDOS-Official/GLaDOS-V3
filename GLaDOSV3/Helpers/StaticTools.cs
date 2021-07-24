@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using Discord;
 using Discord.WebSocket;
 using System.Linq;
+using System.Net.Sockets;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -11,18 +14,8 @@ namespace GLaDOSV3.Helpers
 {
     public static class StaticTools
     {
-        private static bool _fuckYouDiscord = false;
         private static Random _rnd = new Random();
-        public static EmbedBuilder AddBlankField(this EmbedBuilder builder, bool inline) => builder?.AddField("\u200B", "\u200B", inline);
-        public static async Task WaitForConnection(this DiscordSocketClient discord)
-        {
-            discord.Ready += Discord_Connected;
-            while (!_fuckYouDiscord) await Task.Delay(100);
-            discord.Ready -= Discord_Connected;
-            await Task.Delay(100); //are you done discord??
-        }
 
-        private static async Task Discord_Connected() => _fuckYouDiscord = true;
         public static Task<string> FormatText(this SocketGuildUser user, string text) =>
             Task.FromResult(text.Replace("{mention}", user.Mention, StringComparison.Ordinal)
                                 .Replace("{uname}", user.Username, StringComparison.Ordinal)
@@ -41,5 +34,82 @@ namespace GLaDOSV3.Helpers
         public static T RandomElement<T>(this List<T> items) => items[_rnd.Next(0, items.Count)];
         public static SocketTextChannel DefaultWritableChannel(this SocketGuild g) => g?.TextChannels.Where(c => (g.CurrentUser.GetPermissions(c).ViewChannel) && g.CurrentUser.GetPermissions(c).SendMessages).OrderBy(c => c.Position).FirstOrDefault();
         public static String ReduceWhitespace(this String value) => Regex.Replace(value, @"\s+", " ", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+        public static EmbedBuilder AddBlankField(this EmbedBuilder builder, bool inline) => builder?.AddField("\u200B", "\u200B", inline);
+        /// <summary>Returns the index of an element contained in a list if it is found, otherwise returns -1.</summary>
+        public static int IndexOf<T>(this IReadOnlyList<T> list, T element) // IList doesn't implement IndexOf for some reason
+        {
+            for (var i = 0; i < list.Count; i++)
+                if (list[i]?.Equals(element) ?? false) return i;
+            return -1;
+        }
+
+        /// <summary>Fluid method that joins the members of a collection using the specified separator between them.</summary>
+        public static string Join<T>(this IEnumerable<T> values, string separator = "") => string.Join(separator, values);
+        public static bool Has<T>(this Enum type, T value) => ((int)(object)type & (int)(object)value) == (int)(object)value;
+
+        public static bool Is<T>(this Enum type, T value) => (int)(object)type == (int)(object)value;
+
+        public static T Add<T>(this Enum type, T value) => (T)(object)((int)(object)type | (int)(object)value);
+
+        public static T Remove<T>(this Enum type, T value) => (T)(object)((int)(object)type & ~(int)(object)value);
+        public static T? Get<T>(this IServiceProvider provider)
+        {
+            _ = provider ?? throw new ArgumentNullException($"{nameof(provider)} is not initialized!", new NullReferenceException());
+            return (T?)provider.GetService(typeof(T))!;
+        }
+        public static bool HasPermission(this SocketGuildUser member, GuildPermission perm) => member.GuildPermissions.Has(perm);
+
+        public static bool IsAdministrator(this SocketGuildUser member) => member.Roles.Any(role => role.Permissions.Has(GuildPermission.Administrator));
+
+
+        public static string GetRoleMention(this SocketGuildUser member) => member.Roles.Last().Mention;
+
+        public static bool IsAbove(this SocketGuildUser target, SocketGuildUser comparison) => target.Roles.Any() && target.Hierarchy >= comparison.Hierarchy;
+        public static string Center(this string text, string anchor)
+        {
+            int refLength = anchor.Length;
+
+            if (anchor.Contains('\t')) refLength += anchor.Where(t => t is '\t').Sum(t => 3);
+
+            if (text.Length >= refLength)
+                return text;
+
+            int start = (refLength - text.Length) / 2;
+
+            return string.Create(refLength, (start, text), static (Span<char> span, (int start, string str) state) =>
+            {
+                span.Fill(' ');
+                state.str.AsSpan().CopyTo(span.Slice(state.start, state.str.Length));
+            });
+        }
+        public static string Pull(this string text, Range range) =>
+            range.End.Value >= text.Length ? text :
+            range.Start.Value >= text.Length || range.Start.Value < 0 ? text :
+            range.End.IsFromEnd ? text[range] : text[range.Start..Math.Min(text.Length, range.End.Value)];
+
+        public static Stream AsStream(this string s) => new MemoryStream(Encoding.UTF8.GetBytes(s));
+        public static SocketUser? GetUser(this DiscordSocketClient client, Func<SocketGuildUser, bool> predicate) =>
+            client
+               .Guilds
+               .SelectMany(g => g.Users)
+               .FirstOrDefault(predicate);
+
+        public static SocketGuildUser? GetUser(this DiscordShardedClient client, Func<SocketGuildUser, bool> predicate) =>
+            client
+               .Shards
+               .SelectMany(c => c.Guilds)
+               .SelectMany(g => g.Users)
+               .FirstOrDefault(predicate);
+
+        public static async Task DeleteAsync(this IEnumerable<IMessage> messageCollection)
+        {
+            if (messageCollection is null)
+                throw new ArgumentNullException(nameof(messageCollection));
+
+            IEnumerable<IMessage> collection = messageCollection as IMessage[] ?? messageCollection.ToArray();
+            SocketTextChannel channel = (SocketTextChannel)collection.First().Channel;
+            await channel.DeleteMessagesAsync(collection);
+        }
+        public static string GetUrl(this IUser user) => $"https://discord.com/users/{user.Id}";
     }
 }
