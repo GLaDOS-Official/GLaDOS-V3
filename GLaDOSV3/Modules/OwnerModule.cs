@@ -60,8 +60,8 @@ namespace GLaDOSV3.Modules
         [Attributes.RequireOwner]
         public async Task Shutdown()
         {
-            await this.ReplyAsync("Shutting down the bot! 👋").ConfigureAwait(false);
-            await this.Context.Client.LogoutAsync().ConfigureAwait(false);
+            await this.ReplyAsync("Shutting down the bot! 👋").ConfigureAwait(true);
+            await this.Context.Client.LogoutAsync().ConfigureAwait(true);
             Environment.Exit(0);
         }
 

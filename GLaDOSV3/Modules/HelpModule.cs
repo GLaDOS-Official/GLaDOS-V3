@@ -48,7 +48,7 @@ namespace GLaDOSV3.Modules
         [Summary("How 2 use ...?")]
         public async Task Help([Remainder]string command = null)
         {
-            IDMChannel dm = await Context.Message.Author.GetOrCreateDMChannelAsync().ConfigureAwait(true);
+            IDMChannel dm = await Context.Message.Author.CreateDMChannelAsync().ConfigureAwait(true);
             Random rnd = new Random();
             EmbedBuilder builder = new EmbedBuilder
             {

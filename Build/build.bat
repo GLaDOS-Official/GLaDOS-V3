@@ -3,8 +3,9 @@ title GLaDOS Builder
 set DOTNET_CLI_TELEMETRY_OPTOUT=1
 set GLADOSRELEASE=..\GLaDOSV3\bin\Release\net5.0
 
+rmdir /s /q Build >nul 2>&1
+
 mkdir Build
-del /q /f /s .\Build  >nul 2>&1
 dotnet nuget add source -n Discord.net https://www.myget.org/F/discord-net/api/v3/index.json  >nul 2>&1
 echo Restoring nuget packages...
 dotnet restore ..\GladosV3.sln  >nul 2>&1

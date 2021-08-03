@@ -8,18 +8,18 @@ namespace GLaDOSV3.Services
     {
         public static void Start()
         {
-            Tools.WriteColorLine(ConsoleColor.Cyan, "[MemoryHandler] Creating thread");
+            ConsoleHelper.WriteColorLine(ConsoleColor.Cyan, "[MemoryHandler] Creating thread");
             Thread thread = new Thread(MemoryThread) { Name = "Memory releasing thread" };
-            Tools.WriteColorLine(ConsoleColor.Cyan, "[MemoryHandler] Starting thread");
+            ConsoleHelper.WriteColorLine(ConsoleColor.Cyan, "[MemoryHandler] Starting thread");
             thread.Start();
-            Tools.WriteColorLine(ConsoleColor.Cyan, "[MemoryHandler] Thread started");
+            ConsoleHelper.WriteColorLine(ConsoleColor.Cyan, "[MemoryHandler] Thread started");
         }
 
         private static void MemoryThread()
         {
-            Tools.WriteColorLine(ConsoleColor.Cyan, "[MemoryHandlerThread] Releasing unused memory....");
+            ConsoleHelper.WriteColorLine(ConsoleColor.Cyan, "[MemoryHandlerThread] Releasing unused memory....");
             Tools.ReleaseMemory();
-            Tools.WriteColorLine(ConsoleColor.Cyan, "[MemoryHandlerThread] Memory released, another recycle in 30 minutes!");
+            ConsoleHelper.WriteColorLine(ConsoleColor.Cyan, "[MemoryHandlerThread] Memory released, another recycle in 30 minutes!");
             Thread.Sleep(1800000);
         }
     }

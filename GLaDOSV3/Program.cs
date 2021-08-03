@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Threading.Tasks;
 using GLaDOSV3.Dashboard;
+using GLaDOSV3.Models;
 
 namespace GLaDOSV3
 {
@@ -21,14 +22,15 @@ namespace GLaDOSV3
         //TODO: use https://github.com/Quahu/Qmmands
         //TODO: Make timeout attribute better
         public static DiscordShardedClient Client;
-        public static void Main(string[] args)  
-            =>  StartAsync(args).GetAwaiter().GetResult();
+        public static void Main(string[] args)
+            => StartAsync(args).GetAwaiter().GetResult();
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
         public static async Task StartAsync(string[] args)
         {
             //DashboardClient.Connect();
-            Console.BackgroundColor = ConsoleColor.Black;
-            Console.ForegroundColor = ConsoleColor.White;
+            ConsoleHelper.EnableVirtualConsole();
+            //Console.BackgroundColor = ConsoleColor.Black;
+            //Console.ForegroundColor = ConsoleColor.White;
             Directory.SetCurrentDirectory(Path.GetDirectoryName(AppContext.BaseDirectory));
             var pInvokeDir = Path.Combine(Directory.GetCurrentDirectory(), $"PInvoke{Path.DirectorySeparatorChar}");
             if (!Directory.Exists(pInvokeDir))
@@ -41,17 +43,15 @@ namespace GLaDOSV3
             Client =
                 new DiscordShardedClient(new DiscordSocketConfig // Add the discord client to the service provider
                 {
-                    LogLevel           = LogSeverity.Verbose,
-                    RateLimitPrecision = RateLimitPrecision.Millisecond,
-                    ExclusiveBulkDelete =
-                        true, // Disable firing message delete event on bulk delete event (bulk delete event will still be fired)
+                    LogLevel = LogSeverity.Verbose,
 #if false
                     RestClientProvider = DefaultRestClientProvider.Create(true),
                     WebSocketProvider  = DefaultWebSocketProvider.Create(new System.Net.WebProxy("127.0.0.1", 8888)),
 #endif
                     MessageCacheSize =
                         0,                                   // Tell Discord.Net to NOT CACHE! This will also disable MessageUpdated event
-                    DefaultRetryMode = RetryMode.AlwaysRetry // Always believe
+                    DefaultRetryMode = RetryMode.AlwaysRetry, // Always believe
+                    GatewayIntents = GatewayIntents.All
                 });
             var services = new ServiceCollection()      // Begin building the service provider
                 .AddSingleton(Client)
@@ -71,7 +71,7 @@ namespace GLaDOSV3
                 .AddSingleton<BotSettingsHelper<string>>();
             ExtensionLoadingService.Init(null, null, null, null);
             ExtensionLoadingService.LoadExtensions();
-            foreach (var item in (await ExtensionLoadingService.GetServices(Client, services).ConfigureAwait(true))) 
+            foreach (var item in (await ExtensionLoadingService.GetServices(Client, services).ConfigureAwait(true)))
                 services.AddSingleton(item);
             var provider = services.BuildServiceProvider();     // Create the service provide
             provider.GetRequiredService<LoggingService>();      // Initialize the logging service, client events, startup service, on discord log on service, command handler and system message

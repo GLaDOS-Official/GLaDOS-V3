@@ -86,12 +86,12 @@ namespace GLaDOSV3.Services
             catch (HttpException ex) // Some error checking
             {
                 if (ex.DiscordCode == 401 || ex.HttpCode == HttpStatusCode.Unauthorized)
-                    Tools.WriteColorLine(ConsoleColor.Red, "Wrong or invalid token.");
+                    ConsoleHelper.WriteColorLine(ConsoleColor.Red, "Wrong or invalid token.");
                 else if (ex.DiscordCode == 502 || ex.HttpCode == HttpStatusCode.BadGateway)
-                    Tools.WriteColorLine(ConsoleColor.Yellow, "Gateway unavailable.");
+                    ConsoleHelper.WriteColorLine(ConsoleColor.Yellow, "Gateway unavailable.");
                 else if (ex.DiscordCode == 400 || ex.HttpCode == HttpStatusCode.BadRequest)
-                    Tools.WriteColorLine(ConsoleColor.Red, "Bad request. Please wait for an update.");
-                Tools.WriteColorLine(ConsoleColor.Red, $"Discord has returned an error code: {ex.DiscordCode}{Environment.NewLine}Here's exception message: {ex.Message}");
+                    ConsoleHelper.WriteColorLine(ConsoleColor.Red, "Bad request. Please wait for an update.");
+                ConsoleHelper.WriteColorLine(ConsoleColor.Red, $"Discord has returned an error code: {ex.DiscordCode}{Environment.NewLine}Here's exception message: {ex.Message}");
                 Task.Delay(10000).Wait();
                 Environment.Exit(0);
             }

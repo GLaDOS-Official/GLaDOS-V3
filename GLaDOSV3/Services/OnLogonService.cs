@@ -2,6 +2,7 @@
 using Discord.WebSocket;
 using GLaDOSV3.Helpers;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace GLaDOSV3.Services
@@ -34,9 +35,10 @@ namespace GLaDOSV3.Services
                     await LoggingService.Log(LogSeverity.Warning, "Client status",
                         "Could not parse status string from database!").ConfigureAwait(false);
             }
-
-            if (client.CurrentUser.Activity?.Name != this.botSettingsHelper["discord_game"])
-                await client.SetGameAsync(this.botSettingsHelper["discord_game"]).ConfigureAwait(false);
+            //TODO: fix
+            //client.SetActivityAsync(IActivity)
+            //if (client.CurrentUser.Activity?.Name != this.botSettingsHelper["discord_game"])
+            //    await client.SetGameAsync(this.botSettingsHelper["discord_game"]).ConfigureAwait(false);
         }
         private Task<bool> IsMfaEnabled(DiscordSocketClient client)
         {

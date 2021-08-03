@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -44,34 +45,7 @@ namespace GLaDOSV3.Helpers
             }
             return message;
         }
-        private static readonly object WriteLock = new object();
-        public static void WriteColorLine(ConsoleColor color, string message)
-        {
-            lock (WriteLock)
-            {
-                var fcolor = Console.ForegroundColor;
-                var bcolor = Console.BackgroundColor;
-                Console.BackgroundColor = color;
-                Console.ForegroundColor = ConsoleColor.DarkGray;
-                Console.Out.WriteLine(message);
-                Console.ForegroundColor = fcolor;
-                Console.BackgroundColor = bcolor;
-            }
-        }
-
-        public static void WriteColor(ConsoleColor color, string message)
-        {
-            lock (WriteLock)
-            {
-                var fcolor = Console.ForegroundColor;
-                var bcolor = Console.BackgroundColor;
-                Console.BackgroundColor = color;
-                Console.ForegroundColor = ConsoleColor.DarkGray;
-                Console.Out.Write(message);
-                Console.ForegroundColor = fcolor;
-                Console.BackgroundColor = bcolor;
-            }
-        }
+        
         public static void RestartApp()
         {
             using var proc = new Process
@@ -89,15 +63,11 @@ namespace GLaDOSV3.Helpers
         }
         public static async Task<dynamic> GetProxyAsync()
         {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(new Uri("http://gimmeproxy.com/api/getProxy?anonymityLevel=1&user-agent=true&protocol=http&country=GB,CZ,DE,SK,FR&minSpeed=1024"));
-            request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+            HttpClient client = new HttpClient();
             string json;
-            using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync().ConfigureAwait(true))
-            {
-                await using Stream stream = response.GetResponseStream();
-                using StreamReader reader = new StreamReader(stream ?? throw new InvalidOperationException());
-                json = await reader.ReadToEndAsync().ConfigureAwait(true);
-            }
+            await using Stream stream = await client.GetStreamAsync(new Uri("http://gimmeproxy.com/api/getProxy?anonymityLevel=1&user-agent=true&protocol=http&country=GB,CZ,DE,SK,FR&minSpeed=1024")).ConfigureAwait(true);
+            using StreamReader reader = new StreamReader(stream ?? throw new InvalidOperationException());
+            json = await reader.ReadToEndAsync().ConfigureAwait(true);
             if (string.IsNullOrWhiteSpace(json)) return await Task.FromResult("").ConfigureAwait(false);
             var @object = JObject.Parse(json);
             return await Task.FromResult(new WebProxy { Address = new Uri($"http://{@object["ipPort"]}") }).ConfigureAwait(false);
@@ -107,8 +77,9 @@ namespace GLaDOSV3.Helpers
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
             GC.WaitForPendingFinalizers();
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
-            if (SqLite.Connection != null && SqLite.Connection.State != System.Data.ConnectionState.Closed)
-                SqLite.Connection.ReleaseMemory();
+            if (SqLite.Connection == null || SqLite.Connection.State == System.Data.ConnectionState.Closed)
+                return;
+            SqLite.Connection.ReleaseMemory();
         }
         public static string[] SplitMessage(string message, int len) // discord.js :D
         {
@@ -130,19 +101,6 @@ namespace GLaDOSV3.Helpers
 
             messages.Add(msg);
             return messages.ToArray();
-        }
-
-        public static bool WriteToReadOnlyValue(Type type, object instance, string element, object value)
-        {
-            PropertyInfo[] array = type.GetProperties();
-            foreach (var info in array)
-            {
-                if (info.Name != element) continue;
-                if (!info.CanWrite) return false;
-                info.SetValue(instance, value);
-                return true;
-            }
-            return false;
         }
         public static string RandomString(int length)
         {
