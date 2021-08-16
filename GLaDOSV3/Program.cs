@@ -14,14 +14,15 @@ using System.Security.Principal;
 using System.Threading.Tasks;
 using GLaDOSV3.Dashboard;
 using GLaDOSV3.Models;
+using Microsoft.Extensions.Hosting;
 
 namespace GLaDOSV3
-{
-    public sealed class Program
+{      
+    //TODO: use https://github.com/Quahu/Qmmands
+    //TODO: Make timeout attribute better
+    public static class Program
     {
-        //TODO: use https://github.com/Quahu/Qmmands
-        //TODO: Make timeout attribute better
-        public static DiscordShardedClient Client;
+
         public static void Main(string[] args)
             => StartAsync(args).GetAwaiter().GetResult();
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
@@ -38,9 +39,7 @@ namespace GLaDOSV3
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !PInvokesDllImport.SetDllDirectory(pInvokeDir)) Console.WriteLine($"Failed to call SetDllDirectory PInvoke! Last error code: {Marshal.GetLastWin32Error()}");
             Tools.ReleaseMemory();
             LoggingService.Begin();
-            /*if(!IsValidJson())
-            { await Task.Delay(10000); return; }*/
-            Client =
+            DiscordShardedClient client =
                 new DiscordShardedClient(new DiscordSocketConfig // Add the discord client to the service provider
                 {
                     LogLevel = LogSeverity.Verbose,
@@ -53,8 +52,31 @@ namespace GLaDOSV3
                     DefaultRetryMode = RetryMode.AlwaysRetry, // Always believe
                     GatewayIntents = GatewayIntents.All
                 });
-            var services = new ServiceCollection()      // Begin building the service provider
-                .AddSingleton(Client)
+            ExtensionLoadingService.Init(null, null, null, null);
+            ExtensionLoadingService.LoadExtensions();
+            HostBuilder hostBuilder = new HostBuilder();
+            hostBuilder.UseContentRoot(Path.GetDirectoryName(AppContext.BaseDirectory));
+            hostBuilder.gladosServices(client);
+            var host = hostBuilder.Build();
+
+            var provider = host.Services;
+            provider.GetRequiredService<LoggingService>();      // Initialize the logging service, client events, startup service, on discord log on service, command handler and system message
+            provider.GetRequiredService<ClientEvents>();
+            provider.GetRequiredService<OnLogonService>();
+            await provider.GetRequiredService<StartupService>().StartAsync(args).ConfigureAwait(false);
+            provider.GetRequiredService<CommandHandler>();
+            provider.GetRequiredService<IpLoggerProtection>();
+
+            await Task.Delay(-1).ConfigureAwait(true);     // Prevent the application from closing
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0022:Use expression body for methods", Justification = "<Pending>")]
+        private static void gladosServices(this HostBuilder builder, DiscordShardedClient client)
+        {
+            builder.ConfigureServices(async (hostContext, services) =>
+            {
+                services.AddHostedService<MemoryHandlerService>();
+                services.AddSingleton(client)
                 .AddSingleton(new CommandService(new CommandServiceConfig     // Add the command service to the service provider
                 {
                     DefaultRunMode = RunMode.Async,     // Force all commands to run async
@@ -69,19 +91,9 @@ namespace GLaDOSV3
                 .AddSingleton<ClientEvents>()       // Discord client events
                 .AddSingleton<IpLoggerProtection>()       // IP logging service
                 .AddSingleton<BotSettingsHelper<string>>();
-            ExtensionLoadingService.Init(null, null, null, null);
-            ExtensionLoadingService.LoadExtensions();
-            foreach (var item in (await ExtensionLoadingService.GetServices(Client, services).ConfigureAwait(true)))
-                services.AddSingleton(item);
-            var provider = services.BuildServiceProvider();     // Create the service provide
-            provider.GetRequiredService<LoggingService>();      // Initialize the logging service, client events, startup service, on discord log on service, command handler and system message
-            provider.GetRequiredService<ClientEvents>();
-            provider.GetRequiredService<OnLogonService>();
-            await provider.GetRequiredService<StartupService>().StartAsync(args).ConfigureAwait(false);
-            provider.GetRequiredService<CommandHandler>();
-            provider.GetRequiredService<IpLoggerProtection>();
-            MemoryHandlerService.Start();
-            await Task.Delay(-1).ConfigureAwait(true);     // Prevent the application from closing
+                foreach (var item in (await ExtensionLoadingService.GetServices(client, services).ConfigureAwait(true)))
+                    services.AddSingleton(item);
+            });
         }
     }
 }

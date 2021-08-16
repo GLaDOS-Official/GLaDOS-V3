@@ -21,3 +21,6 @@
 [submodule "GLaDOSV3.Module.Developers"]
 	path = GLaDOSV3.Module.Developers
 	url = https://github.com/botGLaDOSV3/GLaDOSV3.Module.Developers
+[submodule "GLaDOSV3.Module.Logger"]
+	path = GLaDOSV3.Module.Logger
+	url = https://github.com/botGLaDOSV3/GLaDOSV3.Module.Logger.git

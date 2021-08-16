@@ -43,17 +43,7 @@ namespace GLaDOSV3.Helpers
             diagnostics.AddRange(syntaxTree.GetDiagnostics());
 
             // https://github.com/dotnet/runtime/issues/36590#issuecomment-689883856
-            static MetadataReference GetReference_type(Type type)
-            {
-                unsafe
-                {
-                    return type.Assembly.TryGetRawMetadata(out var blob, out var length)
-                        ? AssemblyMetadata
-                            .Create(ModuleMetadata.CreateFromMetadata((IntPtr)blob, length))
-                            .GetReference()
-                        : throw new InvalidOperationException($"Could not get raw metadata for type {type}");
-                }
-            }
+            static MetadataReference GetReference_type(Type type) => GetReference_asm(type.Assembly);
             static MetadataReference GetReference_asm(Assembly asm)
             {
                 unsafe
@@ -127,7 +117,7 @@ namespace GLaDOSV3.Helpers
                     // https://github.com/dotnet/roslyn/blob/version-3.2.0/src/Scripting/Core/ScriptBuilder.cs#L188
                     var entryPoint = compilation.GetEntryPoint(CancellationToken.None) ?? throw new InvalidOperationException("Entry point could be determined");
 
-                    var entryPointType = scriptAssembly
+              đ      var entryPointType = scriptAssembly
                         .GetType(
                             $"{entryPoint.ContainingNamespace.MetadataName}.{entryPoint.ContainingType.MetadataName}",
                             throwOnError: true,
@@ -209,10 +199,9 @@ namespace GLaDOSV3.Helpers
                 //                                     .WithWarningLevel(5)
                 //                                     ;
 
-                //options.MetadataResolver//.MetadataResolver = EvalMetaData.GetMetadataRerefeReferences();
                 //Script result = CSharpScript.Create(cScode, options, typeof(Globals));
-
-                var returnVal = (await EvalWorkaround.Eval(cScode, imports, new Globals(ctx), typeof(Globals))).ToString(); ///; result.RunAsync(new Globals(ctx)).GetAwaiter().GetResult().ReturnValue?.ToString();
+                //var returnVal = result.RunAsync(new Globals(ctx)).GetAwaiter().GetResult().ReturnValue?.ToString();
+                var returnVal = (await EvalWorkaround.Eval(cScode, imports, new Globals(ctx), typeof(Globals))).ToString();
                 BotSettingsHelper<string> r = new BotSettingsHelper<string>();
                 var token = r["tokens_discord"];
                 if (!string.IsNullOrWhiteSpace(returnVal) && returnVal.Contains(token, StringComparison.Ordinal)) returnVal = returnVal?.Replace(token, "Nah, no token leak 4 u.", StringComparison.OrdinalIgnoreCase);

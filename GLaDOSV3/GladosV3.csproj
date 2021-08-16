@@ -45,20 +45,22 @@
     <PackageReference Include="Discord.InteractivityAddon" Version="2.4.1-preview-20210624.1" />
     <PackageReference Include="Discord.Net" Version="3.0.0-dev-20210710.3" />
     <PackageReference Include="Fizzler.Systems.HtmlAgilityPack" Version="1.2.1" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.34" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Compilers" Version="4.0.0-2.final" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.0.0-2.final" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.0-preview.6.21352.12" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0-preview.6.21352.12" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0-preview.6.21352.12" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.0-preview.6.21352.12" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0-preview.6.21352.12" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.36" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Compilers" Version="4.0.0-3.final" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.0.0-3.final" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.0-preview.7.21377.19" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0-preview.7.21377.19" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0-preview.7.21377.19" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.0-preview.7.21377.19" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0-preview.7.21377.19" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0-preview.7.21377.19" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0-preview.7.21377.19" />
     <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
     <PackageReference Include="SQLite.Native" Version="3.12.3" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.114.4" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.114.3" />
     <PackageReference Include="System.Data.SQLite.Linq" Version="1.0.114" />
-    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="6.0.0-preview.6.21352.12" />
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="6.0.0-preview.7.21377.19" />
   </ItemGroup>
 
   <ItemGroup>

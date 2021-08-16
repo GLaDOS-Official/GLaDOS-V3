@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29609.76
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31521.260
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GLaDOSV3", "GLaDOSV3\GLaDOSV3.csproj", "{8F39F095-C020-496B-A0E8-ACBD70D39A7C}"
 EndProject
@@ -21,6 +21,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GLaDOSV3.Module.Developers", "GLaDOSV3.Module.Developers\GLaDOSV3.Module.Developers.csproj", "{CA5F14ED-C69F-4A0A-BC0E-F0C056679028}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GLaDOSV3.Module.GTAService", "GLaDOSV3.Module.GTAService\GLaDOSV3.Module.GTAService.csproj", "{7430D54D-0491-4614-BCBB-703851DD1BA2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GLaDOSV3.Module.Logger", "GLaDOSV3.Module.Logger\GLaDOSV3.Module.Logger.csproj", "{EE7277D3-1F18-49CE-96B5-DCAE530BA7E8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -116,16 +118,28 @@ Global
 		{7430D54D-0491-4614-BCBB-703851DD1BA2}.Release|x64.Build.0 = Release|Any CPU
 		{7430D54D-0491-4614-BCBB-703851DD1BA2}.Release|x86.ActiveCfg = Release|Any CPU
 		{7430D54D-0491-4614-BCBB-703851DD1BA2}.Release|x86.Build.0 = Release|Any CPU
+		{EE7277D3-1F18-49CE-96B5-DCAE530BA7E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE7277D3-1F18-49CE-96B5-DCAE530BA7E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE7277D3-1F18-49CE-96B5-DCAE530BA7E8}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EE7277D3-1F18-49CE-96B5-DCAE530BA7E8}.Debug|x64.Build.0 = Debug|Any CPU
+		{EE7277D3-1F18-49CE-96B5-DCAE530BA7E8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EE7277D3-1F18-49CE-96B5-DCAE530BA7E8}.Debug|x86.Build.0 = Debug|Any CPU
+		{EE7277D3-1F18-49CE-96B5-DCAE530BA7E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE7277D3-1F18-49CE-96B5-DCAE530BA7E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE7277D3-1F18-49CE-96B5-DCAE530BA7E8}.Release|x64.ActiveCfg = Release|Any CPU
+		{EE7277D3-1F18-49CE-96B5-DCAE530BA7E8}.Release|x64.Build.0 = Release|Any CPU
+		{EE7277D3-1F18-49CE-96B5-DCAE530BA7E8}.Release|x86.ActiveCfg = Release|Any CPU
+		{EE7277D3-1F18-49CE-96B5-DCAE530BA7E8}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {E32C8939-5B27-4E20-8E69-B21B4E1112C5}
-		BuildVersion_BuildVersioningStyle = Increment.Increment.Increment.MonthAndDayStamp
-		BuildVersion_UpdateAssemblyVersion = True
-		BuildVersion_UpdateFileVersion = True
-		BuildVersion_StartDate = 2000/1/1
 		BuildVersion_UseUniversalClock = True
+		BuildVersion_StartDate = 2000/1/1
+		BuildVersion_UpdateFileVersion = True
+		BuildVersion_UpdateAssemblyVersion = True
+		BuildVersion_BuildVersioningStyle = Increment.Increment.Increment.MonthAndDayStamp
+		SolutionGuid = {E32C8939-5B27-4E20-8E69-B21B4E1112C5}
 	EndGlobalSection
 EndGlobal

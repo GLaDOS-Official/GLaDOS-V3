@@ -1,7 +1,7 @@
 @echo off
 title GLaDOS Builder
 set DOTNET_CLI_TELEMETRY_OPTOUT=1
-set GLADOSRELEASE=..\GLaDOSV3\bin\Release\net5.0
+set GLADOSRELEASE=..\GLaDOSV3\bin\Release\net6.0
 
 rmdir /s /q Build >nul 2>&1
 

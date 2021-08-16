@@ -2,6 +2,7 @@
 using Discord.Rest;
 using Discord.WebSocket;
 using HtmlAgilityPack;
+using Interactivity;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -18,29 +19,14 @@ namespace GLaDOSV3.Services
     {
         private readonly DiscordShardedClient discord;
         private readonly List<ulong> serverIds = new List<ulong>() { 658372357924192281, 259776446942150656, 472402015679414293, 503145318372868117, 516296348367192074, 611503265313718282, 611599798595878912, 499598184570421253,  };
+        public InteractivityService Interactivity { get; set; }
+
         public IpLoggerProtection(DiscordShardedClient discord)
         {
             this.discord = discord;
             this.discord.MessageReceived += this.OnMessageReceivedAsync;
         }
         private readonly string[] knownIpLoggers = { "iplogger", "maper.info", "grabify", "2no.co", "yip.su", "ipgrabber", "iplis.ru", "02ip.ru", "ezstat.ru", "iplo.ru" };
-
-        private async Task DeleteMessage(IMessage msg)
-        {
-            if (((SocketGuildChannel)msg.Channel).Guild.GetUser(this.discord.CurrentUser.Id).GuildPermissions.ManageMessages) await msg.DeleteAsync().ConfigureAwait(false);
-        }
-
-        private Task DeleteMessageDelay(IMessage msg, int delay = 3000)
-        {
-            Thread deleteThread = new Thread(async () =>
-            {
-                Thread.CurrentThread.IsBackground = true;
-                Thread.Sleep(delay);
-                await this.DeleteMessage(msg).ConfigureAwait(false);
-            });
-            deleteThread.Start();
-            return Task.CompletedTask;
-        }
 
         private async Task OnMessageReceivedAsync(SocketMessage arg)
         {
@@ -62,8 +48,8 @@ namespace GLaDOSV3.Services
                 if (this.knownIpLoggers.Any(var1 => shortUrl.Contains(var1, StringComparison.Ordinal)))
                 {
                     isIpLogger = true;
-                    await this.DeleteMessage(msg).ConfigureAwait(false);
-                    await arg.Channel.SendMessageAsync($"{arg.Author.Mention} Good job! You have sent an IP logger. Message was logged and reported to Trust and Safety team!").ConfigureAwait(false);
+                    await msg.DeleteAsync();
+                    Interactivity.DelayedDeleteMessageAsync(await arg.Channel.SendMessageAsync($"{arg.Author.Mention} Good job! You have sent an IP logger. Message was logged and reported to Trust and Safety team!"), TimeSpan.FromSeconds(3));
                     return; 
                 }
                 if (urlScanned.Contains(shortUrl))
@@ -105,8 +91,7 @@ namespace GLaDOSV3.Services
                         nodeUrl = nodeUrl.Replace("http", "hxxp", StringComparison.OrdinalIgnoreCase);
                         warning = " (KNOWN IP LOGGER!)";
                         isIpLogger = true;
-                        await arg.Channel.SendMessageAsync($"{arg.Author.Mention} Good job! You have sent an IP logger. Message was logged and reported to Trust and Safety team!").ConfigureAwait(false);
-                        await this.DeleteMessage(msg).ConfigureAwait(false);
+                        Interactivity.DelayedDeleteMessageAsync(await arg.Channel.SendMessageAsync($"{arg.Author.Mention} Good job! You have sent an IP logger. Message was logged and reported to Trust and Safety team!"), TimeSpan.FromSeconds(3));
                         return;
                     }
 
@@ -115,7 +100,6 @@ namespace GLaDOSV3.Services
                 }
                 if (message == null) continue;
                 redirectHops = redirectHops.Remove(redirectHops.Length - 3);
-                await this.DeleteMessageDelay(message).ConfigureAwait(false);
             }
         }
     }

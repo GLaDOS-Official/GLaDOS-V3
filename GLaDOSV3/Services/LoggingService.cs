@@ -32,7 +32,7 @@ namespace GLaDOSV3.Services
         {
             if (!File.Exists(LogFile))               // Create today's log file if it doesn't exist
                 File.Create(LogFile).Dispose();
-            if (msg.Severity == LogSeverity.Warning && msg.Source == "Gateway" && msg.Message.StartsWith("Unknown ")) return Task.CompletedTask;
+            if (msg.Source != null && msg.Exception == null  && msg.Severity == LogSeverity.Warning && msg.Source == "Gateway" && msg.Message.StartsWith("Unknown ")) return Task.CompletedTask;
             string logText = $"{DateTime.UtcNow:hh:mm:ss} [{msg.Severity}] {msg.Source}: {msg.Exception?.ToString() ?? msg.Message}";
             Logs.Add(logText);
             if (Logs.Count >= 60)

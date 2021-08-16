@@ -180,10 +180,9 @@ namespace GLaDOSV3.Services
         public string ModuleVersion;
         public bool LoadFailed;
         public IServiceProvider Provider;
-        private bool disposed;
 
+        private bool disposed;
         private IGladosModule module;
-        private AssemblyDependencyResolver resolver;
         private DiscordShardedClient discord;
         private CommandService commands;
         private BotSettingsHelper<string> config;
@@ -194,7 +193,7 @@ namespace GLaDOSV3.Services
             this.commands = commands;
             this.config = config;
             this.Provider = provider;
-            this.resolver = new AssemblyDependencyResolver(path);
+            //this.resolver = new AssemblyDependencyResolver(path);
             this.path = path;
         }
         public void FixShit(DiscordShardedClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider)
@@ -223,11 +222,11 @@ namespace GLaDOSV3.Services
         }
 
 
-        protected override Assembly Load(AssemblyName name)
-        {
-            string assemblyPath = this.resolver.ResolveAssemblyToPath(name);
-            return assemblyPath != null ? this.LoadFromAssemblyPath(assemblyPath) : null;
-        }
+        //protected override Assembly Load(AssemblyName name)
+        //{
+        //    string assemblyPath = this.resolver.ResolveAssemblyToPath(name);
+        //    return assemblyPath != null ? this.LoadFromAssemblyPath(assemblyPath) : null;
+        //}
         public void PreLoad() => this.module.PreLoad(this.discord, this.commands, this.config, this.Provider);
 
         public void PostLoad() => this.module.PostLoad(this.discord, this.commands, this.config, this.Provider);
