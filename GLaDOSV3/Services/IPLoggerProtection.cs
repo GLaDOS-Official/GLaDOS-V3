@@ -2,7 +2,6 @@
 using Discord.Rest;
 using Discord.WebSocket;
 using HtmlAgilityPack;
-using Interactivity;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -12,6 +11,7 @@ using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Fergun.Interactive;
 
 namespace GLaDOSV3.Services
 {
@@ -19,7 +19,7 @@ namespace GLaDOSV3.Services
     {
         private readonly DiscordShardedClient discord;
         private readonly List<ulong> serverIds = new List<ulong>() { 658372357924192281, 259776446942150656, 472402015679414293, 503145318372868117, 516296348367192074, 611503265313718282, 611599798595878912, 499598184570421253,  };
-        public InteractivityService Interactivity { get; set; }
+        public InteractiveService Interactivity { get; set; }
 
         public IpLoggerProtection(DiscordShardedClient discord)
         {
@@ -49,14 +49,13 @@ namespace GLaDOSV3.Services
                 {
                     isIpLogger = true;
                     await msg.DeleteAsync();
-                    Interactivity.DelayedDeleteMessageAsync(await arg.Channel.SendMessageAsync($"{arg.Author.Mention} Good job! You have sent an IP logger. Message was logged and reported to Trust and Safety team!"), TimeSpan.FromSeconds(3));
+                    _ = Interactivity.DelayedDeleteMessageAsync(await arg.Channel.SendMessageAsync($"{arg.Author.Mention} Good job! You have sent an IP logger. Message was logged and reported to Trust and Safety team!"), TimeSpan.FromSeconds(3));
                     return; 
                 }
                 if (urlScanned.Contains(shortUrl))
                     return;
                 urlScanned.Add(shortUrl);
                 using HttpClient hc = new HttpClient();
-                RestUserMessage message = null;
                 hc.DefaultRequestHeaders.CacheControl = CacheControlHeaderValue.Parse("no-cache");
                 hc.DefaultRequestHeaders.Add("DNT", "1");
                 hc.DefaultRequestHeaders.Add("Save-Data", "on");
@@ -91,15 +90,13 @@ namespace GLaDOSV3.Services
                         nodeUrl = nodeUrl.Replace("http", "hxxp", StringComparison.OrdinalIgnoreCase);
                         warning = " (KNOWN IP LOGGER!)";
                         isIpLogger = true;
-                        Interactivity.DelayedDeleteMessageAsync(await arg.Channel.SendMessageAsync($"{arg.Author.Mention} Good job! You have sent an IP logger. Message was logged and reported to Trust and Safety team!"), TimeSpan.FromSeconds(3));
+                        _ = Interactivity.DelayedDeleteMessageAsync(await arg.Channel.SendMessageAsync($"{arg.Author.Mention} Good job! You have sent an IP logger. Message was logged and reported to Trust and Safety team!"), TimeSpan.FromSeconds(3));
                         return;
                     }
 
                     redirectHops +=
                         $"{nodeUrl.Replace("\n", string.Empty, StringComparison.Ordinal).Replace("\r", string.Empty, StringComparison.OrdinalIgnoreCase)} ({text}){warning}\n↓\n";
                 }
-                if (message == null) continue;
-                redirectHops = redirectHops.Remove(redirectHops.Length - 3);
             }
         }
     }

@@ -42,8 +42,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Discord.InteractivityAddon" Version="2.4.1-preview-20210624.1" />
-    <PackageReference Include="Discord.Net" Version="3.0.0-dev-20210710.3" />
+    <PackageReference Include="Discord.Net.Labs" Version="3.0.2" />
+    <PackageReference Include="Fergun.Interactive.Labs" Version="1.1.0" />
     <PackageReference Include="Fizzler.Systems.HtmlAgilityPack" Version="1.2.1" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.36" />
     <PackageReference Include="Microsoft.CodeAnalysis.Compilers" Version="4.0.0-3.final" />

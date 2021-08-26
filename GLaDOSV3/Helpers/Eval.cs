@@ -117,7 +117,7 @@ namespace GLaDOSV3.Helpers
                     // https://github.com/dotnet/roslyn/blob/version-3.2.0/src/Scripting/Core/ScriptBuilder.cs#L188
                     var entryPoint = compilation.GetEntryPoint(CancellationToken.None) ?? throw new InvalidOperationException("Entry point could be determined");
 
-              đ      var entryPointType = scriptAssembly
+                    var entryPointType = scriptAssembly
                         .GetType(
                             $"{entryPoint.ContainingNamespace.MetadataName}.{entryPoint.ContainingType.MetadataName}",
                             throwOnError: true,

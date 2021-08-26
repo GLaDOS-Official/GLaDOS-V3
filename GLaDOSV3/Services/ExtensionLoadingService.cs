@@ -11,7 +11,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Threading.Tasks;
-using GLaDOSV3.Models.Interfaces;
+using GLaDOSV3.Models;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace GLaDOSV3.Services
@@ -181,12 +181,12 @@ namespace GLaDOSV3.Services
         public bool LoadFailed;
         public IServiceProvider Provider;
 
-        private bool disposed;
-        private IGladosModule module;
-        private DiscordShardedClient discord;
-        private CommandService commands;
+        private bool                      disposed;
+        private GladosModule              module;
+        private DiscordShardedClient      discord;
+        private CommandService            commands;
         private BotSettingsHelper<string> config;
-        private string path;
+        private string                    path;
         public GladosModuleStruct(string path, DiscordShardedClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider) : base(isCollectible: true)
         {
             this.discord = discord;
@@ -207,16 +207,16 @@ namespace GLaDOSV3.Services
         {
             if (this.AppAssembly == null) this.AppAssembly = this.LoadFromAssemblyPath(this.path);
             var asmType = this.AppAssembly.GetTypes().Where(type => type.IsClass && type.Name == "ModuleInfo").Distinct().First(); //create type
-            MethodInfo getInterface = asmType.GetMethod("GetModule", BindingFlags.Static | BindingFlags.Public);
-            Debug.Assert(getInterface != null, nameof(getInterface) + " != null");
-            this.module = (IGladosModule)getInterface?.Invoke(null, null);
-            this.ModuleName = this.module.Name();
-            this.ModuleAuthor = this.module.Author();
-            this.ModuleVersion = this.module.Version();
 
-            if (string.IsNullOrWhiteSpace(this.ModuleName))    this.LoadFailed = true; // class doesn't have Name string
+
+            this.module        = (GladosModule) Activator.CreateInstance(asmType);
+            this.ModuleName    = this.module.Name;
+            this.ModuleAuthor  = this.module.Author;
+            this.ModuleVersion = this.module.Version;
+
+            if (string.IsNullOrWhiteSpace(this.ModuleName)) this.LoadFailed = true; // class doesn't have Name string
             if (string.IsNullOrWhiteSpace(this.ModuleVersion)) this.LoadFailed = true; // class doesn't have Version string
-            if (string.IsNullOrWhiteSpace(this.ModuleAuthor))  this.LoadFailed = true; // class doesn't have Author string
+            if (string.IsNullOrWhiteSpace(this.ModuleAuthor)) this.LoadFailed = true; // class doesn't have Author string
             if (this.LoadFailed) { this.Unload(); return; }
             this.AsmName = new AssemblyName(this.ModuleName ?? throw new InvalidOperationException()) { CodeBase = this.path };
         }

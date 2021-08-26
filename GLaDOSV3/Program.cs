@@ -7,6 +7,7 @@ using GLaDOSV3.Helpers;
 using GLaDOSV3.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
@@ -32,7 +33,9 @@ namespace GLaDOSV3
             ConsoleHelper.EnableVirtualConsole();
             //Console.BackgroundColor = ConsoleColor.Black;
             //Console.ForegroundColor = ConsoleColor.White;
-            Directory.SetCurrentDirectory(Path.GetDirectoryName(AppContext.BaseDirectory));
+
+            Debug.Assert(Path.GetDirectoryName(AppContext.BaseDirectory) != null, "Path.GetDirectoryName(AppContext.BaseDirectory) ?? throw new InvalidOperationException()");
+            Directory.SetCurrentDirectory(Path.GetDirectoryName(AppContext.BaseDirectory) ?? throw new InvalidOperationException());
             var pInvokeDir = Path.Combine(Directory.GetCurrentDirectory(), $"PInvoke{Path.DirectorySeparatorChar}");
             if (!Directory.Exists(pInvokeDir))
             { Console.WriteLine("PInvoke directory doesn't exist! Creating!"); Directory.CreateDirectory(pInvokeDir); }
@@ -56,7 +59,7 @@ namespace GLaDOSV3
             ExtensionLoadingService.LoadExtensions();
             HostBuilder hostBuilder = new HostBuilder();
             hostBuilder.UseContentRoot(Path.GetDirectoryName(AppContext.BaseDirectory));
-            hostBuilder.gladosServices(client);
+            hostBuilder.GladosServices(client);
             var host = hostBuilder.Build();
 
             var provider = host.Services;
@@ -71,26 +74,27 @@ namespace GLaDOSV3
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0022:Use expression body for methods", Justification = "<Pending>")]
-        private static void gladosServices(this HostBuilder builder, DiscordShardedClient client)
+        private static void GladosServices(this HostBuilder builder, DiscordShardedClient client)
         {
+            // ReSharper disable once ArrangeMethodOrOperatorBody
             builder.ConfigureServices(async (hostContext, services) =>
             {
                 services.AddHostedService<MemoryHandlerService>();
                 services.AddSingleton(client)
-                .AddSingleton(new CommandService(new CommandServiceConfig     // Add the command service to the service provider
-                {
-                    DefaultRunMode = RunMode.Async,     // Force all commands to run async
-                    LogLevel = LogSeverity.Verbose,
-                    SeparatorChar = ' ',  // Arguments
-                    ThrowOnError = true // This could be changed to false
-                }))
-                .AddSingleton<CommandHandler>()     // Add remaining services to the provider
-                .AddSingleton<LoggingService>()     // Bad idea not logging commands 
-                .AddSingleton<StartupService>()     // Do commands on startup
-                .AddSingleton<OnLogonService>()     // Execute commands after websocket connects
-                .AddSingleton<ClientEvents>()       // Discord client events
-                .AddSingleton<IpLoggerProtection>()       // IP logging service
-                .AddSingleton<BotSettingsHelper<string>>();
+                        .AddSingleton(new CommandService(new CommandServiceConfig     // Add the command service to the service provider
+                         {
+                             DefaultRunMode = RunMode.Async,     // Force all commands to run async
+                             LogLevel = LogSeverity.Verbose,
+                             SeparatorChar = ' ',  // Arguments
+                             ThrowOnError = true // This could be changed to false
+                         }))
+                        .AddSingleton<CommandHandler>()     // Add remaining services to the provider
+                        .AddSingleton<LoggingService>()     // Bad idea not logging commands 
+                        .AddSingleton<StartupService>()     // Do commands on startup
+                        .AddSingleton<OnLogonService>()     // Execute commands after websocket connects
+                        .AddSingleton<ClientEvents>()       // Discord client events
+                        .AddSingleton<IpLoggerProtection>()       // IP logging service
+                        .AddSingleton<BotSettingsHelper<string>>();
                 foreach (var item in (await ExtensionLoadingService.GetServices(client, services).ConfigureAwait(true)))
                     services.AddSingleton(item);
             });
