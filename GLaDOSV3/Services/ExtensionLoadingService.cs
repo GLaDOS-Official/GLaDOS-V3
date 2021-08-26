@@ -189,12 +189,11 @@ namespace GLaDOSV3.Services
         private string                    path;
         public GladosModuleStruct(string path, DiscordShardedClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider) : base(isCollectible: true)
         {
-            this.discord = discord;
+            this.discord  = discord;
             this.commands = commands;
-            this.config = config;
+            this.config   = config;
             this.Provider = provider;
-            //this.resolver = new AssemblyDependencyResolver(path);
-            this.path = path;
+            this.path     = path;
         }
         public void FixShit(DiscordShardedClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider)
         {
