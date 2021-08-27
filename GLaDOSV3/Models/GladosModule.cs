@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.Loader;
 using Discord.Commands;
@@ -19,15 +20,14 @@ namespace GLaDOSV3.Models
 
         protected GladosModule()
         {
-            instance = this;
-            Assembly            currentAssembly = Assembly.GetExecutingAssembly();
-            AssemblyLoadContext currentContext  = AssemblyLoadContext.GetLoadContext(currentAssembly);
+            Instance = this;
+            AssemblyLoadContext currentContext  = AssemblyLoadContext.GetLoadContext(Assembly.GetExecutingAssembly());
+            Debug.Assert(currentContext != null, nameof(currentContext) + " != null");
             currentContext.Unloading -= this.OnPluginUnloadingRequested;
             currentContext.Unloading += this.OnPluginUnloadingRequested;
         }
 
-        public static    GladosModule instance;
-        protected static GladosModule GetInstance() => instance;
+        public static    GladosModule Instance;
 
         private protected virtual void OnPluginUnloadingRequested(AssemblyLoadContext obj)
         { }
@@ -43,11 +43,6 @@ namespace GLaDOSV3.Models
         { }
 
         public virtual void PostLoad(
-            DiscordShardedClient discord, CommandService commands, BotSettingsHelper<string> config,
-            IServiceProvider provider)
-        { }
-
-        public virtual void Reload(
             DiscordShardedClient discord, CommandService commands, BotSettingsHelper<string> config,
             IServiceProvider provider)
         { }

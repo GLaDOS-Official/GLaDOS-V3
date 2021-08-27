@@ -80,17 +80,7 @@ namespace GLaDOSV3.Services
             { }
             return null;
         }
-        public static Task<Type[]> GetServices(DiscordShardedClient client, IServiceCollection provider)
-        {
-            List<Type> types = new List<Type>();
-            foreach (var extension in Extensions) // Bad extension loading
-            {
-                types.AddRange(extension.GetServices(client, provider));
-            }
-
-            return Task.FromResult(types.ToArray());
-
-        }
+        public static IEnumerable<Type[]> GetServices(DiscordShardedClient client, IServiceCollection provider) => Extensions.Select(extension => extension.GetServices(client, provider));
 
         private static bool ValidFile(string file)
         {
@@ -209,9 +199,9 @@ namespace GLaDOSV3.Services
 
 
             this.module        = (GladosModule) Activator.CreateInstance(asmType);
-            this.ModuleName    = this.module.Name;
-            this.ModuleAuthor  = this.module.Author;
-            this.ModuleVersion = this.module.Version;
+            this.ModuleName    = this.module?.Name;
+            this.ModuleAuthor  = this.module?.Author;
+            this.ModuleVersion = this.module?.Version;
 
             if (string.IsNullOrWhiteSpace(this.ModuleName)) this.LoadFailed = true; // class doesn't have Name string
             if (string.IsNullOrWhiteSpace(this.ModuleVersion)) this.LoadFailed = true; // class doesn't have Version string
@@ -219,18 +209,11 @@ namespace GLaDOSV3.Services
             if (this.LoadFailed) { this.Unload(); return; }
             this.AsmName = new AssemblyName(this.ModuleName ?? throw new InvalidOperationException()) { CodeBase = this.path };
         }
-
-
-        //protected override Assembly Load(AssemblyName name)
-        //{
-        //    string assemblyPath = this.resolver.ResolveAssemblyToPath(name);
-        //    return assemblyPath != null ? this.LoadFromAssemblyPath(assemblyPath) : null;
-        //}
         public void PreLoad() => this.module.PreLoad(this.discord, this.commands, this.config, this.Provider);
 
         public void PostLoad() => this.module.PostLoad(this.discord, this.commands, this.config, this.Provider);
 
-        public List<Type> GetServices(DiscordShardedClient client, IServiceCollection provider) => this.module.Services(client, this.commands, this.config, provider).ToList();
+        public Type[] GetServices(DiscordShardedClient client, IServiceCollection provider) => this.module.Services(client, this.commands, this.config, provider).ToArray();
 
         public void Dispose()
         {

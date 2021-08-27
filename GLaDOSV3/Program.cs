@@ -10,6 +10,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Threading.Tasks;
@@ -81,22 +82,24 @@ namespace GLaDOSV3
             {
                 services.AddHostedService<MemoryHandlerService>();
                 services.AddSingleton(client)
-                        .AddSingleton(new CommandService(new CommandServiceConfig     // Add the command service to the service provider
-                         {
-                             DefaultRunMode = RunMode.Async,     // Force all commands to run async
-                             LogLevel = LogSeverity.Verbose,
-                             SeparatorChar = ' ',  // Arguments
-                             ThrowOnError = true // This could be changed to false
-                         }))
+                        .AddSingleton(new CommandService(new
+                                                             CommandServiceConfig // Add the command service to the service provider
+                                                             {
+                                                                 DefaultRunMode =
+                                                                     RunMode.Async, // Force all commands to run async
+                                                                 LogLevel      = LogSeverity.Verbose,
+                                                                 SeparatorChar = ' ', // Arguments
+                                                                 ThrowOnError  = true // This could be changed to false
+                                                             }))
                         .AddSingleton<CommandHandler>()     // Add remaining services to the provider
                         .AddSingleton<LoggingService>()     // Bad idea not logging commands 
                         .AddSingleton<StartupService>()     // Do commands on startup
                         .AddSingleton<OnLogonService>()     // Execute commands after websocket connects
                         .AddSingleton<ClientEvents>()       // Discord client events
-                        .AddSingleton<IpLoggerProtection>()       // IP logging service
+                        .AddSingleton<IpLoggerProtection>() // IP logging service
                         .AddSingleton<BotSettingsHelper<string>>();
-                foreach (var item in (await ExtensionLoadingService.GetServices(client, services).ConfigureAwait(true)))
-                    services.AddSingleton(item);
+                foreach (var item in ExtensionLoadingService.GetServices(client, services))
+                    foreach (var t in item) { services.AddSingleton(t); }
             });
         }
     }
