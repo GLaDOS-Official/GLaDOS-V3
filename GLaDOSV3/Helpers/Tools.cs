@@ -52,9 +52,9 @@ namespace GLaDOSV3.Helpers
             {
                 StartInfo =
                 {
-                    FileName = "dotnet",
-                    Arguments = $"{Assembly.GetEntryAssembly()?.Location}",
-                    UseShellExecute = false,
+                    FileName         = "dotnet",
+                    Arguments        = $"{Environment.ProcessPath}",
+                    UseShellExecute  = false,
                     WorkingDirectory = AppContext.BaseDirectory
                 }
             };

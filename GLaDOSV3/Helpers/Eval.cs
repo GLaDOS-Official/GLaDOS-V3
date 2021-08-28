@@ -1,4 +1,4 @@
-﻿using Discord.Commands;
+using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Data.SQLite;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -26,6 +27,7 @@ namespace GLaDOSV3.Helpers
 {
     public static class EvalWorkaround
     {
+        [RequiresUnreferencedCode("Workaround for Roslyn's broken Eval (with single-file)")]
         public static async Task<object> Eval(string sourceText, List<string> imports, object globals, Type globalsType)
         {
             // The `CSharpScript` API cannot be used when `Assembly.Location` is not supported, see:

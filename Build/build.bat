@@ -12,7 +12,7 @@ dotnet restore ..\GladosV3.sln  >nul 2>&1
 
 echo Building win-x64!
 dotnet msbuild ..\GladosV3.sln /p:Configuration=Release "/p:Platform=x64" >nul 2>&1
-dotnet publish ..\GLaDOSV3\GladosV3.csproj -c Release -p:PublishTrimmed=true -p:PublishSingleFile=true --self-contained true -r win-x64 -o .\Build\win-x64 >nul 2>&1
+dotnet publish ..\GLaDOSV3\GladosV3.csproj -c Release -p:PublishSingleFile=true --self-contained true -r win-x64 -o .\Build\win-x64 >nul 2>&1
 IF %ERRORLEVEL% NEQ 0 GOTO err
 echo Copying important files!
 set BUILDLOCATION=.\Build\win-x64
@@ -21,11 +21,11 @@ mkdir %BUILDLOCATION%\Modules\ >nul 2>&1
 mkdir %BUILDLOCATION%\Images\ >nul 2>&1
 mkdir %BUILDLOCATION%\Dependencies\ >nul 2>&1
 mkdir %BUILDLOCATION%\runtimes\ >nul 2>&1
-xcopy %GLADOSRELEASE%\Binaries\     %BUILDLOCATION%\Binaries\  /E /H /C /I >nul 2>&1
-xcopy %GLADOSRELEASE%\Modules\      %BUILDLOCATION%\Modules\  /E /H /C /I >nul 2>&1
-xcopy %GLADOSRELEASE%\Images\       %BUILDLOCATION%\Images\  /E /H /C /I >nul 2>&1
-xcopy %GLADOSRELEASE%\Dependencies\ %BUILDLOCATION%\Dependencies\  /E /H /C /I >nul 2>&1
-xcopy %GLADOSRELEASE%\runtimes\ %BUILDLOCATION%\runtimes\ /E /H /C /I >nul 2>&1
+xcopy %GLADOSRELEASE%\Binaries\     %BUILDLOCATION%\Binaries\  /E /H /C /I /Y >nul 2>&1
+xcopy %GLADOSRELEASE%\Modules\      %BUILDLOCATION%\Modules\  /E /H /C /I /Y >nul 2>&1
+xcopy %GLADOSRELEASE%\Images\       %BUILDLOCATION%\Images\  /E /H /C /I /Y >nul 2>&1
+xcopy %GLADOSRELEASE%\Dependencies\ %BUILDLOCATION%\Dependencies\  /E /H /C /I /Y >nul 2>&1
+xcopy %GLADOSRELEASE%\runtimes\ %BUILDLOCATION%\runtimes\ /E /H /C /I /Y >nul 2>&1
 IF EXIST %GLADOSRELEASE%\database.db (
 	echo Deleting database.db to prevent any leaks!
 	del %BUILDLOCATION%\database.db /q /f >nul 2>&1
@@ -33,7 +33,7 @@ IF EXIST %GLADOSRELEASE%\database.db (
 
 echo Building win-x86!
 dotnet msbuild ..\GladosV3.sln /p:Configuration=Release "/p:Platform=x86" >nul 2>&1
-dotnet publish ..\GLaDOSV3\GladosV3.csproj -c Release -p:PublishTrimmed=true -p:PublishSingleFile=true --self-contained true -r win-x86 -o .\Build\win-x86 >nul 2>&1
+dotnet publish ..\GLaDOSV3\GladosV3.csproj -c Release -p:PublishSingleFile=true --self-contained true -r win-x86 -o .\Build\win-x86 >nul 2>&1
 IF %ERRORLEVEL% NEQ 0 GOTO err
 echo Copying important files!
 set BUILDLOCATION=.\Build\win-x86
@@ -42,11 +42,11 @@ mkdir %BUILDLOCATION%\Modules\ >nul 2>&1
 mkdir %BUILDLOCATION%\Images\ >nul 2>&1
 mkdir %BUILDLOCATION%\Dependencies\ >nul 2>&1
 mkdir %BUILDLOCATION%\runtimes\ >nul 2>&1
-xcopy %GLADOSRELEASE%\Binaries\     %BUILDLOCATION%\Binaries\  /E /H /C /I >nul 2>&1
-xcopy %GLADOSRELEASE%\Modules\      %BUILDLOCATION%\Modules\  /E /H /C /I >nul 2>&1
-xcopy %GLADOSRELEASE%\Images\       %BUILDLOCATION%\Images\  /E /H /C /I >nul 2>&1
-xcopy %GLADOSRELEASE%\Dependencies\ %BUILDLOCATION%\Dependencies\  /E /H /C /I >nul 2>&1
-xcopy %GLADOSRELEASE%\runtimes\ %BUILDLOCATION%\runtimes\ /E /H /C /I >nul 2>&1
+xcopy %GLADOSRELEASE%\Binaries\     %BUILDLOCATION%\Binaries\  /E /H /C /I /Y >nul 2>&1
+xcopy %GLADOSRELEASE%\Modules\      %BUILDLOCATION%\Modules\  /E /H /C /I /Y >nul 2>&1
+xcopy %GLADOSRELEASE%\Images\       %BUILDLOCATION%\Images\  /E /H /C /I /Y >nul 2>&1
+xcopy %GLADOSRELEASE%\Dependencies\ %BUILDLOCATION%\Dependencies\  /E /H /C /I /Y >nul 2>&1
+xcopy %GLADOSRELEASE%\runtimes\ %BUILDLOCATION%\runtimes\ /E /H /C /I /Y >nul 2>&1
 IF EXIST %GLADOSRELEASE%\database.db ( 
 	echo Deleting database.db to prevent any leaks!
 	del %BUILDLOCATION%\database.db /q /f >nul 2>&1
@@ -54,7 +54,7 @@ IF EXIST %GLADOSRELEASE%\database.db (
 
 echo Building linux-x64!
 dotnet msbuild ..\GladosV3.sln /p:Configuration=Release "/p:Platform=x64" >nul 2>&1
-dotnet publish ..\GLaDOSV3\GladosV3.csproj -c Release -p:PublishTrimmed=true -p:PublishSingleFile=true --self-contained true -r linux-x64 -o .\Build\linux-x64 >nul 2>&1
+dotnet publish ..\GLaDOSV3\GladosV3.csproj -c Release -p:PublishSingleFile=true --self-contained true -r linux-x64 -o .\Build\linux-x64 >nul 2>&1
 IF %ERRORLEVEL% NEQ 0 GOTO err
 echo Copying important files!
 set BUILDLOCATION=.\Build\linux-x64
@@ -63,11 +63,11 @@ mkdir %BUILDLOCATION%\Modules\ >nul 2>&1
 mkdir %BUILDLOCATION%\Images\ >nul 2>&1
 mkdir %BUILDLOCATION%\Dependencies\ >nul 2>&1
 mkdir %BUILDLOCATION%\runtimes\ >nul 2>&1
-xcopy %GLADOSRELEASE%\Binaries\     %BUILDLOCATION%\Binaries\  /E /H /C /I >nul 2>&1
-xcopy %GLADOSRELEASE%\Modules\      %BUILDLOCATION%\Modules\  /E /H /C /I >nul 2>&1
-xcopy %GLADOSRELEASE%\Images\       %BUILDLOCATION%\Images\  /E /H /C /I >nul 2>&1
-xcopy %GLADOSRELEASE%\Dependencies\ %BUILDLOCATION%\Dependencies\  /E /H /C /I >nul 2>&1
-xcopy %GLADOSRELEASE%\runtimes\ %BUILDLOCATION%\runtimes\ /E /H /C /I >nul 2>&1
+xcopy %GLADOSRELEASE%\Binaries\     %BUILDLOCATION%\Binaries\  /E /H /C /I /Y >nul 2>&1
+xcopy %GLADOSRELEASE%\Modules\      %BUILDLOCATION%\Modules\  /E /H /C /I /Y >nul 2>&1	
+xcopy %GLADOSRELEASE%\Images\       %BUILDLOCATION%\Images\  /E /H /C /I /Y >nul 2>&1
+xcopy %GLADOSRELEASE%\Dependencies\ %BUILDLOCATION%\Dependencies\  /E /H /C /I /Y >nul 2>&1
+xcopy %GLADOSRELEASE%\runtimes\ %BUILDLOCATION%\runtimes\ /E /H /C /I /Y >nul 2>&1
 IF EXIST %GLADOSRELEASE%\database.db ( 
 	echo Deleting database.db to prevent any leaks!
 	del %BUILDLOCATION%\database.db /q /f >nul 2>&1
@@ -84,11 +84,11 @@ mkdir %BUILDLOCATION%\Modules\ >nul 2>&1
 mkdir %BUILDLOCATION%\Images\ >nul 2>&1
 mkdir %BUILDLOCATION%\Dependencies\ >nul 2>&1
 mkdir %BUILDLOCATION%\runtimes\ >nul 2>&1
-xcopy %GLADOSRELEASE%\Binaries\     %BUILDLOCATION%\Binaries\  /E /H /C /I >nul 2>&1
-xcopy %GLADOSRELEASE%\Modules\      %BUILDLOCATION%\Modules\  /E /H /C /I >nul 2>&1
-xcopy %GLADOSRELEASE%\Images\       %BUILDLOCATION%\Images\  /E /H /C /I >nul 2>&1
-xcopy %GLADOSRELEASE%\Dependencies\ %BUILDLOCATION%\Dependencies\  /E /H /C /I >nul 2>&1
-xcopy %GLADOSRELEASE%\runtimes\ %BUILDLOCATION%\runtimes\ /E /H /C /I >nul 2>&1
+xcopy %GLADOSRELEASE%\Binaries\     %BUILDLOCATION%\Binaries\  /E /H /C /I /Y >nul 2>&1
+xcopy %GLADOSRELEASE%\Modules\      %BUILDLOCATION%\Modules\  /E /H /C /I /Y >nul 2>&1
+xcopy %GLADOSRELEASE%\Images\       %BUILDLOCATION%\Images\  /E /H /C /I /Y >nul 2>&1
+xcopy %GLADOSRELEASE%\Dependencies\ %BUILDLOCATION%\Dependencies\  /E /H /C /I /Y >nul 2>&1
+xcopy %GLADOSRELEASE%\runtimes\ %BUILDLOCATION%\runtimes\ /E /H /C /I /Y >nul 2>&1
 IF EXIST %GLADOSRELEASE%\database.db ( 
 	echo Deleting database.db to prevent any leaks!
 	del %BUILDLOCATION%\database.db /q /f >nul 2>&1
@@ -104,11 +104,11 @@ mkdir %BUILDLOCATION%\Modules\ >nul 2>&1
 mkdir %BUILDLOCATION%\Images\ >nul 2>&1
 mkdir %BUILDLOCATION%\Dependencies\ >nul 2>&1
 mkdir %BUILDLOCATION%\runtimes\ >nul 2>&1
-xcopy %GLADOSRELEASE%\Binaries\     %BUILDLOCATION%\Binaries\  /E /H /C /I >nul 2>&1
-xcopy %GLADOSRELEASE%\Modules\      %BUILDLOCATION%\Modules\  /E /H /C /I >nul 2>&1
-xcopy %GLADOSRELEASE%\Images\       %BUILDLOCATION%\Images\  /E /H /C /I >nul 2>&1
-xcopy %GLADOSRELEASE%\Dependencies\ %BUILDLOCATION%\Dependencies\  /E /H /C /I >nul 2>&1
-xcopy %GLADOSRELEASE%\runtimes\ %BUILDLOCATION%\runtimes\ /E /H /C /I >nul 2>&1
+xcopy %GLADOSRELEASE%\Binaries\     %BUILDLOCATION%\Binaries\  /E /H /C /I /Y >nul 2>&1
+xcopy %GLADOSRELEASE%\Modules\      %BUILDLOCATION%\Modules\  /E /H /C /I /Y >nul 2>&1
+xcopy %GLADOSRELEASE%\Images\       %BUILDLOCATION%\Images\  /E /H /C /I /Y >nul 2>&1
+xcopy %GLADOSRELEASE%\Dependencies\ %BUILDLOCATION%\Dependencies\  /E /H /C /I /Y >nul 2>&1
+xcopy %GLADOSRELEASE%\runtimes\ %BUILDLOCATION%\runtimes\ /E /H /C /I /Y >nul 2>&1
 IF EXIST %GLADOSRELEASE%\database.db ( 
 	echo Deleting database.db to prevent any leaks!
 	del %BUILDLOCATION%\database.db /q /f >nul 2>&1

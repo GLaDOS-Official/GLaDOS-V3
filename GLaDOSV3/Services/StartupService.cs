@@ -8,7 +8,11 @@ using System.Data;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.VisualBasic;
+using Serilog;
+using Serilog.Core;
 
 namespace GLaDOSV3.Services
 {
@@ -65,7 +69,10 @@ namespace GLaDOSV3.Services
             await SqLite.Connection.AddRecordAsync("BotSettings", "name,value", new[] { "co-owners", input }).ConfigureAwait(false);
             await SqLite.Connection.AddRecordAsync("BotSettings", "name,value", new[] { "discord_game", "" }).ConfigureAwait(false);
             await SqLite.Connection.AddRecordAsync("BotSettings", "name,value", new[] { "discord_status", "Online" }).ConfigureAwait(false);
-            input = await this.AskNotNull("Ok! Now the final thing! Enter your bot token: ").ConfigureAwait(true);
+            do
+            {
+                input = await this.AskNotNull("Ok! Now the final thing! Enter your bot token: ").ConfigureAwait(true);
+            } while (!Regex.IsMatch(input, @"/[MN][A-Za-z\d]{23}\.[\w-]{6}\.[\w-]{27}/g"));
             await SqLite.Connection.AddRecordAsync("BotSettings", "name,value", new[] { "tokens_discord", input }).ConfigureAwait(false); ;
         }
         public async Task StartAsync(string[] args)
@@ -78,23 +85,15 @@ namespace GLaDOSV3.Services
             //Console.SetWindowSize(150, 35);
             Console.WriteLine("This bot is using a database to store it's settings. Add --resetdb to reset the configuration (token, owners, etc..).");
             string discordToken = this.botSettingsHelper["tokens_discord"];     // Get the discord token from the config file
+            Log.Error("TOKEN BELOW");
+            Log.Error("Discord token: {0}",discordToken);
+            Log.Error("TOKEN ABOVE");
             try
             {
                 await this.discord.LoginAsync(TokenType.Bot, discordToken).ConfigureAwait(false); // Login to discord
                 await this.discord.StartAsync().ConfigureAwait(false); // Connect to the websocket
             }
-            catch (HttpException ex) // Some error checking
-            {
-                if (ex.DiscordCode == 401 || ex.HttpCode == HttpStatusCode.Unauthorized)
-                    ConsoleHelper.WriteColorLine(ConsoleColor.Red, "Wrong or invalid token.");
-                else if (ex.DiscordCode == 502 || ex.HttpCode == HttpStatusCode.BadGateway)
-                    ConsoleHelper.WriteColorLine(ConsoleColor.Yellow, "Gateway unavailable.");
-                else if (ex.DiscordCode == 400 || ex.HttpCode == HttpStatusCode.BadRequest)
-                    ConsoleHelper.WriteColorLine(ConsoleColor.Red, "Bad request. Please wait for an update.");
-                ConsoleHelper.WriteColorLine(ConsoleColor.Red, $"Discord has returned an error code: {ex.DiscordCode}{Environment.NewLine}Here's exception message: {ex.Message}");
-                Task.Delay(10000).Wait();
-                Environment.Exit(0);
-            }
+            catch (Exception ex) { Log.Fatal(ex, ex.Message); Environment.Exit(1); }
             await this.commands.AddModulesAsync(Assembly.GetEntryAssembly(), this.provider).ConfigureAwait(false);     // Load commands and modules into the command service
             ExtensionLoadingService.Init(this.discord, this.commands, this.botSettingsHelper, this.provider);
             await ExtensionLoadingService.Load().ConfigureAwait(false);

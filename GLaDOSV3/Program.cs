@@ -8,6 +8,7 @@ using GLaDOSV3.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
@@ -17,9 +18,12 @@ using System.Threading.Tasks;
 using GLaDOSV3.Dashboard;
 using GLaDOSV3.Models;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Serilog;
+using Serilog.Events;
 
 namespace GLaDOSV3
-{      
+{
     //TODO: use https://github.com/Quahu/Qmmands
     //TODO: Make timeout attribute better
     public static class Program
@@ -30,6 +34,12 @@ namespace GLaDOSV3
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
         public static async Task StartAsync(string[] args)
         {
+            Log.Logger = new LoggerConfiguration()
+                        .MinimumLevel.Verbose()
+                        .MinimumLevel.Override("Microsoft", LogEventLevel.Error)
+                        .WriteTo.Console()
+                        .WriteTo.File("Logs/main-.txt", rollingInterval: RollingInterval.Day, rollOnFileSizeLimit: true)
+                        .CreateLogger();
             //DashboardClient.Connect();
             ConsoleHelper.EnableVirtualConsole();
             //Console.BackgroundColor = ConsoleColor.Black;
@@ -56,13 +66,13 @@ namespace GLaDOSV3
                     DefaultRetryMode = RetryMode.AlwaysRetry, // Always believe
                     GatewayIntents = GatewayIntents.All
                 });
+            HostBuilder hostBuilder = new HostBuilder();
+            hostBuilder.UseSerilog();
+            hostBuilder.UseContentRoot(Path.GetDirectoryName(AppContext.BaseDirectory));
             ExtensionLoadingService.Init(null, null, null, null);
             ExtensionLoadingService.LoadExtensions();
-            HostBuilder hostBuilder = new HostBuilder();
-            hostBuilder.UseContentRoot(Path.GetDirectoryName(AppContext.BaseDirectory));
             hostBuilder.GladosServices(client);
             var host = hostBuilder.Build();
-
             var provider = host.Services;
             provider.GetRequiredService<LoggingService>();      // Initialize the logging service, client events, startup service, on discord log on service, command handler and system message
             provider.GetRequiredService<ClientEvents>();
@@ -71,10 +81,18 @@ namespace GLaDOSV3
             provider.GetRequiredService<CommandHandler>();
             provider.GetRequiredService<IpLoggerProtection>();
 
-            await Task.Delay(-1).ConfigureAwait(true);     // Prevent the application from closing
+            try
+            {
+                await Task.Delay(-1).ConfigureAwait(true); // Prevent the application from closing
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0022:Use expression body for methods", Justification = "<Pending>")]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.All, "Microsoft.Extensions.DependencyInjection", "mscorlib")]
         private static void GladosServices(this HostBuilder builder, DiscordShardedClient client)
         {
             // ReSharper disable once ArrangeMethodOrOperatorBody
@@ -84,13 +102,13 @@ namespace GLaDOSV3
                 services.AddSingleton(client)
                         .AddSingleton(new CommandService(new
                                                              CommandServiceConfig // Add the command service to the service provider
-                                                             {
-                                                                 DefaultRunMode =
+                        {
+                            DefaultRunMode =
                                                                      RunMode.Async, // Force all commands to run async
-                                                                 LogLevel      = LogSeverity.Verbose,
-                                                                 SeparatorChar = ' ', // Arguments
-                                                                 ThrowOnError  = true // This could be changed to false
-                                                             }))
+                            LogLevel = LogSeverity.Verbose,
+                            SeparatorChar = ' ', // Arguments
+                            ThrowOnError = true // This could be changed to false
+                        }))
                         .AddSingleton<CommandHandler>()     // Add remaining services to the provider
                         .AddSingleton<LoggingService>()     // Bad idea not logging commands 
                         .AddSingleton<StartupService>()     // Do commands on startup
@@ -98,6 +116,7 @@ namespace GLaDOSV3
                         .AddSingleton<ClientEvents>()       // Discord client events
                         .AddSingleton<IpLoggerProtection>() // IP logging service
                         .AddSingleton<BotSettingsHelper<string>>();
+                
                 foreach (var item in ExtensionLoadingService.GetServices(client, services))
                     foreach (var t in item) { services.AddSingleton(t); }
             });

@@ -81,7 +81,7 @@ namespace GLaDOSV3.Models
             /// </summary>
             public static AnsiColor HideCursor => new AnsiColor($"{CSI}?25l");
         }
-        public class Decatoration
+        public class Decoration
         {
             /// <summary>
             /// Sets bold, underline and inverse mode off
@@ -333,7 +333,7 @@ namespace GLaDOSV3.Models
             public static AnsiColor LightGoldenrod1 => new AnsiColor($"{CSI}38;5;227m");
             public static AnsiColor Khaki1 => new AnsiColor($"{CSI}38;5;228m");
             public static AnsiColor Wheat1 => new AnsiColor($"{CSI}38;5;229m");
-            public static AnsiColor Cornsilk1 => new AnsiColor($"{CSI}38;5;230m");
+            public static AnsiColor Cornsilk => new AnsiColor($"{CSI}38;5;230m");
             public static AnsiColor Grey100 => new AnsiColor($"{CSI}38;5;231m");
             public static AnsiColor Grey3 => new AnsiColor($"{CSI}38;5;232m");
             public static AnsiColor Grey7 => new AnsiColor($"{CSI}38;5;233m");
