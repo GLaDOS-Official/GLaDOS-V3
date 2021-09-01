@@ -38,6 +38,7 @@ csharp_style_expression_bodied_methods=true:error
 csharp_style_prefer_range_operator=true:error
 csharp_prefer_simple_using_statement=true:error
 csharp_style_deconstructed_variable_declaration=true:error
+csharp_style_implicit_object_creation_when_type_is_apparent=false
 
 #Resharper shit
 [*]

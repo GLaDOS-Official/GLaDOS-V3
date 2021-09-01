@@ -46,7 +46,7 @@ namespace GLaDOSV3.Helpers
         {
             return Task.Run(() =>
             {
-                string sql = $"CREATE TABLE `{tableName}` ({parameters});";
+                var sql = $"CREATE TABLE `{tableName}` ({parameters});";
                 if (!ValidateSQLSafety(sql)) return Task.CompletedTask;
                 using SQLiteCommand command = new SQLiteCommand(sql, connection);
                 command.ExecuteNonQuery();
@@ -60,7 +60,7 @@ namespace GLaDOSV3.Helpers
         {
             return Task.Run(() =>
             {
-                string sql = $"UPDATE {tableName} SET {parameter}='{value}'";
+                var sql = $"UPDATE {tableName} SET {parameter}='{value}'";
                 if (!string.IsNullOrEmpty(filter))
                     sql += $" {filter}";
                 if (!ValidateSQLSafety(sql)) return Task.CompletedTask;
@@ -76,7 +76,7 @@ namespace GLaDOSV3.Helpers
         {
             return Task.Run(() =>
             {
-                string sql = $"SELECT * FROM {tableName}";
+                var sql = $"SELECT * FROM {tableName}";
                 using DataTable dt = new DataTable();
                 if (!string.IsNullOrEmpty(filter))
                     sql += $" {filter}";
@@ -122,15 +122,15 @@ namespace GLaDOSV3.Helpers
             {
                 if (string.IsNullOrWhiteSpace(tablename) || string.IsNullOrWhiteSpace(values) || items == null)
                     return Task.CompletedTask;
-                string result = string.Empty;
-                for (int i = 1; i <= items?.Length; i++) { result += $"@val{i},"; }
+                var result = string.Empty;
+                for (var i = 1; i <= items?.Length; i++) { result += $"@val{i},"; }
 
-                string sql = $"INSERT INTO {tablename} ({values}) VALUES ({result.Remove(result.Length - 1)}) ";
+                var sql = $"INSERT INTO {tablename} ({values}) VALUES ({result.Remove(result.Length - 1)}) ";
                 if (!string.IsNullOrEmpty(filter))
                     sql += $"WHERE {filter}";
                 if (!ValidateSQLSafety(sql)) return Task.FromResult(false);
                 using SQLiteCommand command = new SQLiteCommand(sql, connection);
-                for (int i = 1; i <= items.Length; i++)
+                for (var i = 1; i <= items.Length; i++)
                     command.Parameters.AddWithValue($"@val{i}", items[i - 1]);
                 command.ExecuteNonQuery();
                 return Task.CompletedTask;
@@ -145,7 +145,7 @@ namespace GLaDOSV3.Helpers
             {
                 if (string.IsNullOrWhiteSpace(filter))
                     return Task.FromException(new SQLiteException("Filter mustn't be empty!"));
-                string sql = $"DELETE FROM {tablename} WHERE {filter}";
+                var sql = $"DELETE FROM {tablename} WHERE {filter}";
                 if (!ValidateSQLSafety(sql)) return Task.FromResult(false);
                 using SQLiteCommand command = new SQLiteCommand(sql, connection);
                 command.ExecuteNonQuery();
@@ -159,7 +159,7 @@ namespace GLaDOSV3.Helpers
         {
             return Task.Run(() =>
             {
-                string sql = $"SELECT 1 FROM {tablename}";
+                var sql = $"SELECT 1 FROM {tablename}";
                 if (!string.IsNullOrEmpty(filter)) sql += $" {filter}";
                 if (!ValidateSQLSafety(sql)) return Task.FromResult(false);
                 using DataTable dt = new DataTable();

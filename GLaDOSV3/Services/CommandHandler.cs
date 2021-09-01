@@ -41,7 +41,7 @@ namespace GLaDOSV3.Services
             MaintenanceMode = botSettingsHelper["maintenance"];
             this.fallbackPrefix = botSettingsHelper["prefix"];
             using DataTable dt = SqLite.Connection.GetValuesAsync("BlacklistedUsers").GetAwaiter().GetResult();
-            for (int i = 0; i < dt.Rows.Count; i++)
+            for (var i = 0; i < dt.Rows.Count; i++)
             {
                 BlacklistedUsers.Add(Convert.ToUInt64(dt.Rows[i]["UserId"], CultureInfo.InvariantCulture));
             }
@@ -75,14 +75,14 @@ namespace GLaDOSV3.Services
 
         public static void RefreshPrefix()
         {
-            string sql = "SELECT guildid,prefix FROM servers";
+            var sql = "SELECT guildid,prefix FROM servers";
             using DataTable dt2 = new DataTable();
             using (SQLiteDataAdapter reader = new SQLiteDataAdapter(sql, SqLite.Connection))
                 reader.Fill(dt2);
             dt2.TableName = "servers";
-            for (int i = 0; i < dt2.Rows.Count; i++)
+            for (var i = 0; i < dt2.Rows.Count; i++)
             {
-                string pref = dt2.Rows[i]["prefix"].ToString();
+                var pref = dt2.Rows[i]["prefix"].ToString();
                 if (string.IsNullOrWhiteSpace(pref)) continue;
                 Prefix.Add(Convert.ToUInt64(dt2.Rows[i]["guildid"], CultureInfo.InvariantCulture), pref);
             }
@@ -105,15 +105,15 @@ namespace GLaDOSV3.Services
                 return;     // Ignore self when checking commands
             }
 
-            int argPos = 0; // Check if the message has a valid command prefix
-            string prefix = this.fallbackPrefix;
-            if (msg.Channel is IGuildChannel ok && Prefix.TryGetValue(ok.Guild.Id, out string guildPrefix))
+            var argPos = 0; // Check if the message has a valid command prefix
+            var prefix = this.fallbackPrefix;
+            if (msg.Channel is IGuildChannel ok && Prefix.TryGetValue(ok.Guild.Id, out var guildPrefix))
             { prefix = guildPrefix; }
             if (!msg.HasStringPrefix(prefix, ref argPos) && !msg.HasMentionPrefix(this.discord.CurrentUser, ref argPos))
             {
                 if (msg.MentionedUsers.Count > 0)
                 {
-                    await this.MentionBomb(msg).ConfigureAwait(false);
+                    await MentionBomb(msg).ConfigureAwait(false);
                 }
                 return; // Ignore messages that aren't meant for the bot
             }
@@ -128,7 +128,7 @@ namespace GLaDOSV3.Services
             await this.commands.ExecuteAsync(context, argPos, this.provider).ConfigureAwait(false); // Execute the command
         }
 
-        private Task MentionBomb(SocketUserMessage msg)
+        private static Task MentionBomb(SocketUserMessage msg)
         {
             return Task.CompletedTask;
             if (msg.Channel is not SocketGuildChannel channel) return Task.CompletedTask;

@@ -1,19 +1,17 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace GLaDOSV3.Helpers
 {
     public class BotSettingsHelper<T> 
     {
-        private static readonly Assembly CurrentAssembly = Assembly.GetEntryAssembly();
-        private static readonly StackTrace St = new StackTrace(false);
-        private static T GetValue(string key)
+        private static readonly Assembly MainAssembly = Assembly.GetEntryAssembly();
+        private static T GetValue(string key, Assembly callingAssembly)
         {
-            ////TODO: make better
-            //var sf = St.GetFrame(3);
-            //var prevMethod = sf.GetMethod();
-            //if (key.Contains("token", System.StringComparison.OrdinalIgnoreCase) && prevMethod.DeclaringType.Assembly != CurrentAssembly) return default;
+            if (key.Contains("token", StringComparison.OrdinalIgnoreCase) && callingAssembly != MainAssembly) return default;
             using DataTable dt = SqLite.Connection.GetValuesAsync("BotSettings", $"WHERE name IS '{key}'").GetAwaiter().GetResult();
             return (T)dt.Rows[0]["value"];
         }
@@ -21,7 +19,7 @@ namespace GLaDOSV3.Helpers
 
         public T this[string key]
         {
-            get => GetValue(key);
+            get => GetValue(key, Assembly.GetCallingAssembly());
             set => SetKey(key, value);
         }
     }

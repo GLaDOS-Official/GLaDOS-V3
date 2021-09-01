@@ -12,11 +12,11 @@ namespace GLaDOSV3.Attributes
         public static BotSettingsHelper<string> BotSettingsHelper = new BotSettingsHelper<string>();
         public static bool IsCoOwner(ulong id)
         {
-            string ok = BotSettingsHelper["co-owners"];
+            var ok = BotSettingsHelper["co-owners"];
             if (string.IsNullOrWhiteSpace(ok))
                 return false;
-            string[] coOwners = ok.Split(',');
-            bool fail = coOwners.All(t => t != id.ToString(CultureInfo.InvariantCulture));
+            var coOwners = ok.Split(',');
+            var fail = coOwners.All(t => t != id.ToString(CultureInfo.InvariantCulture));
             return !fail;
         }
         public static Task<bool> CheckPermission(ICommandContext context) => context?.Client.TokenType switch

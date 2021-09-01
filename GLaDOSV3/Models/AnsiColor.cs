@@ -8,10 +8,10 @@ namespace GLaDOSV3.Models
 {
     public class AnsiColor
     {
-        private const string ESC = $"\u001B";
-        private const string CSI = $"\u001B[";
-        private const string BEL = $"\u0007";
-        private string value;
+        private const    string ESC = $"\u001B";
+        private const    string CSI = $"\u001B[";
+        private const    string BEL = $"\u0007";
+        private readonly string value;
 
         AnsiColor(string value) => this.value = value;
 

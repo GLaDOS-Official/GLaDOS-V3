@@ -6,7 +6,7 @@ using System.Text;
 
 namespace GLaDOSV3.Dashboard
 {
-    class DashboardClient
+    internal class DashboardClient
     {
         private static readonly NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", "GLaDOS_Dashboard", PipeDirection.InOut, PipeOptions.None, TokenImpersonationLevel.Impersonation);
         private static readonly UTF8Encoding streamEncoding = new UTF8Encoding();
@@ -18,11 +18,11 @@ namespace GLaDOSV3.Dashboard
         }
         public static int WriteString(string outString)
         {
-            byte[] outBuffer = streamEncoding.GetBytes(outString);
-            int len = outBuffer.Length;
+            var outBuffer = streamEncoding.GetBytes(outString);
+            var len = outBuffer.Length;
             if (len > ushort.MaxValue) len = (int)ushort.MaxValue;
-            byte[] info = new[] { (byte)(len / 256), (byte)(len & 255) };
-            byte[] newArray = new byte[info.Length + outBuffer.Length];
+            var info = new[] { (byte)(len / 256), (byte)(len & 255) };
+            var newArray = new byte[info.Length + outBuffer.Length];
             Array.Copy(info, newArray, info.Length);
             Array.Copy(outBuffer, 0, newArray, info.Length, outBuffer.Length);
             pipeClient.Write(newArray, 0, info.Length + outBuffer.Length);

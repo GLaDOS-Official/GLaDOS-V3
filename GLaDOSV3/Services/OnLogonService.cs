@@ -24,7 +24,7 @@ namespace GLaDOSV3.Services
 
         private async Task ShardConnected(DiscordSocketClient client)
         {
-            await this.IsMfaEnabled(client).ConfigureAwait(false);
+            await IsMfaEnabled(client).ConfigureAwait(false);
             await this.GetUserFromConfigAsync(client).ConfigureAwait(false);
 
             if (this.botSettingsHelper["discord_status"] != "online")
@@ -40,7 +40,7 @@ namespace GLaDOSV3.Services
             //if (client.CurrentUser.Activity?.Name != this.botSettingsHelper["discord_game"])
             //    await client.SetGameAsync(this.botSettingsHelper["discord_game"]).ConfigureAwait(false);
         }
-        private Task<bool> IsMfaEnabled(DiscordSocketClient client)
+        private static Task<bool> IsMfaEnabled(DiscordSocketClient client)
         {
             if (client.CurrentUser == null) return Task.FromResult(false);
             if (client.CurrentUser.IsMfaEnabled) return Task.FromResult(true);

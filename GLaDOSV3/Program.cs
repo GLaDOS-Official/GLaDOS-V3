@@ -14,6 +14,7 @@ using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
+using System.Threading;
 using System.Threading.Tasks;
 using GLaDOSV3.Dashboard;
 using GLaDOSV3.Models;
@@ -31,7 +32,6 @@ namespace GLaDOSV3
 
         public static void Main(string[] args)
             => StartAsync(args).GetAwaiter().GetResult();
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
         public static async Task StartAsync(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
@@ -40,6 +40,8 @@ namespace GLaDOSV3
                         .WriteTo.Console()
                         .WriteTo.File("Logs/main-.txt", rollingInterval: RollingInterval.Day, rollOnFileSizeLimit: true)
                         .CreateLogger();
+            if (StaticTools.IsWindows() && Environment.OSVersion.Version.Major == 6 && Environment.OSVersion.Version.Minor == 1)
+                Log.Fatal("This program does not support Windows 7. You have been warned...");
             //DashboardClient.Connect();
             ConsoleHelper.EnableVirtualConsole();
             //Console.BackgroundColor = ConsoleColor.Black;
@@ -68,6 +70,7 @@ namespace GLaDOSV3
                 });
             HostBuilder hostBuilder = new HostBuilder();
             hostBuilder.UseSerilog();
+            hostBuilder.UseConsoleLifetime();
             hostBuilder.UseContentRoot(Path.GetDirectoryName(AppContext.BaseDirectory));
             ExtensionLoadingService.Init(null, null, null, null);
             ExtensionLoadingService.LoadExtensions();
@@ -80,23 +83,18 @@ namespace GLaDOSV3
             await provider.GetRequiredService<StartupService>().StartAsync(args).ConfigureAwait(false);
             provider.GetRequiredService<CommandHandler>();
             provider.GetRequiredService<IpLoggerProtection>();
-
             try
             {
-                await Task.Delay(-1).ConfigureAwait(true); // Prevent the application from closing
-            }
-            finally
-            {
-                Log.CloseAndFlush();
-            }
+                await Task.Delay(-1); // Prevent the application from closing
+            } finally{ Log.CloseAndFlush(); }
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0022:Use expression body for methods", Justification = "<Pending>")]
-        [DynamicDependency(DynamicallyAccessedMemberTypes.All, "Microsoft.Extensions.DependencyInjection", "mscorlib")]
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
         private static void GladosServices(this HostBuilder builder, DiscordShardedClient client)
         {
             // ReSharper disable once ArrangeMethodOrOperatorBody
-            builder.ConfigureServices(async (hostContext, services) =>
+            builder.ConfigureServices(async (_, services) =>
             {
                 services.AddHostedService<MemoryHandlerService>();
                 services.AddSingleton(client)
@@ -116,9 +114,9 @@ namespace GLaDOSV3
                         .AddSingleton<ClientEvents>()       // Discord client events
                         .AddSingleton<IpLoggerProtection>() // IP logging service
                         .AddSingleton<BotSettingsHelper<string>>();
-                
-                foreach (var item in ExtensionLoadingService.GetServices(client, services))
-                    foreach (var t in item) { services.AddSingleton(t); }
+
+                foreach (Type[] item in ExtensionLoadingService.GetServices(client, services))
+                    foreach (Type t in item) { services.AddSingleton(t); }
             });
         }
     }

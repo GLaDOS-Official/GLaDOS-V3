@@ -38,7 +38,7 @@ namespace GLaDOSV3.Services
         private Task<string> AskNotNull(string question)
         {
             Console.Write(question);
-            string input = Console.ReadLine();
+            var input = Console.ReadLine();
             while (string.IsNullOrWhiteSpace(input))
             {
                 Console.WriteLine("Enter something. This can't be empty.");
@@ -55,7 +55,7 @@ namespace GLaDOSV3.Services
             await SqLite.Connection.CreateTableAsync("BotSettings", "`ID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, `name` TEXT, `value` TEXT").ConfigureAwait(false);
             Console.WriteLine("Hello user! Looks like your starting this bot for the first time! You'll need to enter some values to start this bot.");
             Console.Write("Please enter your default bot prefix: ");
-            string input = await this.AskNotNull("Please enter your default bot prefix: ").ConfigureAwait(true);
+            var input = await this.AskNotNull("Please enter your default bot prefix: ").ConfigureAwait(true);
             await SqLite.Connection.AddRecordAsync("BotSettings", "name,value", new[] { "prefix", input }).ConfigureAwait(false);
             input = await this.AskNotNull("Perfect. Now please enter the name of the bot: ").ConfigureAwait(false);
             await SqLite.Connection.AddRecordAsync("BotSettings", "name,value", new[] { "name", input }).ConfigureAwait(false);
@@ -84,7 +84,7 @@ namespace GLaDOSV3.Services
             Console.Clear();
             //Console.SetWindowSize(150, 35);
             Console.WriteLine("This bot is using a database to store it's settings. Add --resetdb to reset the configuration (token, owners, etc..).");
-            string discordToken = this.botSettingsHelper["tokens_discord"];     // Get the discord token from the config file
+            var discordToken = this.botSettingsHelper["tokens_discord"];     // Get the discord token from the config file
             Log.Error("TOKEN BELOW");
             Log.Error("Discord token: {0}",discordToken);
             Log.Error("TOKEN ABOVE");

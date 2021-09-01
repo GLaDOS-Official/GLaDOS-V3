@@ -30,11 +30,11 @@ namespace GLaDOSV3.Services
 
         private async Task OnMessageReceivedAsync(SocketMessage arg)
         {
-            if (!(arg is SocketUserMessage msg)) return; // Ensure the message is from a user/bot
-            if (msg.Author.Id == this.discord.CurrentUser.Id) return; // Ignore self when checking commands
-            if (msg.Author.IsBot) return; // Ignore other bots
-            if (!(msg.Channel is SocketGuildChannel mChanel)) return; // only guild channels please
-            if (!this.serverIds.Contains(mChanel.Guild.Id)) return; // private feature :P
+            if (arg is not SocketUserMessage msg) return;              // Ensure the message is from a user/bot
+            if (msg.Author.Id == this.discord.CurrentUser.Id) return;  // Ignore self when checking commands
+            if (msg.Author.IsBot) return;                              // Ignore other bots
+            if (msg.Channel is not SocketGuildChannel mChanel) return; // only guild channels please
+            if (!this.serverIds.Contains(mChanel.Guild.Id)) return;    // private feature :P
             if (!(msg.Content.Contains("http://", StringComparison.Ordinal) || msg.Content.Contains("https://", StringComparison.Ordinal))) return;
             var items = Regex.Matches(msg.Content, @"(http|https):\/\/([\w\-_]+(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?");
             List<string> urlScanned = new List<string>();

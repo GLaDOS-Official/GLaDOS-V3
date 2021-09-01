@@ -6,6 +6,7 @@ using Discord;
 using Discord.WebSocket;
 using System.Linq;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ namespace GLaDOSV3.Helpers
 {
     public static class StaticTools
     {
-        private static Random _rnd = new Random();
+        private static readonly Random Rnd = new Random();
 
         public static Task<string> FormatText(this SocketGuildUser user, string text) =>
             Task.FromResult(text.Replace("{mention}", user.Mention, StringComparison.Ordinal)
@@ -30,10 +31,19 @@ namespace GLaDOSV3.Helpers
                                 .Replace("{uname}", user.Username, StringComparison.Ordinal)
                                 .Replace("{ucreatedate}", user.CreatedAt.ToString("MM-dd-yy"))
                                 .Replace("{udiscrim}", user.Discriminator));
-        public static T RandomElement<T>(this T[] items) => items[_rnd.Next(0, items.Length)];
-        public static T RandomElement<T>(this List<T> items) => items[_rnd.Next(0, items.Count)];
+        public static bool IsWindows() =>
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+        public static bool IsMacOS() =>
+            RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+
+        public static bool IsLinux() =>
+            RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+        public static bool IsUnix() => IsLinux() || IsMacOS();
+        public static T RandomElement<T>(this T[] items) => items[Rnd.Next(0, items.Length)];
+        public static T RandomElement<T>(this List<T> items) => items[Rnd.Next(0, items.Count)];
         public static SocketTextChannel DefaultWritableChannel(this SocketGuild g) => g?.TextChannels.Where(c => (g.CurrentUser.GetPermissions(c).ViewChannel) && g.CurrentUser.GetPermissions(c).SendMessages).OrderBy(c => c.Position).FirstOrDefault();
-        public static String ReduceWhitespace(this String value) => Regex.Replace(value, @"\s+", " ", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+        public static string ReduceWhitespace(this string value) => Regex.Replace(value, @"\s+", " ", RegexOptions.Compiled | RegexOptions.CultureInvariant);
         public static EmbedBuilder AddBlankField(this EmbedBuilder builder, bool inline) => builder?.AddField("\u200B", "\u200B", inline);
         /// <summary>Returns the index of an element contained in a list if it is found, otherwise returns -1.</summary>
         public static int IndexOf<T>(this IReadOnlyList<T> list, T element) // IList doesn't implement IndexOf for some reason
@@ -67,14 +77,14 @@ namespace GLaDOSV3.Helpers
         public static bool IsAbove(this SocketGuildUser target, SocketGuildUser comparison) => target.Roles.Any() && target.Hierarchy >= comparison.Hierarchy;
         public static string Center(this string text, string anchor)
         {
-            int refLength = anchor.Length;
+            var refLength = anchor.Length;
 
             if (anchor.Contains('\t')) refLength += anchor.Where(t => t is '\t').Sum(t => 3);
 
             if (text.Length >= refLength)
                 return text;
 
-            int start = (refLength - text.Length) / 2;
+            var start = (refLength - text.Length) / 2;
 
             return string.Create(refLength, (start, text), static (Span<char> span, (int start, string str) state) =>
             {

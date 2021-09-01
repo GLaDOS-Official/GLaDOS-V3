@@ -15,7 +15,7 @@ namespace GLaDOSV3.Models
         public abstract string   Name             { get; }
         public abstract string   Version          { get; }
         public virtual  Uri      UpdateUrl        => null;
-        public abstract string   Author           { get; }
+        public abstract string   AuthorLink           { get; }
         public static   DateTime GetCompileTime() => Builtin.CompileTime;
 
         protected GladosModule()

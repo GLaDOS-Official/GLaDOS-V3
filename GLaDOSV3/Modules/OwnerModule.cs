@@ -61,7 +61,6 @@ namespace GLaDOSV3.Modules
         public async Task Shutdown()
         {
             await this.ReplyAsync("Shutting down the bot! 👋").ConfigureAwait(true);
-            await this.Context.Client.LogoutAsync().ConfigureAwait(true);
             Environment.Exit(0);
         }
 
@@ -84,6 +83,7 @@ namespace GLaDOSV3.Modules
             IUserMessage message = await this.ReplyAsync("Please wait...").ConfigureAwait(false);
             await message.ModifyAsync(async properties => properties.Content = await Helpers.Eval.EvalTask(Context, code).ConfigureAwait(true)).ConfigureAwait(false);
         }
+
         [Command("bot sudo")]
         [Remarks("bot sudo <user> <command>")]
         [Summary("Execute bot command as another user")]
@@ -102,7 +102,7 @@ namespace GLaDOSV3.Modules
                               Context.Client, Context.Message.Id,
                               Context.Channel, user, user.IsBot ? MessageSource.Bot : MessageSource.User
                           });
-            await this.service.ExecuteAsync(new ShardedCommandContext(Context.Client, (SocketUserMessage)msg), command.StartsWith(botSettingsHelper["prefix"]) ? command[botSettingsHelper["prefix"].Length..] : command, this.provider);
+            await this.service.ExecuteAsync(new ShardedCommandContext(Context.Client, (SocketUserMessage)msg), command.StartsWith(this.botSettingsHelper["prefix"]) ? command[this.botSettingsHelper["prefix"].Length..] : command, this.provider);
         }
         //[Command("bot webhookmass")]
         //[Remarks("bot webhookmass <serverid> <count>")]
@@ -294,14 +294,14 @@ namespace GLaDOSV3.Modules
             await this.ReplyAsync("Ok!").ConfigureAwait(false);
         }
         [Command("bot coowner add")]
-        [Remarks("bot coowner add< id>")]
+        [Remarks("bot coowner add <id>")]
         [Summary("Adds a bot's co-owner")]
         [Attributes.RequireOwner]
         public async Task AddCoOwner(ulong userId)
         {
-            string ok = this.botSettingsHelper["co-owners"];
+            var ok = this.botSettingsHelper["co-owners"];
             var coOwners = ok.Split(',').ToList();
-            bool fail = coOwners.All(t => t != userId.ToString(CultureInfo.InvariantCulture));
+            var fail = coOwners.All(t => t != userId.ToString(CultureInfo.InvariantCulture));
             if (!fail) { await this.ReplyAsync("User is already a co-owner!"); return; }
             coOwners.Add(userId.ToString());
             this.botSettingsHelper["co-owners"] = string.Join(",", coOwners);
@@ -313,9 +313,9 @@ namespace GLaDOSV3.Modules
         [Attributes.RequireOwner]
         public async Task RemoveCoOwner(ulong userId)
         {
-            string ok = this.botSettingsHelper["co-owners"];
+            var ok = this.botSettingsHelper["co-owners"];
             var coOwners = ok.Split(',').ToList();
-            bool fail = coOwners.All(t => t != userId.ToString(CultureInfo.InvariantCulture));
+            var fail = coOwners.All(t => t != userId.ToString(CultureInfo.InvariantCulture));
             if (fail) { await this.ReplyAsync("User isn't already co-owner!"); return; }
             coOwners.Remove(userId.ToString());
             this.botSettingsHelper["co-owners"] = string.Join(",", coOwners);
@@ -329,7 +329,7 @@ namespace GLaDOSV3.Modules
         {
             var ok = this.botSettingsHelper["co-owners"];
             if (string.IsNullOrWhiteSpace(ok)) { await this.ReplyAsync("This bot has no coowners!"); return; }
-            string[] coOwners = ok.Split(',');
+            var coOwners = ok.Split(',');
             var output = coOwners.Aggregate("User (Mention)\n", (current, t) => current + $"{t} (<@{t}>)\n");
             await this.ReplyAsync(output).ConfigureAwait(false);
         }
