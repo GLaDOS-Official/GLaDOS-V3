@@ -5,7 +5,6 @@ using System.IO;
 using Discord;
 using Discord.WebSocket;
 using System.Linq;
-using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;

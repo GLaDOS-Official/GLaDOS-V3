@@ -4,12 +4,9 @@ using Discord.WebSocket;
 using GLaDOSV3.Helpers;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity.Infrastructure;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -17,8 +14,6 @@ using System.Runtime.Loader;
 using System.Threading.Tasks;
 using GLaDOSV3.Models;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Serilog;
 
@@ -68,8 +63,8 @@ namespace GLaDOSV3.Services
                     if (!valid) continue;
                     var filename = Path.GetFileNameWithoutExtension(file);
                     if (!NativeLibrary.TryLoad(file, out var ptr))
-                    { Log.Error("Failed to load PInvoke \'{0}\'", filename); continue; }
-                    Log.Verbose("Successfully loaded PInvoke \'{0}\'", filename);
+                    { Log.Error("Failed to load PInvoke \'{filename}\'", filename); continue; }
+                    Log.Verbose("Successfully loaded PInvoke \'{filename}\'", filename);
                     PInvokes.Add(filename, ptr);
                 }
                 catch (Exception ex)
@@ -92,10 +87,10 @@ namespace GLaDOSV3.Services
         {
             //Try my crazy hack :tm:
             List<string> dirName = new List<string>();
-            if (StaticTools.IsWindows()) {dirName.AddRange(new[] { "win-" + Architecture, "win" });}
-            if (StaticTools.IsLinux()) { dirName.Add("linux-" + Architecture);}
-            if (StaticTools.IsMacOS()) { dirName.Add("osx-" + Architecture);}
-            if(StaticTools.IsUnix()) {dirName.Add("unix");}
+            if (StaticTools.IsWindows()) { dirName.AddRange(new[] { "win-" + Architecture, "win" }); }
+            if (StaticTools.IsLinux()) { dirName.Add("linux-" + Architecture); }
+            if (StaticTools.IsMacOS()) { dirName.Add("osx-" + Architecture); }
+            if (StaticTools.IsUnix()) { dirName.Add("unix"); }
 
             foreach (var path in dirName)
             {
@@ -108,20 +103,17 @@ namespace GLaDOSV3.Services
 
             return "";
         }
-        public static IntPtr PInvokeResolver(
-            string libraryName,
-            Assembly assembly,
-            DllImportSearchPath? searchPath)
+        public static IntPtr PInvokeResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
         {
             var filename = Path.GetFileNameWithoutExtension(libraryName);
             if (PInvokes.ContainsKey(filename)) return PInvokes[filename];
-            Log.Debug("Resolving PInvoke: {0}", libraryName);
+            Log.Debug("Resolving PInvoke: {name}", libraryName);
             if (NativeLibrary.TryLoad(libraryName, out var ptr)) { PInvokes.Add(filename, ptr); return ptr; }
 
             //crazy russian doll hack
             if (NativeLibrary.TryLoad(GetRuntimePInvoke(libraryName), out ptr))
             { PInvokes.Add(filename, ptr); return ptr; }
-            Log.Fatal("Failed to load PInvoke: {0}", libraryName);
+            Log.Fatal("Failed to load PInvoke: {name}", libraryName);
             return IntPtr.MaxValue;
         }
         public static string[] GetFiles(string path, string searchPattern, SearchOption searchOption)
@@ -205,8 +197,7 @@ namespace GLaDOSV3.Services
 
                 var modules = module.AppAssembly.GetTypes().Where(type => type.IsClass && !type.IsSpecialName && type.IsPublic)
                                     .Aggregate(string.Empty, (current, type) => current + type.Name + ", ");
-                await LoggingService.Log(LogSeverity.Verbose, "Module",
-                                         $"Loaded modules: {modules.Remove(modules.Length - 2)} from {Path.GetFileNameWithoutExtension(module.ModulePath)}").ConfigureAwait(false);
+                Log.Verbose("[ExtensionLoadingService] Loaded modules: {modules} from {filename}", modules.Remove(modules.Length - 2), Path.GetFileNameWithoutExtension(module.ModulePath));
             }
         }
         public static Task Unload(string extensionName)
@@ -260,7 +251,7 @@ namespace GLaDOSV3.Services
             using HttpClient client = new HttpClient();
             try
             {
-                
+
                 client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Macintosh; PPC Mac OS X 10 11_0) AppleWebKit/533.1 (KHTML, like Gecko) Chrome/59.0.811.0 Safari/533.1");
                 var str = client.GetStringAsync(builder.Uri).GetAwaiter().GetResult();
                 var o = JObject.Parse(str);
@@ -271,7 +262,7 @@ namespace GLaDOSV3.Services
             }
             catch (Exception ex)
             {
-                Log.Fatal(ex, "Failed to verify integrity of {0}", module.ModuleName);
+                Log.Fatal(ex, "Failed to verify integrity of {moduleName}", module.ModuleName);
                 return Task.FromResult(ExtensionErrorCodes.UNTRUSTED_FAILED);
             }
         }
@@ -317,10 +308,10 @@ namespace GLaDOSV3.Services
 
 
 
-            this.module           = (GladosModule)Activator.CreateInstance(asmType);
-            this.ModuleName       = this.module?.Name;
+            this.module = (GladosModule)Activator.CreateInstance(asmType);
+            this.ModuleName = this.module?.Name;
             this.ModuleAuthorLink = this.module?.AuthorLink;
-            this.ModuleVersion    = this.module?.Version;
+            this.ModuleVersion = this.module?.Version;
 
             if (string.IsNullOrWhiteSpace(this.ModuleName)) this.LoadFailed = true; // class doesn't have Name string
             if (string.IsNullOrWhiteSpace(this.ModuleVersion)) this.LoadFailed = true; // class doesn't have Version string

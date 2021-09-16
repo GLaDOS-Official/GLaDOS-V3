@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GLaDOSV3.Models
+﻿namespace GLaDOSV3.Models
 {
     public class AnsiColor
     {

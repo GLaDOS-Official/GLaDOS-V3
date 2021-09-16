@@ -1,18 +1,14 @@
 using Discord;
 using Discord.Commands;
-using Discord.Net;
 using Discord.WebSocket;
 using GLaDOSV3.Helpers;
 using System;
 using System.Data;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Microsoft.VisualBasic;
 using Serilog;
-using Serilog.Core;
 
 namespace GLaDOSV3.Services
 {
@@ -72,7 +68,7 @@ namespace GLaDOSV3.Services
             do
             {
                 input = await this.AskNotNull("Ok! Now the final thing! Enter your bot token: ").ConfigureAwait(true);
-            } while (!Regex.IsMatch(input, @"/[MN][A-Za-z\d]{23}\.[\w-]{6}\.[\w-]{27}/g"));
+            } while (!Regex.IsMatch(input, "[MN][A-Za-z\\d]{23}\\.[\\w-]{6}\\.[\\w-]{27}"));
             await SqLite.Connection.AddRecordAsync("BotSettings", "name,value", new[] { "tokens_discord", input }).ConfigureAwait(false); ;
         }
         public async Task StartAsync(string[] args)
@@ -85,9 +81,9 @@ namespace GLaDOSV3.Services
             //Console.SetWindowSize(150, 35);
             Console.WriteLine("This bot is using a database to store it's settings. Add --resetdb to reset the configuration (token, owners, etc..).");
             var discordToken = this.botSettingsHelper["tokens_discord"];     // Get the discord token from the config file
-            Log.Error("TOKEN BELOW");
+            /*Log.Error("TOKEN BELOW");
             Log.Error("Discord token: {0}",discordToken);
-            Log.Error("TOKEN ABOVE");
+            Log.Error("TOKEN ABOVE");*/
             try
             {
                 await this.discord.LoginAsync(TokenType.Bot, discordToken).ConfigureAwait(false); // Login to discord

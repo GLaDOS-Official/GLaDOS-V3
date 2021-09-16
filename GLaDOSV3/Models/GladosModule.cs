@@ -5,7 +5,6 @@ using System.Runtime.Loader;
 using Discord.Commands;
 using Discord.WebSocket;
 using GLaDOSV3.Helpers;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace GLaDOSV3.Models

@@ -1,9 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using GLaDOSV3.Helpers;
 using System;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -30,11 +28,15 @@ namespace GLaDOSV3.Services
         }
         private static LogLevel GetLogLevel(LogSeverity severity)
             => (LogLevel)Math.Abs((int)severity - 5);
+
         public static Task OnLogAsync(LogMessage msg)
         {
             var logLevel = GetLogLevel(msg.Severity);
-            if (msg.Exception != null) { _logger.Log(logLevel, msg.Exception, msg.Message);}
-            else _logger.Log(logLevel,msg.Message);
+            if (msg.Exception == null)
+                _logger.Log(logLevel, msg.Message);
+            else 
+                _logger.Log(logLevel, msg.Exception, msg.Message);
+
             return Task.CompletedTask;
         }
     }

@@ -10,16 +10,12 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.IO.Pipes;
-using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
-using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
-using GLaDOSV3.Dashboard;
-using GLaDOSV3.Models;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
 
@@ -51,18 +47,17 @@ namespace GLaDOSV3
             Directory.SetCurrentDirectory(Path.GetDirectoryName(AppContext.BaseDirectory) ?? throw new InvalidOperationException());
             var pInvokeDir = Path.Combine(Directory.GetCurrentDirectory(), $"PInvoke{Path.DirectorySeparatorChar}");
             if (!Directory.Exists(pInvokeDir))
-            { Console.WriteLine("PInvoke directory doesn't exist! Creating!"); Directory.CreateDirectory(pInvokeDir); }
+            { Log.Error("PInvoke directory doesn't exist! Creating!"); Directory.CreateDirectory(pInvokeDir); }
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !PInvokesDllImport.SetDllDirectory(pInvokeDir)) Console.WriteLine($"Failed to call SetDllDirectory PInvoke! Last error code: {Marshal.GetLastWin32Error()}");
             Tools.ReleaseMemory();
             LoggingService.Begin();
+            var proxy = GetDebuggerProxy();
             DiscordShardedClient client =
                 new DiscordShardedClient(new DiscordSocketConfig // Add the discord client to the service provider
                 {
-                    LogLevel = LogSeverity.Verbose,
-#if false
-                    RestClientProvider = DefaultRestClientProvider.Create(true),
-                    WebSocketProvider  = DefaultWebSocketProvider.Create(new System.Net.WebProxy("127.0.0.1", 8888)),
-#endif
+                    LogLevel           = LogSeverity.Verbose,
+                    RestClientProvider = DefaultRestClientProvider.Create(proxy != null),
+                    WebSocketProvider  = DefaultWebSocketProvider.Create(proxy),
                     MessageCacheSize =
                         0,                                   // Tell Discord.Net to NOT CACHE! This will also disable MessageUpdated event
                     DefaultRetryMode = RetryMode.AlwaysRetry, // Always believe
@@ -86,7 +81,27 @@ namespace GLaDOSV3
             try
             {
                 await Task.Delay(-1); // Prevent the application from closing
-            } finally{ Log.CloseAndFlush(); }
+            }
+            finally { Log.CloseAndFlush(); }
+        }
+
+        private static WebProxy GetDebuggerProxy()
+        {
+            Uri proxyUri = WebRequest.GetSystemWebProxy().GetProxy(new Uri("http://www.discord.com"));
+            if (proxyUri == null || proxyUri.Host == "discord.com") return null;
+            try
+            {
+                using Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendTimeout, 200);
+                Thread.Sleep(500);
+                var endPoint = new IPEndPoint(IPAddress.Parse(proxyUri.Host), proxyUri.Port);
+                socket.Connect(endPoint);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+            return new WebProxy(proxyUri);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0022:Use expression body for methods", Justification = "<Pending>")]

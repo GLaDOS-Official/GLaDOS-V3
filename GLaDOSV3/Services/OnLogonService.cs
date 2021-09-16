@@ -36,9 +36,8 @@ namespace GLaDOSV3.Services
                         "Could not parse status string from database!").ConfigureAwait(false);
             }
             //TODO: fix
-            //client.SetActivityAsync(IActivity)
-            //if (client.CurrentUser.Activity?.Name != this.botSettingsHelper["discord_game"])
-            //    await client.SetGameAsync(this.botSettingsHelper["discord_game"]).ConfigureAwait(false);
+            if (client.CurrentUser.Activities.First()?.Name != this.botSettingsHelper["discord_game"])
+                await client.SetActivityAsync(new Game(this.botSettingsHelper["discord_game"], ActivityType.Playing));
         }
         private static Task<bool> IsMfaEnabled(DiscordSocketClient client)
         {
