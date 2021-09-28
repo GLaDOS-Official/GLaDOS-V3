@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Commands;
 using GLaDOSV3.Attributes;
 using GLaDOSV3.Helpers;
@@ -46,7 +46,7 @@ namespace GLaDOSV3.Modules
         [Command("help")]
         [Remarks("help [command]")]
         [Summary("How 2 use ...?")]
-        public async Task Help([Remainder]string command = null)
+        public async Task Help([Remainder] string command = null)
         {
             IDMChannel dm = await Context.Message.Author.CreateDMChannelAsync().ConfigureAwait(true);
             Random rnd = new Random();
@@ -112,7 +112,9 @@ namespace GLaDOSV3.Modules
                         {
                             var result = await cmd.CheckPreconditionsAsync(Context).ConfigureAwait(true);
                             if (!result.IsSuccess) continue;
-                            array.Add($"{prefix}{(cmd.Module.Group == null ? "" : cmd.Module.Group.ToLowerInvariant() + " ")}{cmd.Remarks ?? cmd.Name} {" ".PadLeft(sorted - (cmd.Module.Group?.Length + 1 ?? 1) - (cmd.Remarks?.Length + 1 ?? cmd.Name.Length + 1))} :: {cmd.Summary ?? ("None")}\n");
+                            var cmdString = cmd.Name;
+                            cmdString = cmd.Parameters.Aggregate(cmdString, (current, param) => current + (param.IsOptional ? $" [{param.Name}]" : $" <{param.Name}>"));
+                            array.Add($"{prefix}{cmd.Remarks ?? cmdString} {" ".PadLeft(sorted - (cmd.Module.Group?.Length + 1 ?? 1) - (cmd.Remarks?.Length + 1 ?? cmd.Name.Length + 1))} :: {cmd.Summary ?? ("None")}\n");
                         }
 
                         var description = array.Aggregate<string, string>(null, string.Concat);
@@ -129,7 +131,7 @@ namespace GLaDOSV3.Modules
             }
         }
     }
-    internal struct CommandInfo
+    internal readonly struct CommandInfo
     {
         public readonly string Module;
         public readonly string Description;
