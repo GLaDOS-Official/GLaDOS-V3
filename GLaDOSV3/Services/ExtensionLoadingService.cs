@@ -1,25 +1,22 @@
-﻿using Discord;
-using Discord.Commands;
+﻿using Discord.Commands;
 using Discord.WebSocket;
 using GLaDOSV3.Helpers;
+using GLaDOSV3.Models;
+using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Threading.Tasks;
-using GLaDOSV3.Models;
-using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json.Linq;
-using Serilog;
 
 namespace GLaDOSV3.Services
 {
-    public enum ExtensionErrorCodes : ushort
+    internal enum ExtensionErrorCodes : ushort
     {
         VALID,
         UNTRUSTED_UNKNOWN,
@@ -32,13 +29,14 @@ namespace GLaDOSV3.Services
         private static CommandService _commands;
         private static BotSettingsHelper<string> _config;
         private static IServiceProvider _provider;
-
+        private static ILogger _logger;
         public static List<GladosModuleStruct> Extensions = new List<GladosModuleStruct>();
         public static Dictionary<string, IntPtr> PInvokes = new Dictionary<string, IntPtr>();
-        private static string Architecture = RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
+        private static readonly string Architecture = RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
         [RequiresUnreferencedCodeAttribute("Load module's dependencies")]
         public static void Init(DiscordShardedClient discord = null, CommandService commands = null, BotSettingsHelper<string> config = null, IServiceProvider provider = null)
         {
+            _logger = Log.ForContext<ExtensionLoadingService>();
             _discord = discord;
             _commands = commands;
             _config = config;
@@ -59,17 +57,17 @@ namespace GLaDOSV3.Services
                 {
                     if (new DirectoryInfo(file).Parent?.Name.ToLowerInvariant() == "x64" && Architecture != "x64") continue;
                     if (new DirectoryInfo(file).Parent?.Name.ToLowerInvariant() == "x86" && Architecture != "x86") continue;
-                    bool valid = Path.GetExtension(file) == ".so" && StaticTools.IsLinux() || Path.GetExtension(file) == ".dll" && StaticTools.IsWindows();
+                    var valid = Path.GetExtension(file) == ".so" && StaticTools.IsLinux() || Path.GetExtension(file) == ".dll" && StaticTools.IsWindows();
                     if (!valid) continue;
                     var filename = Path.GetFileNameWithoutExtension(file);
-                    if (!NativeLibrary.TryLoad(file, out var ptr))
-                    { Log.Error("Failed to load PInvoke \'{filename}\'", filename); continue; }
-                    Log.Verbose("Successfully loaded PInvoke \'{filename}\'", filename);
+                    if (!NativeLibrary.TryLoad(file, out IntPtr ptr))
+                    { _logger.Error("Failed to load PInvoke \'{filename}\'", filename); continue; }
+                    _logger.Verbose("Successfully loaded PInvoke \'{filename}\'", filename);
                     PInvokes.Add(filename, ptr);
                 }
                 catch (Exception ex)
                 {
-                    Log.Fatal(ex, ex.Message);
+                    _logger.Fatal(ex, ex.Message);
                 }
             }
             foreach (var file in Directory.GetFiles(Path.Combine(Directory.GetCurrentDirectory(), "Dependencies"), "*.dll", SearchOption.AllDirectories))
@@ -77,7 +75,7 @@ namespace GLaDOSV3.Services
                 if (new DirectoryInfo(file).Parent?.Name.ToLowerInvariant() == "x64" && Architecture != "x64") continue;
                 if (new DirectoryInfo(file).Parent?.Name.ToLowerInvariant() == "x86" && Architecture != "x86") continue;
                 if (!ValidFile(file)) continue;
-                var asm = Assembly.LoadFile(file);
+                Assembly asm = Assembly.LoadFile(file);
                 NativeLibrary.SetDllImportResolver(asm, PInvokeResolver);
                 Dependencies.Add(asm.FullName ?? throw new InvalidOperationException(), asm);
             }
@@ -107,20 +105,20 @@ namespace GLaDOSV3.Services
         {
             var filename = Path.GetFileNameWithoutExtension(libraryName);
             if (PInvokes.ContainsKey(filename)) return PInvokes[filename];
-            Log.Debug("Resolving PInvoke: {name}", libraryName);
-            if (NativeLibrary.TryLoad(libraryName, out var ptr)) { PInvokes.Add(filename, ptr); return ptr; }
+            _logger.Debug("Resolving PInvoke: {name}", libraryName);
+            if (NativeLibrary.TryLoad(libraryName, out IntPtr ptr)) { PInvokes.Add(filename, ptr); return ptr; }
 
             //crazy russian doll hack
             if (NativeLibrary.TryLoad(GetRuntimePInvoke(libraryName), out ptr))
             { PInvokes.Add(filename, ptr); return ptr; }
-            Log.Fatal("Failed to load PInvoke: {name}", libraryName);
+            _logger.Fatal("Failed to load PInvoke: {name}", libraryName);
             return IntPtr.MaxValue;
         }
         public static string[] GetFiles(string path, string searchPattern, SearchOption searchOption)
         {
-            string[] searchPatterns = searchPattern.Split('|');
+            var searchPatterns = searchPattern.Split('|');
             List<string> files = new List<string>();
-            foreach (string sp in searchPatterns)
+            foreach (var sp in searchPatterns)
                 files.AddRange(Directory.GetFiles(path, sp, searchOption));
             files.Sort();
             return files.ToArray();
@@ -136,7 +134,7 @@ namespace GLaDOSV3.Services
             catch { }
 
             var name = args.Name;
-            name = name.Substring(0, name.IndexOf(',', StringComparison.Ordinal)).ToLowerInvariant();
+            name = name[..name.IndexOf(',', StringComparison.Ordinal)].ToLowerInvariant();
             var path = $"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}{Path.DirectorySeparatorChar}.nuget{Path.DirectorySeparatorChar}packages{Path.DirectorySeparatorChar}{name}";
             if (!Directory.Exists(path)) return null;
             path = Directory.GetDirectories(path)[0];
@@ -174,53 +172,103 @@ namespace GLaDOSV3.Services
                     if (!ValidFile(file)) continue;
                     using GladosModuleStruct module = new GladosModuleStruct(file, _discord, _commands, _config, _provider);
                     module.Initialize();
-                    if (module.LoadFailed) { module.Dispose(); continue; }
+                    if (module.LoadFailed) continue;
                     Extensions.Add(module);
                 }
                 catch (BadImageFormatException)
                 { }
                 catch (Exception ex)
                 {
-                    Log.Fatal(ex.ToString());
+                    _logger.Fatal(ex.ToString());
                 }
             }
         }
         [RequiresUnreferencedCode("Get types of modules's discord modules")]
-        public static async Task Load()
+        public static Task Load()
         {
-            foreach (var module in Extensions) // Bad extension loading
+            foreach (GladosModuleStruct module in Extensions) // Bad extension loading
             {
-                module.FixShit(_discord, _commands, _config, _provider);
-                module.PreLoad();
-                var count = _commands.AddModulesAsync(module.AppAssembly, module.Provider).GetAwaiter().GetResult().Count();
-                module.PostLoad();
-
-                var modules = module.AppAssembly.GetTypes().Where(type => type.IsClass && !type.IsSpecialName && type.IsPublic)
-                                    .Aggregate(string.Empty, (current, type) => current + type.Name + ", ");
-                Log.Verbose("[ExtensionLoadingService] Loaded modules: {modules} from {filename}", modules.Remove(modules.Length - 2), Path.GetFileNameWithoutExtension(module.ModulePath));
+                Load(module);
             }
+            return Task.CompletedTask;
         }
-        public static Task Unload(string extensionName)
+
+        public static Task Load(GladosModuleStruct module)
         {
+            module.FixShit(_discord, _commands, _config, _provider);
+            module.PreLoad();
+            var count = _commands.AddModulesAsync(module.AppAssembly, module.Provider).GetAwaiter().GetResult().Count();
+            module.PostLoad();
+
+            var modules = module.AppAssembly.GetTypes().Where(type => type.IsClass && !type.IsSpecialName && type.IsPublic)
+                                .Aggregate(string.Empty, (current, type) => current + type.Name + ", ");
+            _logger.Verbose("Loaded modules: {modules} from {filename}", modules.Remove(modules.Length - 2), Path.GetFileNameWithoutExtension(module.ModulePath));
+            return Task.CompletedTask;
+        }
+
+        public static bool Load(CommandService service, string fileName)
+        {
+            if (Extensions.Count(p => Path.GetFileNameWithoutExtension(p.ModulePath) == fileName) != 0) return true;
+            foreach (var file in Directory.GetFiles(Path.Combine(Directory.GetCurrentDirectory(), "Modules"), "*.dll")) // Bad extension loading
+            {
+                if (Path.GetFileNameWithoutExtension(file).ToLowerInvariant() != fileName.ToLowerInvariant()) continue;
+                try
+                {
+                    if (!ValidFile(file)) continue;
+                    using GladosModuleStruct module = new GladosModuleStruct(file, _discord, _commands, _config, _provider);
+                    module.Initialize();
+                    if (module.LoadFailed) continue;
+                    Extensions.Add(module);
+                    Load(module);
+                    return true;
+                }
+                catch (BadImageFormatException)
+                { }
+                catch (Exception ex)
+                {
+                    _logger.Fatal(ex.ToString());
+                }
+            }
+            return false;
+        }
+        public static bool Reload(CommandService service, string extensionName)
+        {
+            _logger.Verbose("[ExtensionLoadingService] Reloading extension: {extensionName}", extensionName);
+            foreach (GladosModuleStruct e in Extensions.Where(t => t.ModuleName == extensionName))
+            {
+                e.Dispose();
+                Extensions.Remove(e);
+                using GladosModuleStruct module = new GladosModuleStruct(e.ModulePath, _discord, _commands, _config, _provider);
+                module.Initialize();
+                if (module.LoadFailed) continue;
+                Extensions.Add(module);
+                Load(module);
+                return true;
+            }
+
+            return false;
+        }
+        public static bool Unload(CommandService service, string extensionName)
+        {
+            _logger.Verbose("[ExtensionLoadingService] Unloading extension: {extensionName}", extensionName);
             for (var i = 0; i < Extensions.Count; i++)
             {
                 if (Extensions[i].ModuleName != extensionName) continue;
                 GladosModuleStruct e = Extensions[i];
                 Extensions.RemoveAt(i);
-                e.Unload();
                 e.Dispose();
-                return Task.CompletedTask;
+                return true;
             }
-            return Task.CompletedTask;
+            return false;
         }
         private static readonly IDictionary<string, Assembly> Dependencies = new Dictionary<string, Assembly>();
 
 
         private static Assembly CurrentDomainOnAssemblyResolve(object sender, ResolveEventArgs args)
         {
-            if (Dependencies.TryGetValue(args.Name, out var res))
+            if (Dependencies.TryGetValue(args.Name, out Assembly res))
                 return res;
-            Log.Verbose("[ExtensiongLoadingService] Loading {Name}", args.Name);
+            _logger.Verbose("[ExtensiongLoadingService] Loading {Name}", args.Name);
             return TryLoadFromNuget(args);
         }
         private static bool IsValidClrFile(string file) // based on PE headers
@@ -231,14 +279,19 @@ namespace GLaDOSV3.Services
             }
             catch (BadImageFormatException)
             {
-                LoggingService.Log(LogSeverity.Error, "Module", $"{file} is NOT a valid CLR file!!");
+
+                _logger.Error("[Module] {file} is NOT a valid CLR file!!", file);
                 return false;
             }
 
             return true;
         }
+#pragma warning disable IDE0022
         internal static Task<ExtensionErrorCodes> GetUsernameFromLink(GladosModuleStruct module)
         {
+#if DEBUG
+            return Task.FromResult(ExtensionErrorCodes.VALID);
+#else
             var url = module.ModuleAuthorLink;
             if (!Uri.IsWellFormedUriString(url, UriKind.Absolute)) return Task.FromResult(ExtensionErrorCodes.UNTRUSTED_INVALID);
             if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return Task.FromResult(ExtensionErrorCodes.UNTRUSTED_INVALID);
@@ -262,11 +315,14 @@ namespace GLaDOSV3.Services
             }
             catch (Exception ex)
             {
-                Log.Fatal(ex, "Failed to verify integrity of {moduleName}", module.ModuleName);
+                _logger.Fatal(ex, "Failed to verify integrity of {moduleName}", module.ModuleName);
                 return Task.FromResult(ExtensionErrorCodes.UNTRUSTED_FAILED);
             }
+#endif
         }
+#pragma warning restore IDE0022
     }
+
     public sealed class GladosModuleStruct : AssemblyLoadContext, IDisposable
     {
         public AssemblyName AsmName;
@@ -278,6 +334,7 @@ namespace GLaDOSV3.Services
         public bool LoadFailed;
         public IServiceProvider Provider;
         public string ModulePath;
+        public List<Type> Commands;
 
         private bool disposed;
         private GladosModule module;
@@ -291,6 +348,7 @@ namespace GLaDOSV3.Services
             this.config = config;
             this.Provider = provider;
             this.ModulePath = modulePath;
+            this.Commands = new List<Type>();
         }
         public void FixShit(DiscordShardedClient discord, CommandService commands, BotSettingsHelper<string> config, IServiceProvider provider)
         {
@@ -300,11 +358,11 @@ namespace GLaDOSV3.Services
             this.Provider = provider;
         }
         [RequiresUnreferencedCodeAttribute("Loads module from ModulePath, get's modules from extension")]
-        public void Initialize()
+        public void Initialize(bool reload = false)
         {
             if (this.AppAssembly == null) this.AppAssembly = this.LoadFromAssemblyPath(this.ModulePath);
-            NativeLibrary.SetDllImportResolver(this.AppAssembly, ExtensionLoadingService.PInvokeResolver);
-            var asmType = this.AppAssembly.GetTypes().Where(type => type.IsClass && type.Name == "ModuleInfo").Distinct().First(); //create type
+            if (!reload) NativeLibrary.SetDllImportResolver(this.AppAssembly, ExtensionLoadingService.PInvokeResolver);
+            Type asmType = this.AppAssembly.GetTypes().Where(type => type.IsClass && type.Name == "ModuleInfo").Distinct().First(); //create type
 
 
 
@@ -319,6 +377,9 @@ namespace GLaDOSV3.Services
             if (ExtensionLoadingService.GetUsernameFromLink(this).GetAwaiter().GetResult() != ExtensionErrorCodes.VALID)
                 this.LoadFailed = true; // Failed to verify authenticity of the user!
             if (this.LoadFailed) { this.Dispose(); return; }
+
+            IEnumerable<Type> c = this.AppAssembly.GetTypes().Where((t) => t.IsPublic && t.IsClass && !t.IsAbstract && (t.BaseType == typeof(ModuleBase<ShardedCommandContext>) || t.BaseType == typeof(ModuleBase<SocketCommandContext>)));
+            this.Commands.AddRange(c);
             //this.AsmName = new AssemblyName(this.ModuleName ?? throw new InvalidOperationException()) { CodeBase = this.ModulePath };
         }
 
@@ -330,12 +391,16 @@ namespace GLaDOSV3.Services
 
         public void Dispose()
         {
+            //fuck you c# ↓
+            if (this.commands == null) return;
             if (this.disposed) return;
             this.disposed = true;
-            this.Unload();
             this.module?.Unload(this.discord, this.commands, this.config, this.Provider);
+            this.Unload();
+            foreach (Type cmd in this.Commands)
+            {
+                this.commands.RemoveModuleAsync(cmd);
+            }
         }
-
-        ~GladosModuleStruct() => this.Dispose();
     }
 }

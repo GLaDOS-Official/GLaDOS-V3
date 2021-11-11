@@ -2,18 +2,19 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using GLaDOSV3.Helpers;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Serilog;
 
 namespace GLaDOSV3.Services
 {
     public class StartupService
     {
+        private readonly ILogger logger;
         private readonly DiscordShardedClient discord;
         private readonly CommandService commands;
         private readonly IServiceProvider provider;
@@ -23,12 +24,14 @@ namespace GLaDOSV3.Services
             DiscordShardedClient discord,
             CommandService commands,
             IServiceProvider provider,
-            BotSettingsHelper<string> botSettingsHelper)
+            BotSettingsHelper<string> botSettingsHelper,
+            ILogger<StartupService> logger)
         {
             this.discord = discord;
             this.commands = commands;
             this.provider = provider;
             this.botSettingsHelper = botSettingsHelper;
+            this.logger = logger;
         }
 
         private Task<string> AskNotNull(string question)
@@ -89,7 +92,7 @@ namespace GLaDOSV3.Services
                 await this.discord.LoginAsync(TokenType.Bot, discordToken).ConfigureAwait(false); // Login to discord
                 await this.discord.StartAsync().ConfigureAwait(false); // Connect to the websocket
             }
-            catch (Exception ex) { Log.Fatal(ex, ex.Message); Environment.Exit(1); }
+            catch (Exception ex) { this.logger.LogCritical(ex, ex.Message); Environment.Exit(1); }
             await this.commands.AddModulesAsync(Assembly.GetEntryAssembly(), this.provider).ConfigureAwait(false);     // Load commands and modules into the command service
             ExtensionLoadingService.Init(this.discord, this.commands, this.botSettingsHelper, this.provider);
             await ExtensionLoadingService.Load().ConfigureAwait(false);

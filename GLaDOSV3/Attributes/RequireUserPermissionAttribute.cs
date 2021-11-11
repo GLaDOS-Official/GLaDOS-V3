@@ -9,13 +9,13 @@ namespace GLaDOSV3.Attributes
     public class RequireUserPermissionAttribute : Discord.Commands.RequireUserPermissionAttribute
     {
         public RequireUserPermissionAttribute(ChannelPermission permission) : base(permission)
-        {}
+        { }
         public RequireUserPermissionAttribute(GuildPermission permission) : base(permission)
-        {}
+        { }
 
         public override async Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
-            var result = await base.CheckPermissionsAsync(context, command, services).ConfigureAwait(true);
+            PreconditionResult result = await base.CheckPermissionsAsync(context, command, services).ConfigureAwait(true);
             if ((!result.IsSuccess && result.Error == CommandError.UnmetPrecondition) && (await IsOwner.CheckPermission(context).ConfigureAwait(true))) return PreconditionResult.FromSuccess();
             return result;
         }

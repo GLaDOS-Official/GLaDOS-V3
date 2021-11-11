@@ -45,36 +45,39 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Discord.Net.Labs" Version="3.0.2" />
-    <PackageReference Include="Fergun.Interactive.Labs" Version="1.1.0" />
+    <PackageReference Include="Discord.Net.Labs" Version="3.1.7" />
+    <PackageReference Include="Fergun.Interactive.Labs" Version="1.2.3" />
     <PackageReference Include="Fizzler.Systems.HtmlAgilityPack" Version="1.2.1" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.36" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Compilers" Version="4.0.0-3.final" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.0.0-3.final" />
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="6.0.0-rc2.21458.5">
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.37" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Compilers" Version="4.0.0-6.final" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.0.0-6.final" />
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="6.0.0-rtm.21518.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.0-rc.2.21461.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0-rc.2.21461.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0-rc.2.21461.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.0-rc.2.21461.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0-rc.2.21461.1" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0-rc.2.21461.1" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0-rc.2.21461.1" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.0-rtm.21518.12" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0-rtm.21518.12" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0-rtm.21518.12" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.0-rtm.21518.12" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0-rtm.21518.12" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0-rtm.21518.12" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0-rtm.21518.12" />
     <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
     <PackageReference Include="NETStandard.Library" Version="2.0.3" />
     <PackageReference Include="Serilog" Version="2.11.0-dev-01371" />
+    <PackageReference Include="Serilog.Expressions" Version="3.2.1-dev-00071" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="4.1.2" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="3.0.2-dev-10289" />
     <PackageReference Include="Serilog.Formatting.Compact" Version="1.1.1-dev-00944" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1-dev-00876" />
-    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    <PackageReference Include="Serilog.Sinks.Async" Version="1.5.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1-dev-00879" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.1-dev-00947" />
+    <PackageReference Include="Serilog.Sinks.Seq" Version="5.0.1" />
     <PackageReference Include="SQLite.Native" Version="3.12.3" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.115" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.115" />
     <PackageReference Include="System.Data.SQLite.Linq" Version="1.0.115" />
-    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="6.0.0-rc.2.21461.1" />
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="6.0.0-rtm.21518.12" />
   </ItemGroup>
   <ItemGroup>
     <None Update="database.db">

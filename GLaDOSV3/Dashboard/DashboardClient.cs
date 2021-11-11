@@ -19,7 +19,7 @@ namespace GLaDOSV3.Dashboard
         {
             var outBuffer = streamEncoding.GetBytes(outString);
             var len = outBuffer.Length;
-            if (len > ushort.MaxValue) len = (int)ushort.MaxValue;
+            if (len > ushort.MaxValue) len = ushort.MaxValue;
             var info = new[] { (byte)(len / 256), (byte)(len & 255) };
             var newArray = new byte[info.Length + outBuffer.Length];
             Array.Copy(info, newArray, info.Length);

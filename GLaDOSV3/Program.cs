@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Commands;
 using Discord.Net.Rest;
 using Discord.Net.WebSockets;
@@ -6,6 +6,10 @@ using Discord.WebSocket;
 using GLaDOSV3.Helpers;
 using GLaDOSV3.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Serilog;
+using Serilog.Events;
+using Serilog.Templates;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -15,9 +19,6 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
-using Serilog;
-using Serilog.Events;
 
 namespace GLaDOSV3
 {
@@ -25,7 +26,7 @@ namespace GLaDOSV3
     //TODO: Make timeout attribute better
     public static class Program
     {
-
+        private static Serilog.ILogger _logger;
         public static void Main(string[] args)
             => StartAsync(args).GetAwaiter().GetResult();
         public static async Task StartAsync(string[] args)
@@ -33,11 +34,17 @@ namespace GLaDOSV3
             Log.Logger = new LoggerConfiguration()
                         .MinimumLevel.Verbose()
                         .MinimumLevel.Override("Microsoft", LogEventLevel.Error)
-                        .WriteTo.Console()
-                        .WriteTo.File("Logs/main-.txt", rollingInterval: RollingInterval.Day, rollOnFileSizeLimit: true)
+                        .WriteTo.Async(a => a.Console())
+                        .WriteTo.Async(a => a.File(new ExpressionTemplate(
+                                                                          "[{@t:HH:mm:ss} {@l:u4}] {Coalesce(SourceContext, '<Unknown>')} {@m}\n{@x}"), "Logs/main-.txt", rollingInterval: RollingInterval.Day,
+                                                   rollOnFileSizeLimit: true))
+                        .WriteTo.Async(a => a.Seq("http://dedi.miko.blue:5341/", LogEventLevel.Verbose, int.MaxValue, apiKey: "JNFcbi3cJFgJZpBfygFb"))
+                        .Enrich.FromLogContext()
+                        .Enrich.WithProperty("Application", "GLaDOS V3")
                         .CreateLogger();
+            _logger = Log.Logger.ForContext(typeof(Program));
             if (StaticTools.IsWindows() && Environment.OSVersion.Version.Major == 6 && Environment.OSVersion.Version.Minor == 1)
-                Log.Fatal("This program does not support Windows 7. You have been warned...");
+                _logger.Fatal("This program does not support Windows 7. You have been warned...");
             //DashboardClient.Connect();
             ConsoleHelper.EnableVirtualConsole();
             //Console.BackgroundColor = ConsoleColor.Black;
@@ -47,32 +54,32 @@ namespace GLaDOSV3
             Directory.SetCurrentDirectory(Path.GetDirectoryName(AppContext.BaseDirectory) ?? throw new InvalidOperationException());
             var pInvokeDir = Path.Combine(Directory.GetCurrentDirectory(), $"PInvoke{Path.DirectorySeparatorChar}");
             if (!Directory.Exists(pInvokeDir))
-            { Log.Error("PInvoke directory doesn't exist! Creating!"); Directory.CreateDirectory(pInvokeDir); }
+            { _logger.Error("PInvoke directory doesn't exist! Creating!"); Directory.CreateDirectory(pInvokeDir); }
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !PInvokesDllImport.SetDllDirectory(pInvokeDir)) Console.WriteLine($"Failed to call SetDllDirectory PInvoke! Last error code: {Marshal.GetLastWin32Error()}");
             Tools.ReleaseMemory();
-            LoggingService.Begin();
-            var proxy = GetDebuggerProxy();
+            //LoggingService.Begin();
+            WebProxy proxy = GetDebuggerProxy();
             DiscordShardedClient client =
                 new DiscordShardedClient(new DiscordSocketConfig // Add the discord client to the service provider
                 {
-                    LogLevel           = LogSeverity.Verbose,
+                    LogLevel = LogSeverity.Verbose,
                     RestClientProvider = DefaultRestClientProvider.Create(proxy != null),
-                    WebSocketProvider  = DefaultWebSocketProvider.Create(proxy),
+                    WebSocketProvider = DefaultWebSocketProvider.Create(proxy),
                     MessageCacheSize =
                         0,                                   // Tell Discord.Net to NOT CACHE! This will also disable MessageUpdated event
                     DefaultRetryMode = RetryMode.AlwaysRetry, // Always believe
                     GatewayIntents = GatewayIntents.All
                 });
+            client.Log += Tools.LogAsync;
             HostBuilder hostBuilder = new HostBuilder();
-            hostBuilder.UseSerilog();
             hostBuilder.UseConsoleLifetime();
             hostBuilder.UseContentRoot(Path.GetDirectoryName(AppContext.BaseDirectory));
             ExtensionLoadingService.Init(null, null, null, null);
             ExtensionLoadingService.LoadExtensions();
             hostBuilder.GladosServices(client);
-            var host = hostBuilder.Build();
-            var provider = host.Services;
-            provider.GetRequiredService<LoggingService>();      // Initialize the logging service, client events, startup service, on discord log on service, command handler and system message
+            IHost host = hostBuilder.Build();
+            IServiceProvider provider = host.Services;
+            //provider.GetRequiredService<LoggingService>();      // Initialize the logging service, client events, startup service, on discord log on service, command handler and system message
             provider.GetRequiredService<ClientEvents>();
             provider.GetRequiredService<OnLogonService>();
             await provider.GetRequiredService<StartupService>().StartAsync(args).ConfigureAwait(false);
@@ -111,6 +118,7 @@ namespace GLaDOSV3
             // ReSharper disable once ArrangeMethodOrOperatorBody
             builder.ConfigureServices(async (_, services) =>
             {
+                services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(dispose: true));
                 services.AddHostedService<MemoryHandlerService>();
                 services.AddSingleton(client)
                         .AddSingleton(new CommandService(new
@@ -123,7 +131,7 @@ namespace GLaDOSV3
                             ThrowOnError = true // This could be changed to false
                         }))
                         .AddSingleton<CommandHandler>()     // Add remaining services to the provider
-                        .AddSingleton<LoggingService>()     // Bad idea not logging commands 
+                                                            //.AddSingleton<LoggingService>()     // Bad idea not logging commands 
                         .AddSingleton<StartupService>()     // Do commands on startup
                         .AddSingleton<OnLogonService>()     // Execute commands after websocket connects
                         .AddSingleton<ClientEvents>()       // Discord client events

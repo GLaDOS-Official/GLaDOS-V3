@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Discord;
+using Discord.WebSocket;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using Discord;
-using Discord.WebSocket;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -120,5 +120,32 @@ namespace GLaDOSV3.Helpers
             await channel.DeleteMessagesAsync(collection);
         }
         public static string GetUrl(this IUser user) => $"https://discord.com/users/{user.Id}";
+        public static int? FindFirstNotOf(this string source, string chars)
+        {
+            if (source        == null) throw new ArgumentNullException("source");
+            if (chars         == null) throw new ArgumentNullException("chars");
+            if (source.Length == 0) return null;
+            if (chars.Length  == 0) return 0;
+
+            for (int i = 0; i < source.Length; i++)
+            {
+                if (chars.IndexOf(source[i]) == -1) return i;
+            }
+            return null;
+        }
+
+        public static int? FindLastNotOf(this string source, string chars)
+        {
+            if (source        == null) throw new ArgumentNullException("source");
+            if (chars         == null) throw new ArgumentNullException("chars");
+            if (source.Length == 0) return null;
+            if (chars.Length  == 0) return source.Length - 1;
+
+            for (int i = source.Length - 1; i >= 0; i--)
+            {
+                if (chars.IndexOf(source[i]) == -1) return i;
+            }
+            return null;
+        }
     }
 }

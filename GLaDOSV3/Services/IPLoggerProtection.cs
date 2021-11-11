@@ -1,4 +1,5 @@
-﻿using Discord.WebSocket;
+using Discord.WebSocket;
+using Fergun.Interactive;
 using HtmlAgilityPack;
 using System;
 using System.Collections.Generic;
@@ -8,14 +9,13 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Fergun.Interactive;
 
 namespace GLaDOSV3.Services
 {
     internal class IpLoggerProtection
     {
         private readonly DiscordShardedClient discord;
-        private readonly List<ulong> serverIds = new List<ulong>() { 658372357924192281, 259776446942150656, 472402015679414293, 503145318372868117, 516296348367192074, 611503265313718282, 611599798595878912, 499598184570421253,  };
+        private readonly List<ulong> serverIds = new List<ulong>() { 658372357924192281, 259776446942150656, 472402015679414293, 503145318372868117, 516296348367192074, 611503265313718282, 611599798595878912, 499598184570421253, };
         public InteractiveService Interactivity { get; set; }
 
         public IpLoggerProtection(DiscordShardedClient discord)
@@ -47,7 +47,7 @@ namespace GLaDOSV3.Services
                     isIpLogger = true;
                     await msg.DeleteAsync();
                     _ = Interactivity.DelayedDeleteMessageAsync(await arg.Channel.SendMessageAsync($"{arg.Author.Mention} Good job! You have sent an IP logger. Message was logged and reported to Trust and Safety team!"), TimeSpan.FromSeconds(3));
-                    return; 
+                    return;
                 }
                 if (urlScanned.Contains(shortUrl))
                     return;
@@ -67,14 +67,14 @@ namespace GLaDOSV3.Services
                                        .GetAwaiter().GetResult().Content.ReadAsStringAsync().ConfigureAwait(true);
                 shortUrl = shortUrl.Replace("%3A", ":", StringComparison.Ordinal);
                 shortUrl = shortUrl.Replace("htt", "hxx", StringComparison.OrdinalIgnoreCase);
-                var document = new HtmlDocument();
+                HtmlDocument document = new HtmlDocument();
                 document.LoadHtml(response);
                 var redirectHops = string.Empty;
-                var imgNodes = document.DocumentNode.SelectNodes("//img");
-                var spanNodes = document.DocumentNode.SelectNodes("//span");
+                HtmlNodeCollection imgNodes = document.DocumentNode.SelectNodes("//img");
+                HtmlNodeCollection spanNodes = document.DocumentNode.SelectNodes("//span");
                 for (var index = 0; index < imgNodes.Count; index++)
                 {
-                    var node = imgNodes[index];
+                    HtmlNode node = imgNodes[index];
                     var text = node.OuterHtml;
                     if (text.Contains("cookie", StringComparison.Ordinal))
                         continue;

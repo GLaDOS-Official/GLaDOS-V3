@@ -1,5 +1,6 @@
-﻿using Discord;
+using Discord;
 using Newtonsoft.Json.Linq;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,9 +15,56 @@ namespace GLaDOSV3.Helpers
 {
     public sealed class Tools
     {
+        internal static Task LogAsync(LogMessage msg)
+        {
+            switch (msg.Severity)
+            {
+                case LogSeverity.Critical:
+                    if (msg.Exception == null)
+                        Log.Fatal(msg.Message);
+                    else
+                        Log.Fatal(msg.Exception, msg.Message);
+                    break;
+                case LogSeverity.Error:
+                    if (msg.Exception == null)
+                        Log.Error(msg.Message);
+                    else
+                        Log.Error(msg.Exception, msg.Message);
+                    break;
+                case LogSeverity.Warning:
+                    if (msg.Exception == null)
+                        Log.Warning(msg.Message);
+                    else
+                        Log.Warning(msg.Exception, msg.Message);
+                    break;
+                case LogSeverity.Info:
+                    if (msg.Exception == null)
+                        Log.Information(msg.Message);
+                    else
+                        Log.Information(msg.Exception, msg.Message);
+                    break;
+                case LogSeverity.Verbose:
+                    if (msg.Exception == null)
+                        Log.Verbose(msg.Message);
+                    else
+                        Log.Verbose(msg.Exception, msg.Message);
+                    break;
+                case LogSeverity.Debug:
+                    if (msg.Exception == null)
+                        Log.Debug(msg.Message);
+                    else
+                        Log.Debug(msg.Exception, msg.Message);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+
+            return Task.CompletedTask;
+        }
         public static int RoundToDividable<T>(int number, int dividable) => (int)RoundToDividable<double>((double)number, dividable);
         public static double RoundToDividable<T>(double number, double dividable) => Math.Ceiling(number / dividable) * dividable;
-        private static Random _rnd = new Random();
+        private static readonly Random _rnd = new Random();
         public static async Task<string> EscapeMentionsAsync(IGuild g, IChannel channel, string message)
         {
             if (message == null || channel == null || message == null) return null;

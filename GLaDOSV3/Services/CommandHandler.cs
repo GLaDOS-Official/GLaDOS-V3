@@ -36,6 +36,7 @@ namespace GLaDOSV3.Services
             this.discord = discord;
             this.commands = commands;
             this.provider = provider;
+            commands.Log += Tools.LogAsync;
             discord.MessageReceived += this.OnMessageReceivedAsync;
             commands.CommandExecuted += this.CommandExecuted;
             MaintenanceMode = botSettingsHelper["maintenance"];

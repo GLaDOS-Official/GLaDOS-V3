@@ -161,7 +161,7 @@ namespace GLaDOSV3.Helpers
             public Globals(SocketCommandContext ctx) => Context = ctx;
         }
 
-       
+
         public static async Task<string> EvalTask(SocketCommandContext ctx, string cScode)
         {
             List<string> imports = new List<string>(16)

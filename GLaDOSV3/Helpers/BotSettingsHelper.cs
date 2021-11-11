@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Data;
-using System.Diagnostics;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace GLaDOSV3.Helpers
 {
-    public class BotSettingsHelper<T> 
+    public class BotSettingsHelper<T>
     {
         private static readonly Assembly MainAssembly = Assembly.GetEntryAssembly();
         private static T GetValue(string key, Assembly callingAssembly)

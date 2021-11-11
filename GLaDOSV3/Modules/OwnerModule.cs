@@ -1,15 +1,15 @@
-﻿using System;
-using System.Data;
-using System.Globalization;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using GLaDOSV3.Attributes;
 using GLaDOSV3.Helpers;
 using GLaDOSV3.Services;
+using System;
+using System.Data;
+using System.Globalization;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
 
 namespace GLaDOSV3.Modules
 {
@@ -354,6 +354,62 @@ namespace GLaDOSV3.Modules
             IsOwner.BotSettingsHelper["discord_status"] = status;
             await this.ReplyAsync($"Set bot's game state to {status}.").ConfigureAwait(false);
             await Context.Client.SetStatusAsync(Enum.Parse<UserStatus>(status)).ConfigureAwait(false);
+        }
+
+        [Attributes.RequireOwner]
+        [Command("bot extension load")]
+        [Summary("Loads bot extension")]
+        [Attributes.RequireOwner]
+        public Task LoadExtension([Remainder] string filename)
+        {
+            if (!ExtensionLoadingService.Load(this.service, filename))
+            {
+                this.ReplyAsync($"Couldn't find extension with filename: {filename}!");
+                return Task.CompletedTask;
+            }
+            this.ReplyAsync($"Loaded extension with filename: {filename}!");
+            return Task.CompletedTask;
+        }
+
+        [Attributes.RequireOwner]
+        [Command("bot extension reload")]
+        [Summary("Reloads bot extension")]
+        [Attributes.RequireOwner]
+        public Task ReloadExtension([Remainder] string name)
+        {
+            if (!ExtensionLoadingService.Reload(this.service, name))
+            {
+                this.ReplyAsync($"Couldn't find extension: {name}!");
+                return Task.CompletedTask;
+            }
+            this.ReplyAsync($"Reloaded extension: {name}!");
+            return Task.CompletedTask;
+        }
+
+        [Attributes.RequireOwner]
+        [Command("bot extension unload")]
+        [Summary("Unloads bot extension")]
+        [Attributes.RequireOwner]
+        public Task UnloadExtension([Remainder] string name)
+        {
+            if (!ExtensionLoadingService.Unload(this.service, name))
+            {
+                this.ReplyAsync($"Couldn't find extension: {name}!");
+                return Task.CompletedTask;
+            }
+            this.ReplyAsync($"Unloaded extension: {name}!");
+            return Task.CompletedTask;
+        }
+
+        [Attributes.RequireOwner]
+        [Command("bot extension list")]
+        [Summary("List all bot extensions")]
+        [Attributes.RequireOwner]
+        public Task ListExtensions()
+        {
+            var msg = ExtensionLoadingService.Extensions.Aggregate("", (current, extension) => current + $"{extension.ModuleName} ({extension.ModulePath})\n");
+            this.ReplyAsync($"```\n{msg}\n```");
+            return Task.CompletedTask;
         }
     }
 }

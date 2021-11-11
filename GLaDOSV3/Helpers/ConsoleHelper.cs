@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 
 namespace GLaDOSV3.Helpers
@@ -34,7 +34,7 @@ namespace GLaDOSV3.Helpers
                 Console.BackgroundColor = color;
                 Console.ForegroundColor = ConsoleColor.DarkGray;
                 Console.Out.Write(message);
-                Console.Out.WriteLine(new String(' ', Console.BufferWidth - Console.CursorLeft));
+                Console.Out.WriteLine(new string(' ', Console.BufferWidth - Console.CursorLeft));
                 Console.ForegroundColor = fcolor;
                 Console.BackgroundColor = bcolor;
             }
