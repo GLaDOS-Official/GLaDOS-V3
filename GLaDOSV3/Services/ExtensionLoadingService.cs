@@ -13,6 +13,10 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Threading.Tasks;
+#if !DEBUG
+using System.Net.Http;
+using Newtonsoft.Json.Linq;
+#endif
 
 namespace GLaDOSV3.Services
 {

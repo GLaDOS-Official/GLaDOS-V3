@@ -119,7 +119,15 @@ namespace GLaDOSV3.Helpers
             SocketTextChannel channel = (SocketTextChannel)collection.First().Channel;
             await channel.DeleteMessagesAsync(collection);
         }
-        public static string GetUrl(this IUser user) => $"https://discord.com/users/{user.Id}";
+        public static string       GetUrl(this IUser user)   => $"https://discord.com/users/{user.Id}";
+        public static List<string> Compare<T>(T x, T y) =>
+            (
+                from l1 in x.GetType().GetFields()
+                join l2 in y.GetType().GetFields() on l1.Name equals l2.Name
+                where !l1.GetValue(x).Equals(l2.GetValue(y))
+                select $"{l1.Name} {l1.GetValue(x)} {l2.GetValue(y)}"
+            ).ToList();
+
         public static int? FindFirstNotOf(this string source, string chars)
         {
             if (source        == null) throw new ArgumentNullException("source");
