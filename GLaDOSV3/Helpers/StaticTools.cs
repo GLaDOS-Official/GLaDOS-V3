@@ -33,12 +33,12 @@ namespace GLaDOSV3.Helpers
         public static bool IsWindows() =>
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
-        public static bool IsMacOS() =>
+        public static bool IsMacOs() =>
             RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 
         public static bool IsLinux() =>
             RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
-        public static bool IsUnix() => IsLinux() || IsMacOS();
+        public static bool IsUnix() => IsLinux() || IsMacOs();
         public static T RandomElement<T>(this T[] items) => items[Rnd.Next(0, items.Length)];
         public static T RandomElement<T>(this List<T> items) => items[Rnd.Next(0, items.Count)];
         public static SocketTextChannel DefaultWritableChannel(this SocketGuild g) => g?.TextChannels.Where(c => (g.CurrentUser.GetPermissions(c).ViewChannel) && g.CurrentUser.GetPermissions(c).SendMessages).OrderBy(c => c.Position).FirstOrDefault();
@@ -66,12 +66,12 @@ namespace GLaDOSV3.Helpers
             _ = provider ?? throw new ArgumentNullException($"{nameof(provider)} is not initialized!", new NullReferenceException());
             return (T?)provider.GetService(typeof(T))!;
         }
-        public static bool HasPermission(this SocketGuildUser member, GuildPermission perm) => member.GuildPermissions.Has(perm);
+        public static bool HasPermission(this SocketGuildUser member, GuildPermission   perm) => member.GuildPermissions.Has(perm);
+        public static bool HasPermission(this SocketGuildUser member, GuildPermission[] perm) => perm.Count(permItem => member.GuildPermissions.Has(permItem)) == perm.Length;
 
-        public static bool IsAdministrator(this SocketGuildUser member) => member.Roles.Any(role => role.Permissions.Has(GuildPermission.Administrator));
+        public static bool IsAdministrator(this SocketGuildUser member) => member.GuildPermissions.Administrator || member.Roles.Any(role => role.Permissions.Has(GuildPermission.Administrator));
 
-
-        public static string GetRoleMention(this SocketGuildUser member) => member.Roles.Last().Mention;
+        public static string GetLastRoleMention(this SocketGuildUser member) => member.Roles.Last().Mention;
 
         public static bool IsAbove(this SocketGuildUser target, SocketGuildUser comparison) => target.Roles.Any() && target.Hierarchy >= comparison.Hierarchy;
         public static string Center(this string text, string anchor)
@@ -97,13 +97,13 @@ namespace GLaDOSV3.Helpers
             range.End.IsFromEnd ? text[range] : text[range.Start..Math.Min(text.Length, range.End.Value)];
 
         public static Stream AsStream(this string s) => new MemoryStream(Encoding.UTF8.GetBytes(s));
-        public static SocketUser? GetUser(this DiscordSocketClient client, Func<SocketGuildUser, bool> predicate) =>
+        public static SocketUser GetUser(this DiscordSocketClient client, Func<SocketGuildUser, bool> predicate) =>
             client
                .Guilds
                .SelectMany(g => g.Users)
                .FirstOrDefault(predicate);
 
-        public static SocketGuildUser? GetUser(this DiscordShardedClient client, Func<SocketGuildUser, bool> predicate) =>
+        public static SocketGuildUser GetUser(this DiscordShardedClient client, Func<SocketGuildUser, bool> predicate) =>
             client
                .Shards
                .SelectMany(c => c.Guilds)
@@ -121,39 +121,38 @@ namespace GLaDOSV3.Helpers
         }
         public static string       GetUrl(this IUser user)   => $"https://discord.com/users/{user.Id}";
         public static List<string> Compare<T>(T x, T y) =>
-            (
-                from l1 in x.GetType().GetFields()
-                join l2 in y.GetType().GetFields() on l1.Name equals l2.Name
-                where !l1.GetValue(x).Equals(l2.GetValue(y))
-                select $"{l1.Name} {l1.GetValue(x)} {l2.GetValue(y)}"
-            ).ToList();
+            (x.GetType()
+              .GetFields()
+              .Join(y.GetType().GetFields(), l1 => l1.Name, l2 => l2.Name, (l1, l2) => new { l1, l2 })
+              .Where(@t => !@t.l1.GetValue(x).Equals(@t.l2.GetValue(y)))
+              .Select(@t => $"{@t.l1.Name} {@t.l1.GetValue(x)} {@t.l2.GetValue(y)}")).ToList();
 
-        public static int? FindFirstNotOf(this string source, string chars)
+        public static int FindFirstNotOf(this string source, string chars)
         {
             if (source        == null) throw new ArgumentNullException("source");
             if (chars         == null) throw new ArgumentNullException("chars");
-            if (source.Length == 0) return null;
+            if (source.Length == 0) return -1;
             if (chars.Length  == 0) return 0;
 
             for (int i = 0; i < source.Length; i++)
             {
                 if (chars.IndexOf(source[i]) == -1) return i;
             }
-            return null;
+            return -1;
         }
 
-        public static int? FindLastNotOf(this string source, string chars)
+        public static int FindLastNotOf(this string source, string chars)
         {
             if (source        == null) throw new ArgumentNullException("source");
             if (chars         == null) throw new ArgumentNullException("chars");
-            if (source.Length == 0) return null;
+            if (source.Length == 0) return -1;
             if (chars.Length  == 0) return source.Length - 1;
 
             for (int i = source.Length - 1; i >= 0; i--)
             {
                 if (chars.IndexOf(source[i]) == -1) return i;
             }
-            return null;
+            return -1;
         }
     }
 }

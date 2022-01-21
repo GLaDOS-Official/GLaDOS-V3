@@ -91,7 +91,7 @@ namespace GLaDOSV3.Services
             List<string> dirName = new List<string>();
             if (StaticTools.IsWindows()) { dirName.AddRange(new[] { "win-" + Architecture, "win" }); }
             if (StaticTools.IsLinux()) { dirName.Add("linux-" + Architecture); }
-            if (StaticTools.IsMacOS()) { dirName.Add("osx-" + Architecture); }
+            if (StaticTools.IsMacOs()) { dirName.Add("osx-" + Architecture); }
             if (StaticTools.IsUnix()) { dirName.Add("unix"); }
 
             foreach (var path in dirName)

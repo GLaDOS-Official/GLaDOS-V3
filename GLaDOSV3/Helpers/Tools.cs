@@ -9,7 +9,9 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
+using System.Threading.Channels;
 using System.Threading.Tasks;
+using Discord.WebSocket;
 
 namespace GLaDOSV3.Helpers
 {
@@ -65,9 +67,10 @@ namespace GLaDOSV3.Helpers
         public static int RoundToDividable<T>(int number, int dividable) => (int)RoundToDividable<double>((double)number, dividable);
         public static double RoundToDividable<T>(double number, double dividable) => Math.Ceiling(number / dividable) * dividable;
         private static readonly Random _rnd = new Random();
-        public static async Task<string> EscapeMentionsAsync(IGuild g, IChannel channel, string message)
+        public static async Task<string> EscapeMentionsAsync(IChannel channel, string message)
         {
             if (message == null || channel == null || message == null) return null;
+            var g = ((SocketGuildChannel) channel).Guild;
             message = message.Replace("@here", "@\x200bhere", StringComparison.Ordinal)
                              .Replace("@everyone", "@\x200beveryone", StringComparison.Ordinal);
             Regex r = new Regex("<@&?!?(\\d+)>", RegexOptions.Compiled);

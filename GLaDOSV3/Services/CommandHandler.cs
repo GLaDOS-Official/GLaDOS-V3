@@ -9,6 +9,7 @@ using System.Data;
 using System.Data.SQLite;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GLaDOSV3.Services
@@ -16,12 +17,22 @@ namespace GLaDOSV3.Services
     public class CommandHandler
     {
         private readonly DiscordShardedClient discord;
-        private readonly CommandService commands;
-        private readonly IServiceProvider provider;
-        public static List<ulong> BlacklistedUsers = new List<ulong>();
-        public static List<ulong> BlacklistedServers = new List<ulong>();
-        public static string MaintenanceMode = string.Empty;
-        public static bool BotBusy = false;
+        private readonly CommandService       commands;
+        private readonly IServiceProvider     provider;
+        public static    List<ulong>          BlacklistedUsers   = new List<ulong>();
+        public static    List<ulong>          BlacklistedServers = new List<ulong>();
+        public static    string               MaintenanceMode    = string.Empty;
+        private static   object               _botBusy;
+        public static bool BotBusy
+        {
+            get
+            {
+                object returnVal = Interlocked.CompareExchange(ref _botBusy, false, null);
+                return returnVal != null && (bool)returnVal;
+            }
+            set => Interlocked.Exchange(ref _botBusy, value);
+        }
+
         public static Dictionary<ulong, string> Prefix = new Dictionary<ulong, string>();
 
         private readonly string fallbackPrefix;

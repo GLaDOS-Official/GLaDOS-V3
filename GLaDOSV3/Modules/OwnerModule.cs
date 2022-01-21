@@ -91,11 +91,11 @@ namespace GLaDOSV3.Modules
             //                                               | BindingFlags.NonPublic)
             //                  ?.Invoke(Context.Client, null);
             var msg = ctor.Invoke(
-                          new object[]
-                          {
-                              Context.Client, Context.Message.Id,
-                              Context.Channel, user, user.IsBot ? MessageSource.Bot : MessageSource.User
-                          });
+                                  new object[]
+                                  {
+                                      Context.Client.GetShard(Context.Client.GetShardIdFor(Context.Guild)), Context.Message.Id,
+                                      Context.Channel, user, user.IsBot ? MessageSource.Bot : MessageSource.User
+                                  });
             await this.service.ExecuteAsync(new ShardedCommandContext(Context.Client, (SocketUserMessage)msg), command.StartsWith(this.botSettingsHelper["prefix"]) ? command[this.botSettingsHelper["prefix"].Length..] : command, this.provider);
         }
         //[Command("bot webhookmass")]

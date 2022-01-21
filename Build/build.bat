@@ -21,11 +21,13 @@ mkdir %BUILDLOCATION%\Modules\ >nul 2>&1
 mkdir %BUILDLOCATION%\Images\ >nul 2>&1
 mkdir %BUILDLOCATION%\Dependencies\ >nul 2>&1
 mkdir %BUILDLOCATION%\runtimes\ >nul 2>&1
+mkdir %BUILDLOCATION%\PInvoke\ >nul 2>&1
 xcopy %GLADOSRELEASE%\Binaries\     %BUILDLOCATION%\Binaries\  /E /H /C /I /Y >nul 2>&1
 xcopy %GLADOSRELEASE%\Modules\      %BUILDLOCATION%\Modules\  /E /H /C /I /Y >nul 2>&1
 xcopy %GLADOSRELEASE%\Images\       %BUILDLOCATION%\Images\  /E /H /C /I /Y >nul 2>&1
 xcopy %GLADOSRELEASE%\Dependencies\ %BUILDLOCATION%\Dependencies\  /E /H /C /I /Y >nul 2>&1
 xcopy %GLADOSRELEASE%\runtimes\ %BUILDLOCATION%\runtimes\ /E /H /C /I /Y >nul 2>&1
+xcopy %GLADOSRELEASE%\PInvoke\ %BUILDLOCATION%\PInvoke\ /E /H /C /I /Y >nul 2>&1
 IF EXIST %GLADOSRELEASE%\database.db (
 	echo Deleting database.db to prevent any leaks!
 	del %BUILDLOCATION%\database.db /q /f >nul 2>&1
@@ -42,11 +44,13 @@ mkdir %BUILDLOCATION%\Modules\ >nul 2>&1
 mkdir %BUILDLOCATION%\Images\ >nul 2>&1
 mkdir %BUILDLOCATION%\Dependencies\ >nul 2>&1
 mkdir %BUILDLOCATION%\runtimes\ >nul 2>&1
+mkdir %BUILDLOCATION%\PInvoke\ >nul 2>&1
 xcopy %GLADOSRELEASE%\Binaries\     %BUILDLOCATION%\Binaries\  /E /H /C /I /Y >nul 2>&1
 xcopy %GLADOSRELEASE%\Modules\      %BUILDLOCATION%\Modules\  /E /H /C /I /Y >nul 2>&1
 xcopy %GLADOSRELEASE%\Images\       %BUILDLOCATION%\Images\  /E /H /C /I /Y >nul 2>&1
 xcopy %GLADOSRELEASE%\Dependencies\ %BUILDLOCATION%\Dependencies\  /E /H /C /I /Y >nul 2>&1
 xcopy %GLADOSRELEASE%\runtimes\ %BUILDLOCATION%\runtimes\ /E /H /C /I /Y >nul 2>&1
+xcopy %GLADOSRELEASE%\PInvoke\ %BUILDLOCATION%\PInvoke\ /E /H /C /I /Y >nul 2>&1
 IF EXIST %GLADOSRELEASE%\database.db ( 
 	echo Deleting database.db to prevent any leaks!
 	del %BUILDLOCATION%\database.db /q /f >nul 2>&1
@@ -63,11 +67,13 @@ mkdir %BUILDLOCATION%\Modules\ >nul 2>&1
 mkdir %BUILDLOCATION%\Images\ >nul 2>&1
 mkdir %BUILDLOCATION%\Dependencies\ >nul 2>&1
 mkdir %BUILDLOCATION%\runtimes\ >nul 2>&1
+mkdir %BUILDLOCATION%\PInvoke\ >nul 2>&1
 xcopy %GLADOSRELEASE%\Binaries\     %BUILDLOCATION%\Binaries\  /E /H /C /I /Y >nul 2>&1
-xcopy %GLADOSRELEASE%\Modules\      %BUILDLOCATION%\Modules\  /E /H /C /I /Y >nul 2>&1	
+xcopy %GLADOSRELEASE%\Modules\      %BUILDLOCATION%\Modules\  /E /H /C /I /Y >nul 2>&1
 xcopy %GLADOSRELEASE%\Images\       %BUILDLOCATION%\Images\  /E /H /C /I /Y >nul 2>&1
 xcopy %GLADOSRELEASE%\Dependencies\ %BUILDLOCATION%\Dependencies\  /E /H /C /I /Y >nul 2>&1
 xcopy %GLADOSRELEASE%\runtimes\ %BUILDLOCATION%\runtimes\ /E /H /C /I /Y >nul 2>&1
+xcopy %GLADOSRELEASE%\PInvoke\ %BUILDLOCATION%\PInvoke\ /E /H /C /I /Y >nul 2>&1
 IF EXIST %GLADOSRELEASE%\database.db ( 
 	echo Deleting database.db to prevent any leaks!
 	del %BUILDLOCATION%\database.db /q /f >nul 2>&1
@@ -84,11 +90,13 @@ mkdir %BUILDLOCATION%\Modules\ >nul 2>&1
 mkdir %BUILDLOCATION%\Images\ >nul 2>&1
 mkdir %BUILDLOCATION%\Dependencies\ >nul 2>&1
 mkdir %BUILDLOCATION%\runtimes\ >nul 2>&1
+mkdir %BUILDLOCATION%\PInvoke\ >nul 2>&1
 xcopy %GLADOSRELEASE%\Binaries\     %BUILDLOCATION%\Binaries\  /E /H /C /I /Y >nul 2>&1
 xcopy %GLADOSRELEASE%\Modules\      %BUILDLOCATION%\Modules\  /E /H /C /I /Y >nul 2>&1
 xcopy %GLADOSRELEASE%\Images\       %BUILDLOCATION%\Images\  /E /H /C /I /Y >nul 2>&1
 xcopy %GLADOSRELEASE%\Dependencies\ %BUILDLOCATION%\Dependencies\  /E /H /C /I /Y >nul 2>&1
 xcopy %GLADOSRELEASE%\runtimes\ %BUILDLOCATION%\runtimes\ /E /H /C /I /Y >nul 2>&1
+xcopy %GLADOSRELEASE%\PInvoke\ %BUILDLOCATION%\PInvoke\ /E /H /C /I /Y >nul 2>&1
 IF EXIST %GLADOSRELEASE%\database.db ( 
 	echo Deleting database.db to prevent any leaks!
 	del %BUILDLOCATION%\database.db /q /f >nul 2>&1
@@ -104,11 +112,13 @@ mkdir %BUILDLOCATION%\Modules\ >nul 2>&1
 mkdir %BUILDLOCATION%\Images\ >nul 2>&1
 mkdir %BUILDLOCATION%\Dependencies\ >nul 2>&1
 mkdir %BUILDLOCATION%\runtimes\ >nul 2>&1
+mkdir %BUILDLOCATION%\PInvoke\ >nul 2>&1
 xcopy %GLADOSRELEASE%\Binaries\     %BUILDLOCATION%\Binaries\  /E /H /C /I /Y >nul 2>&1
 xcopy %GLADOSRELEASE%\Modules\      %BUILDLOCATION%\Modules\  /E /H /C /I /Y >nul 2>&1
 xcopy %GLADOSRELEASE%\Images\       %BUILDLOCATION%\Images\  /E /H /C /I /Y >nul 2>&1
 xcopy %GLADOSRELEASE%\Dependencies\ %BUILDLOCATION%\Dependencies\  /E /H /C /I /Y >nul 2>&1
 xcopy %GLADOSRELEASE%\runtimes\ %BUILDLOCATION%\runtimes\ /E /H /C /I /Y >nul 2>&1
+xcopy %GLADOSRELEASE%\PInvoke\ %BUILDLOCATION%\PInvoke\ /E /H /C /I /Y >nul 2>&1
 IF EXIST %GLADOSRELEASE%\database.db ( 
 	echo Deleting database.db to prevent any leaks!
 	del %BUILDLOCATION%\database.db /q /f >nul 2>&1

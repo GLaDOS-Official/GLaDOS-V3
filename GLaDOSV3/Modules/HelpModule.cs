@@ -60,7 +60,7 @@ namespace GLaDOSV3.Modules
                 var result = this.service.Search(Context, command);
                 if (!result.IsSuccess)
                 {
-                    await this.ReplyAsync($"Sorry, I couldn't find a command like **{await Tools.EscapeMentionsAsync(Context.Guild, Context.Channel, command).ConfigureAwait(true)}**.").ConfigureAwait(false);
+                    await this.ReplyAsync($"Sorry, I couldn't find a command like **{await Tools.EscapeMentionsAsync(Context.Channel, command).ConfigureAwait(true)}**.").ConfigureAwait(false);
                     return;
                 }
 
@@ -74,10 +74,10 @@ namespace GLaDOSV3.Modules
                 }
                 if (!list.Any())
                 {
-                    await this.ReplyAsync($"Sorry, I couldn't find a command like **{await Tools.EscapeMentionsAsync(Context.Guild, Context.Channel, command).ConfigureAwait(true)}**.").ConfigureAwait(false);
+                    await this.ReplyAsync($"Sorry, I couldn't find a command like **{await Tools.EscapeMentionsAsync(Context.Channel, command).ConfigureAwait(true)}**.").ConfigureAwait(false);
                     return;
                 }
-                builder.Description = $"Here are some commands like **{await Tools.EscapeMentionsAsync(Context.Guild, Context.Channel, command).ConfigureAwait(true)}**";
+                builder.Description = $"Here are some commands like **{await Tools.EscapeMentionsAsync(Context.Channel, command).ConfigureAwait(true)}**";
 
                 foreach (var match in list)
                 {
