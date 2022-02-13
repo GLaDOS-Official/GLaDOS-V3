@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace GLaDOSV3.Helpers
 {
@@ -61,10 +62,11 @@ namespace GLaDOSV3.Helpers
         public static T Add<T>(this Enum type, T value) => (T)(object)((int)(object)type | (int)(object)value);
 
         public static T Remove<T>(this Enum type, T value) => (T)(object)((int)(object)type & ~(int)(object)value);
-        public static T? Get<T>(this IServiceProvider provider)
+
+        public static T Get<T>(this IServiceProvider provider)
         {
             _ = provider ?? throw new ArgumentNullException($"{nameof(provider)} is not initialized!", new NullReferenceException());
-            return (T?)provider.GetService(typeof(T))!;
+            return (T)provider.GetService(typeof(T))!;
         }
         public static bool HasPermission(this SocketGuildUser member, GuildPermission   perm) => member.GuildPermissions.Has(perm);
         public static bool HasPermission(this SocketGuildUser member, GuildPermission[] perm) => perm.Count(permItem => member.GuildPermissions.Has(permItem)) == perm.Length;

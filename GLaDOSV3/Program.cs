@@ -38,7 +38,6 @@ namespace GLaDOSV3
                         .WriteTo.Async(a => a.File(new ExpressionTemplate(
                                                                           "[{@t:HH:mm:ss} {@l:u4}] {Coalesce(SourceContext, '<Unknown>')} {@m}\n{@x}"), "Logs/main-.txt", rollingInterval: RollingInterval.Day,
                                                    rollOnFileSizeLimit: true))
-                        .WriteTo.Async(a => a.Seq("http://dedi.miko.blue:5341/", LogEventLevel.Verbose, int.MaxValue, apiKey: "JNFcbi3cJFgJZpBfygFb"))
                         .Enrich.FromLogContext()
                         .Enrich.WithProperty("Application", "GLaDOS V3")
                         .CreateLogger();

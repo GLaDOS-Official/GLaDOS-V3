@@ -66,7 +66,7 @@ namespace GLaDOSV3.Helpers
         }
         public static int RoundToDividable<T>(int number, int dividable) => (int)RoundToDividable<double>((double)number, dividable);
         public static double RoundToDividable<T>(double number, double dividable) => Math.Ceiling(number / dividable) * dividable;
-        private static readonly Random _rnd = new Random();
+        private static readonly Random Rnd = new Random();
         public static async Task<string> EscapeMentionsAsync(IChannel channel, string message)
         {
             if (message == null || channel == null || message == null) return null;
@@ -88,7 +88,7 @@ namespace GLaDOSV3.Helpers
                 }
                 else
                 {
-                    var user = g == null ? await channel.GetUserAsync(uId).ConfigureAwait(true) : await g.GetUserAsync(uId).ConfigureAwait(true);
+                    var user = g == null ? await channel.GetUserAsync(uId).ConfigureAwait(true) : g.GetUser(uId);
                     if (user == null) continue;
                     message = message.Replace(m.Groups[0].Value, $"@\x200b{user.Username}#{user.Discriminator}", StringComparison.Ordinal);
                 }
@@ -156,7 +156,7 @@ namespace GLaDOSV3.Helpers
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
             return new string(Enumerable.Repeat(chars, length)
-                                        .Select(s => s[_rnd.Next(s.Length)]).ToArray());
+                                        .Select(s => s[Rnd.Next(s.Length)]).ToArray());
         }
     }
 }

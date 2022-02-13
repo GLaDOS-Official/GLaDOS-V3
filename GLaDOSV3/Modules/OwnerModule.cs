@@ -160,13 +160,9 @@ namespace GLaDOSV3.Modules
             foreach (SocketGuild t in Context.Client.Guilds)
             {
                 if (t.DefaultWritableChannel() != null)
-                {
                     await t.DefaultWritableChannel().SendMessageAsync($"System message: {message}").ConfigureAwait(false);
-                }
                 else
-                {
                     await t.TextChannels.ToArray()[0].SendMessageAsync($"System message: {message}").ConfigureAwait(false);
-                }
             }
             await progress.ModifyAsync(properties => properties.Content = $"Done! Sent to {Context.Client.Guilds.Count} {(Context.Client.Guilds.Count <= 1 ? "guild" : "guilds")}.").ConfigureAwait(false);
         }
